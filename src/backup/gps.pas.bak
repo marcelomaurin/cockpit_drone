@@ -1,0 +1,26 @@
+unit GPS;
+
+{$mode objfpc}{$H+}
+
+interface
+
+uses
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs;
+
+type
+  TfrmGPS = class(TForm)
+  private
+
+  public
+
+  end;
+
+var
+  frmGPS: TfrmGPS;
+
+implementation
+
+{$R *.lfm}
+
+end.
+

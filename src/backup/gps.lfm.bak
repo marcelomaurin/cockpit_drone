@@ -1,0 +1,8 @@
+object frmGPS: TfrmGPS
+  Left = 426
+  Height = 240
+  Top = 223
+  Width = 320
+  Caption = 'GPS Local'
+  LCLVersion = '1.8.4.0'
+end

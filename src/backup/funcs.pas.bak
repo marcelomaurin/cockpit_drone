@@ -1,0 +1,25 @@
+unit funcs;
+
+{$mode objfpc}{$H+}
+
+interface
+
+uses
+  Classes, SysUtils;
+function MAPA(X0,X1,Y0,y1, valueX: real): byte;
+
+implementation
+
+//Realiza regra de mapa semelhante ao arduino
+function MAPA(X0,X1,Y0,y1, valueX: real): byte;
+var
+  valor : double;
+begin
+
+     valor := (((valueX * (Y1-Y0)) / (X1-X0))+Y0);
+     //result := byte(trunc(valor) and $FF);
+     result := byte(trunc(valueX/100) and $FF);
+end;
+
+end.
+

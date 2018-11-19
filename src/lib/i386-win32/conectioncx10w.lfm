@@ -1,0 +1,163 @@
+object frmConectionCX10W: TfrmConectionCX10W
+  Left = 1155
+  Height = 451
+  Top = 179
+  Width = 256
+  Caption = 'Connection'
+  ClientHeight = 451
+  ClientWidth = 256
+  OnCreate = FormCreate
+  LCLVersion = '1.8.4.0'
+  object pnTop: TPanel
+    Left = 0
+    Height = 128
+    Top = 0
+    Width = 256
+    Align = alTop
+    ClientHeight = 128
+    ClientWidth = 256
+    TabOrder = 0
+    object Label1: TLabel
+      Left = 8
+      Height = 15
+      Top = 8
+      Width = 67
+      Caption = 'Device Type:'
+      ParentColor = False
+    end
+    object lbdevicename: TLabel
+      Left = 80
+      Height = 15
+      Top = 8
+      Width = 70
+      Caption = 'Device Name'
+      ParentColor = False
+    end
+    object Label2: TLabel
+      Left = 62
+      Height = 15
+      Top = 30
+      Width = 13
+      Caption = 'IP:'
+      ParentColor = False
+    end
+    object lbIP: TLabel
+      Left = 80
+      Height = 15
+      Top = 30
+      Width = 33
+      Caption = '0.0.0.0'
+      ParentColor = False
+    end
+    object Label3: TLabel
+      Left = 25
+      Height = 15
+      Top = 48
+      Width = 50
+      Caption = 'Port TCP:'
+      ParentColor = False
+    end
+    object lbTCP: TLabel
+      Left = 80
+      Height = 15
+      Top = 48
+      Width = 6
+      Caption = '0'
+      ParentColor = False
+    end
+    object Label4: TLabel
+      Left = 144
+      Height = 15
+      Top = 48
+      Width = 51
+      Caption = 'Port UDP:'
+      ParentColor = False
+    end
+    object lbUDP: TLabel
+      Left = 199
+      Height = 15
+      Top = 48
+      Width = 6
+      Caption = '0'
+      ParentColor = False
+    end
+    object Label5: TLabel
+      Left = 46
+      Height = 15
+      Top = 71
+      Width = 29
+      Caption = 'State:'
+      ParentColor = False
+      OnClick = Label5Click
+    end
+    object lbStateConection: TLabel
+      Left = 85
+      Height = 15
+      Top = 73
+      Width = 36
+      Caption = 'Offline'
+      ParentColor = False
+      OnChangeBounds = lbStateConectionChangeBounds
+    end
+    object Label6: TLabel
+      Left = 0
+      Height = 15
+      Top = 113
+      Width = 50
+      Caption = 'Data Log:'
+      ParentColor = False
+    end
+  end
+  object pnBotton: TPanel
+    Left = 0
+    Height = 71
+    Top = 380
+    Width = 256
+    Align = alBottom
+    TabOrder = 1
+    OnClick = pnBottonClick
+  end
+  object meLog: TMemo
+    Left = 0
+    Height = 252
+    Top = 128
+    Width = 256
+    Align = alClient
+    PopupMenu = popLog
+    TabOrder = 2
+  end
+  object LTCPComponent1: TLTCPComponent
+    Port = 0
+    OnReceive = LTCPComponent1Receive
+    OnError = LTCPComponent1Error
+    OnDisconnect = LTCPComponent1Disconnect
+    OnConnect = LTCPComponent1Connect
+    OnAccept = LTCPComponent1Accept
+    Timeout = 0
+    ReuseAddress = False
+    left = 192
+    top = 392
+  end
+  object LUDPComponent1: TLUDPComponent
+    Port = 0
+    OnReceive = LUDPComponent1Receive
+    OnError = LUDPComponent1Error
+    Timeout = 0
+    left = 120
+    top = 392
+  end
+  object popLog: TPopupMenu
+    left = 60
+    top = 210
+    object MenuItem1: TMenuItem
+      Caption = 'Save as'
+    end
+  end
+  object timerJoystick: TTimer
+    Enabled = False
+    Interval = 100
+    OnTimer = timerJoystickTimer
+    left = 32
+    top = 360
+  end
+end
