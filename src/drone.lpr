@@ -7,8 +7,9 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, opengpsx, mplayercontrollaz, laz_acs, lnetvisual, main, config, cd10w,
-  About, Camera, map, joystick, ConectionCX10W, funcs, GPS
+  Forms, opengpsx, mplayercontrollaz, LazSerialPort, sdposeriallaz, laz_acs,
+  lnetvisual, main, config, cd10w, About, Camera, map, joystick, ConectionCX10W,
+  funcs, GPS
   { you can add units after this };
 
 {$R *.res}

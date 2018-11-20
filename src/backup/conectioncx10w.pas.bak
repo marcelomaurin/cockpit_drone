@@ -83,7 +83,7 @@ type
   private
       X,Y,Z : byte;
       B1,B2,B3, B4,B5,B6 : byte;
-
+      Error : boolean;
   public
 
           magicBytesVideo1A : string;
@@ -127,7 +127,7 @@ end;
 
 procedure TfrmConectionCX10W.FormCreate(Sender: TObject);
 begin
-
+     error:= false;
 
 end;
 
@@ -142,12 +142,23 @@ begin
 
   //Inicia
   sendMagicPackets();
+  sleep(1000);
+  Application.ProcessMessages;
+
+  /*Envia liberação de video*/
   //sendMagicPacketsVideo1();
+  sleep(1000);
+  Application.ProcessMessages;
+
+  /*Envia liberacao de video segundo bloco*/
   //sendMagicPacketsVideo2();
+  sleep(1000);
+  Application.ProcessMessages;
 
 
   AtivaJoystick();
   FrmMain.AtivouDrone();
+  Application.ProcessMessages;
 
 
 end;
@@ -180,6 +191,7 @@ procedure TfrmConectionCX10W.LTCPComponent1Error(const msg: string;
   aSocket: TLSocket);
 begin
     lbStateConection.Caption:= 'Erro connection';
+    Error := true;
     DesativaJoystick();
     DesativaConnection();
 end;
@@ -196,6 +208,7 @@ procedure TfrmConectionCX10W.LUDPComponent1Error(const msg: string;
   aSocket: TLSocket);
 begin
   meLog.Append(datetimetostr(now)+'UDP_Erro:');
+  Error := true;
 end;
 
 procedure TfrmConectionCX10W.LUDPComponent1Receive(aSocket: TLSocket);
@@ -267,14 +280,6 @@ begin
        B6 :=frmMain.B6;
        mudou := true;
   end;
-
-
-
-
-
-
-
-
  if (mudou ) then
  begin
       sendGamepadData();
@@ -284,14 +289,21 @@ end;
 
 procedure TfrmConectionCX10W.sendMagicPackets();
 begin
+  if Error = false then
+  begin
          LTCPComponent1.Send(magicBytesCtrl, Length(magicBytesCtrl));
+
+  end;
 end;
 
 procedure TfrmConectionCX10W.sendMagicPacketsVideo1();
 begin
-
+  if Error = false then
+  begin
     LTCPComponent1.Send(magicBytesVideo1A,Length(magicBytesVideo1A));
     LTCPComponent1.Send(magicBytesVideo1B,Length(magicBytesVideo1B));
+
+  end;
 
 end;
 
@@ -322,6 +334,8 @@ var
   a : integer;
   info : string;
 begin
+  if Error = false then
+  begin
     for a:= 1 to 6 do
         DataArray[a] := data[a];
 
@@ -344,7 +358,10 @@ begin
     else
     begin
       meLog.Append(datetimetostr(now)+': UDP Erro');
+      error := true;
     end;
+
+  end;
 
 end;
 
@@ -374,10 +391,18 @@ end;
 
 procedure TfrmConectionCX10W.InicioHandShake();
 begin
+     Error:=false;
      meLog.Append(datetimetostr(now)+': Hand Shake');
      lbStateConection.Caption:= 'Connecting...';
-     LTCPComponent1.Connect(lbIP.Caption,strtoint(lbTCP.Caption));
-     LUDPComponent1.Connect(lbIP.caption,strtoint(lbUDP.caption));
+     try
+          LTCPComponent1.Connect(lbIP.Caption,strtoint(lbTCP.Caption));
+          LUDPComponent1.Connect(lbIP.caption,strtoint(lbUDP.caption));
+
+     Except
+       meLog.Append(datetimetostr(now)+': Hand Shake fail');
+       lbStateConection.Caption:= 'Fail...';
+       Error := true;
+     end;
 end;
 
 end.

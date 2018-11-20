@@ -22,34 +22,46 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="9">
+    <RequiredPackages Count="13">
       <Item1>
-        <PackageName Value="MPlayerControlLaz"/>
+        <PackageName Value="lazupdate"/>
       </Item1>
       <Item2>
-        <PackageName Value="laz_acs"/>
+        <PackageName Value="playwavepackage"/>
       </Item2>
       <Item3>
-        <PackageName Value="lnetvisual"/>
+        <PackageName Value="SdpoSerialLaz"/>
       </Item3>
       <Item4>
-        <PackageName Value="opengpsx"/>
+        <PackageName Value="LazSerialPort"/>
       </Item4>
       <Item5>
-        <PackageName Value="bgracontrols"/>
+        <PackageName Value="MPlayerControlLaz"/>
       </Item5>
       <Item6>
-        <PackageName Value="cadsys"/>
+        <PackageName Value="laz_acs"/>
       </Item6>
       <Item7>
-        <PackageName Value="bgragames"/>
+        <PackageName Value="lnetvisual"/>
       </Item7>
       <Item8>
-        <PackageName Value="industrial"/>
+        <PackageName Value="opengpsx"/>
       </Item8>
       <Item9>
-        <PackageName Value="LCL"/>
+        <PackageName Value="bgracontrols"/>
       </Item9>
+      <Item10>
+        <PackageName Value="cadsys"/>
+      </Item10>
+      <Item11>
+        <PackageName Value="bgragames"/>
+      </Item11>
+      <Item12>
+        <PackageName Value="industrial"/>
+      </Item12>
+      <Item13>
+        <PackageName Value="LCL"/>
+      </Item13>
     </RequiredPackages>
     <Units Count="12">
       <Unit0>

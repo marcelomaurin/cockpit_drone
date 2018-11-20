@@ -1,7 +1,7 @@
 object frmAbout: TfrmAbout
-  Left = 640
+  Left = 642
   Height = 240
-  Top = 231
+  Top = 236
   Width = 320
   BorderStyle = bsNone
   Caption = 'About me'

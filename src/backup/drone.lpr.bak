@@ -21,7 +21,7 @@ begin
   Application.CreateForm(TfrmCam, frmCam);
   Application.CreateForm(TfrmMap, frmMap);
   Application.CreateForm(TfrmMain, frmMain);
-  Application.CreateForm(TForm1, Form1);
+  Application.CreateForm(TfrmGPS, frmGPS);
   Application.Run;
 end.
 

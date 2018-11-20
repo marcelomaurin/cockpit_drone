@@ -57,4 +57,25 @@ object frmGPS: TfrmGPS
       Orientation = spVertical
     end
   end
+  object GPSPortConnected1: TGPSPortConnected
+    Serial = SdpoSerial1
+    left = 130
+    top = 65
+  end
+  object NMEADecode1: TNMEADecode
+    left = 232
+    top = 65
+  end
+  object SdpoSerial1: TSdpoSerial
+    Active = False
+    BaudRate = br___300
+    AltBaudRate = 0
+    DataBits = db8bits
+    Parity = pNone
+    FlowControl = fcNone
+    StopBits = sbOne
+    Device = 'COM1'
+    left = 56
+    top = 64
+  end
 end
