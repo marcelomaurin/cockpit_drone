@@ -112,6 +112,8 @@ type
       procedure DesativaDrone();
       procedure AtivaDrone();
       procedure AtivouDrone();
+      procedure AtivaGPS();
+      procedure DesativaGPS();
 
   end;
 
@@ -180,6 +182,19 @@ end;
 procedure TfrmMain.AdvStartChange(Sender: TObject; AState: TLedState);
 begin
 
+end;
+
+procedure TfrmMain.AtivaGPS();
+begin
+     AdvGPS.Blink:=false;
+     advGPS.State:= lsOn;
+
+end;
+
+procedure TfrmMain.DesativaGPS();
+begin
+     frmmain.AdvGPS.Blink:=false;
+     frmmain.advGPS.State:= lsOff;
 end;
 
 procedure TfrmMain.AtivaJoystick();

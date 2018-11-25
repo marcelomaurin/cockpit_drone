@@ -1,7 +1,7 @@
 object frmMain: TfrmMain
-  Left = 326
+  Left = 458
   Height = 273
-  Top = 480
+  Top = 563
   Width = 776
   BorderStyle = bsSingle
   Caption = 'Cockpit Drone'
@@ -416,7 +416,7 @@ object frmMain: TfrmMain
     DeviceLin = '/dev/input/js0'
     DeviceWin = dwJoystickID1
     left = 720
-    top = 144
+    top = 136
   end
   object NMEADecode1: TNMEADecode
     left = 720
@@ -424,7 +424,7 @@ object frmMain: TfrmMain
   end
   object GPSPortConnected1: TGPSPortConnected
     left = 720
-    top = 24
+    top = 16
   end
   object AcsMixer1: TAcsMixer
     DevNum = 0
@@ -995,11 +995,11 @@ object frmMain: TfrmMain
       0000000000000000000000000000000000000000000000000000000000000000
       0000
     }
-    left = 648
+    left = 656
     top = 80
   end
   object popTray: TPopupMenu
-    left = 649
+    left = 656
     top = 136
     object MenuItem1: TMenuItem
       Caption = 'Config'
@@ -1018,7 +1018,7 @@ object frmMain: TfrmMain
     About.Description.Strings = (
       'Plays WAVE sounds in Windows or Linux'
     )
-    About.Title = 'About PlaySound'
+    About.Title = 'About About About PlaySound'
     About.Height = 400
     About.Width = 400
     About.Font.Color = clNavy
@@ -1031,7 +1031,7 @@ object frmMain: TfrmMain
     About.ComponentName = 'PlaySound'
     About.LicenseType = abModifiedGPL
     PlayCommand = 'sndPlaySound'
-    left = 177
-    top = 216
+    left = 176
+    top = 232
   end
 end

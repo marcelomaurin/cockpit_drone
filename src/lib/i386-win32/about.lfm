@@ -317,8 +317,8 @@ object frmAbout: TfrmAbout
     Left = 144
     Height = 21
     Top = 104
-    Width = 22
-    Caption = '0.3'
+    Width = 31
+    Caption = '0.33'
     Font.Height = -16
     Font.Style = [fsBold]
     ParentColor = False

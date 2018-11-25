@@ -1,7 +1,7 @@
 object frmMain: TfrmMain
-  Left = 326
+  Left = 458
   Height = 273
-  Top = 480
+  Top = 563
   Width = 776
   BorderStyle = bsSingle
   Caption = 'Cockpit Drone'
@@ -416,7 +416,7 @@ object frmMain: TfrmMain
     DeviceLin = '/dev/input/js0'
     DeviceWin = dwJoystickID1
     left = 720
-    top = 144
+    top = 136
   end
   object NMEADecode1: TNMEADecode
     left = 720
@@ -424,7 +424,7 @@ object frmMain: TfrmMain
   end
   object GPSPortConnected1: TGPSPortConnected
     left = 720
-    top = 24
+    top = 16
   end
   object AcsMixer1: TAcsMixer
     DevNum = 0
@@ -995,11 +995,11 @@ object frmMain: TfrmMain
       0000000000000000000000000000000000000000000000000000000000000000
       0000
     }
-    left = 648
+    left = 656
     top = 80
   end
   object popTray: TPopupMenu
-    left = 649
+    left = 656
     top = 136
     object MenuItem1: TMenuItem
       Caption = 'Config'
@@ -1018,7 +1018,7 @@ object frmMain: TfrmMain
     About.Description.Strings = (
       'Plays WAVE sounds in Windows or Linux'
     )
-    About.Title = 'About PlaySound'
+    About.Title = 'About About About PlaySound'
     About.Height = 400
     About.Width = 400
     About.Font.Color = clNavy
@@ -1031,42 +1031,7 @@ object frmMain: TfrmMain
     About.ComponentName = 'PlaySound'
     About.LicenseType = abModifiedGPL
     PlayCommand = 'sndPlaySound'
-    left = 177
+    left = 176
     top = 216
-  end
-  object LazAutoUpdate1: TLazAutoUpdate
-    About.Description.Strings = (
-      'A component for updating your application'#13#10'Designed for projects hosted by SourceForge and GitHub'#13#10#13#10'Main methods:'#13#10'Procedure AutoUpdate'#13#10'Function NewVersionAvailable: Boolean'#13#10'Function DownloadNewVersion: Boolean'#13#10'Function UpdateToNewVersion: Boolean'#13#10'Procedure ShowWhatsNewIfAvailable'#13#10'For troubleshooting, set DebugMode=TRUE'
-    )
-    About.Title = 'About LazAutoUpdate'
-    About.Height = 450
-    About.Width = 400
-    About.Font.Color = clNavy
-    About.Font.Height = -13
-    About.BackGroundColor = clWindow
-    About.Version = '0.3.8'
-    About.Authorname = 'Gordon Bamber'
-    About.Organisation = 'Public Domain'
-    About.AuthorEmail = 'minesadorada@charcodelvalle.com'
-    About.ComponentName = 'Laz Auto-update v0.3.8'
-    About.LicenseType = abModifiedGPL
-    SFProjectName = 'cockpit_drone'
-    auOtherSourceURL = 'https://github.com/MarceloMaurin/cockpit_drone/blob/master/install/win32/'
-    auOtherSourceFilename = 'win_setup_02.exe'
-    UpdatesFolder = 'updates'
-    VersionsININame = 'versions.ini'
-    ShowUpdateInCaption = True
-    ShowDialogs = True
-    VersionCountLimit = 1000000
-    DownloadCountLimit = 10000000
-    ZipfileName = 'setup.zip'
-    GitHubProjectname = 'cockpit_drone'
-    GitHubRepositoryName = 'https://github.com/MarceloMaurin/cockpit_drone.git'
-    GitHubBranchOrTag = 'master'
-    WorkingMode = lauUpdate
-    ShortCut.ShortcutName = 'MyShortcutName'
-    ShortCut.Category = scAudioVideo
-    left = 164
-    top = 17
   end
 end

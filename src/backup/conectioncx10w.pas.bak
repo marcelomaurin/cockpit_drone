@@ -145,12 +145,12 @@ begin
   sleep(1000);
   Application.ProcessMessages;
 
-  /*Envia liberação de video*/
+  //Envia liberação de video*/
   //sendMagicPacketsVideo1();
   sleep(1000);
   Application.ProcessMessages;
 
-  /*Envia liberacao de video segundo bloco*/
+  //*Envia liberacao de video segundo bloco*/
   //sendMagicPacketsVideo2();
   sleep(1000);
   Application.ProcessMessages;
@@ -324,8 +324,8 @@ begin
      info := ord(data[a]);
      acum := acum xor info;
   end;
-  result := acum and $FF;
-    //result := (((((data[1] xor data[2]) xor data[3]) xor data[4]) xor data[5]) and $FF);
+  //result := acum and $FF;
+  result := (((((data[1] xor data[2]) xor data[3]) xor data[4]) xor data[5]) and $FF);
 end;
 
 procedure TfrmConectionCX10W.sendGamepadData();
@@ -336,14 +336,14 @@ var
 begin
   if Error = false then
   begin
-    for a:= 1 to 6 do
+    for a:= 0 to 7 do
         DataArray[a] := data[a];
 
-    DataArray[1] := ord(frmMain.X and 255);
-    DataArray[2] := ord(2- (frmMain.Y and 255));
-    DataArray[3] := ord(frmMain.B1 and 255);
-    DataArray[4] := ord(frmMain.B2 and 255);
-    DataArray[6] := ord(checksum());
+    DataArray[2] := ord(trunc((frmMain.X +1)*127.5));
+    DataArray[3] := ord(trunc(2-(frmMain.Y)+1)*127);
+    DataArray[4] := ord(trunc(frmMain.B1 * 255));
+    DataArray[5] := ord(trunc(frmMain.B2 +1)* 127);
+    DataArray[6] := ord(trunc(checksum()));
     info := '';
     for a:= 1 to 6 do
        info := info + StringToHex(chr(DataArray[a]));

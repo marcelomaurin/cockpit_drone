@@ -24,14 +24,19 @@ type
     Arrow3: TArrow;
     Arrow4: TArrow;
     cbDevice: TComboBox;
+    ckbGPS: TCheckBox;
     ckTest: TCheckBox;
     ckJoyActive: TCheckBox;
+    cbBaudrate: TComboBox;
     edIP: TEdit;
+    edSerialPort: TEdit;
     edTCPPORT: TEdit;
     edUDPPORT: TEdit;
     Label1: TLabel;
     Label10: TLabel;
     Label11: TLabel;
+    Label12: TLabel;
+    Label13: TLabel;
     label1b1: TLabel;
     label1b2: TLabel;
     Label2: TLabel;
@@ -48,8 +53,13 @@ type
     lbZ: TLabel;
     pcDrones: TPageControl;
     pnNAV: TPanel;
+    cbDatabits: TRadioGroup;
+    rgFlowControl: TRadioGroup;
+    rgParity: TRadioGroup;
+    rgStopbit: TRadioGroup;
     TabSheet1: TTabSheet;
     TabSheet2: TTabSheet;
+    TabSheet3: TTabSheet;
     timerJoystick: TTimer;
     procedure btCalibrationClick(Sender: TObject);
     procedure cbDeviceChange(Sender: TObject);
@@ -139,7 +149,7 @@ end;
 
 procedure Tfrmconfig.timerJoystickTimer(Sender: TObject);
 var
-  X,Y,Z : double;
+  X,Y,Z : integer;
 begin
   X := MAPA(0,65535,0,255, frmmain.SdpoJoystick1.Axis[0].ToDouble);
   Y := MAPA(0,65535,0,255, frmmain.SdpoJoystick1.Axis[1].ToDouble);
