@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "cockpit drone"
-#define MyAppVersion "0.2"
+#define MyAppVersion "0.33"
 #define MyAppPublisher "Maurinsoft.com.br"
 #define MyAppURL "http://maurinsoft.com.br"
 #define MyAppExeName "drone.exe"
