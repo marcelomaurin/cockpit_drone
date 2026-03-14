@@ -2,47 +2,49 @@ object frmGPS: TfrmGPS
   Left = 882
   Height = 221
   Top = 206
-  Width = 525
+  Width = 614
   BorderStyle = bsDialog
   Caption = 'GPS Local'
   ClientHeight = 221
-  ClientWidth = 525
+  ClientWidth = 614
+  LCLVersion = '4.4.0.0'
   OnCreate = FormCreate
   OnShow = FormShow
-  LCLVersion = '1.8.4.0'
   object pnGPS: TPanel
     Left = 0
     Height = 221
     Top = 0
-    Width = 525
+    Width = 614
     Align = alClient
     ClientHeight = 221
-    ClientWidth = 525
+    ClientWidth = 614
     Color = clWhite
+    ParentBackground = False
     ParentColor = False
     TabOrder = 0
     object PageControl1: TPageControl
       Left = 1
       Height = 218
       Top = 2
-      Width = 523
-      ActivePage = tsSignal
+      Width = 612
+      ActivePage = tbSAT
       Align = alBottom
-      TabIndex = 0
+      TabIndex = 1
       TabOrder = 0
       object tsSignal: TTabSheet
         Caption = 'Signal'
         ClientHeight = 190
-        ClientWidth = 515
+        ClientWidth = 604
         object GPSSignalPlot1: TGPSSignalPlot
           Left = 0
           Height = 190
           Top = 0
-          Width = 515
+          Width = 604
           Align = alClient
           Caption = 'GPS Signal'
           ClientHeight = 170
-          ClientWidth = 511
+          ClientWidth = 600
+          ParentBackground = False
           TabOrder = 0
           OnClick = GPSSignalPlot1Click
           Orientation = spVertical
@@ -51,7 +53,7 @@ object frmGPS: TfrmGPS
       object tbSAT: TTabSheet
         Caption = 'SAT'
         ClientHeight = 190
-        ClientWidth = 500
+        ClientWidth = 604
         object GPSSkyPlot1: TGPSSkyPlot
           Left = 8
           Height = 185
@@ -77,14 +79,12 @@ object frmGPS: TfrmGPS
           ParentColor = False
           ParentShowHint = False
           TargetCoordinateType = ttUseWPL
-          TargetGeoCoordinate.Latitude = 0
-          TargetGeoCoordinate.Longitude = 0
         end
       end
       object tslocation: TTabSheet
         Caption = 'Location'
         ClientHeight = 190
-        ClientWidth = 500
+        ClientWidth = 604
         object Label3: TLabel
           Left = 16
           Height = 15
@@ -121,7 +121,7 @@ object frmGPS: TfrmGPS
           Left = 8
           Height = 15
           Top = 49
-          Width = 30
+          Width = 29
           Caption = 'Time:'
           ParentColor = False
         end
@@ -137,12 +137,12 @@ object frmGPS: TfrmGPS
       object tslog: TTabSheet
         Caption = 'Log'
         ClientHeight = 190
-        ClientWidth = 500
+        ClientWidth = 604
         object Memo1: TMemo
           Left = 0
           Height = 190
           Top = 0
-          Width = 500
+          Width = 604
           Align = alClient
           Lines.Strings = (
             'Memo1'
@@ -156,13 +156,13 @@ object frmGPS: TfrmGPS
     OnShow = GPSPortConnected1Show
     Title = 'GPS Tracking'
     Serial = SdpoSerial1
-    left = 136
-    top = 120
+    Left = 136
+    Top = 120
   end
   object NMEADecode1: TNMEADecode
     OnNMEA = NMEADecode1NMEA
-    left = 248
-    top = 120
+    Left = 248
+    Top = 120
   end
   object SdpoSerial1: TSdpoSerial
     Active = False
@@ -174,7 +174,7 @@ object frmGPS: TfrmGPS
     StopBits = sbOne
     Device = 'COM9'
     OnRxData = SdpoSerial1RxData
-    left = 48
-    top = 120
+    Left = 48
+    Top = 120
   end
 end

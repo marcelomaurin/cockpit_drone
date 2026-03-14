@@ -1,0 +1,22 @@
+Arquivo:D:\projetos\maurinsoft\cockpit_drone\src\
+FullPath:D:\projetos\maurinsoft\cockpit_drone\src\gps.pas
+Criado em:12/03/2026 17:38:42
+O arquivo "gps.pas", escrito em Pascal/Delphi (Free Pascal/Lazarus), implementa um formulário (TfrmGPS) para manipulação e visualização de dados GPS recebidos via porta serial. Ele é parte de uma aplicação maior que depende das configurações definidas no módulo "config" e interage com a unidade principal "main".
+
+A principal finalidade do arquivo é gerenciar a leitura e interpretação de sentenças NMEA provenientes do receptor GPS conectado via porta serial, e apresentar visualmente informações relacionadas à localização, posição dos satélites e sinais.
+
+O formulário TfrmGPS possui componentes visuais como gráficos de sinal (GPSSignalPlot), plotagem do céu (GPSSkyPlot), informações de satélites alvo (GPSTarget) e diversos labels para exibir dados textuais como latitude, longitude e tempo. O componente TNMEADecode realiza o parsing das sentenças NMEA recebidas. A comunicação com o hardware GPS é feita via o componente TSdpoSerial para a leitura da porta serial, além do componente TGPSPortConnected que encapsula parte da conexão e gerenciamento da porta.
+
+No evento FormShow, a aplicação configura a porta serial conforme parâmetros especificados na interface de configuração (frmconfig), tais como porta, baudrate, bits de dados, controle de fluxo e stop bits. Em seguida, se habilitado o GPS pelo usuário, a porta serial é aberta, o componente GPSPortConnected é ativado e a aplicação principal é notificada para ativar as operações relacionadas ao GPS. Caso um erro ocorra na abertura, o GPS é desativado na aplicação principal.
+
+No FormCreate, os componentes gráficos recebem a referência do decodificador NMEA para receber os dados parseados, e o buffer que armazena os dados lidos da porta é inicializado vazio.
+
+O evento SdpoSerial1RxData é responsável por capturar os dados recebidos da porta serial. Ele lê as sentenças NMEA, acumula em um buffer e, ao identificar o caractere de retorno de carro (#13) que indica o final de uma sentença, extrai essa sentença, adiciona ao memo para visualização em log e atualiza o buffer para processar futuras mensagens. As sentenças recebidas são repassadas ao decodificador NMEA, que as interpreta.
+
+A rotina NMEADecode1NMEA é o núcleo da interpretação das mensagens GPS, recebendo os dados já decodificados pelo TNMEADecode. Ela detecta o tipo de mensagem (ex.: GGA, GSA, RMC, GLL, entre outras) e, para cada tipo, extrai valores como latitude, longitude, fix, velocidade, data e hora UTC, status de validade, altitude e outros parâmetros GPS. Nesta implementação, grande parte da apresentação dos valores extraídos está comentada, o que sugere que a interface gráfica está preparada para exibir estes dados, mas possivelmente não está ativa. Destacam-se os cálculos para conversão de strings em floats e a atualização dos labels para apresentação de latitude, longitude e tempo no formato legível. 
+
+Dependências externas são várias unidades para interface gráfica, controles serial, decodificação NMEA, gráficos personalizados para satélites e sinais, além da configuração geral da aplicação (config) e módulo principal. O arquivo depende fortemente do componente TNMEADecode e componentes relacionados para visualização e conexão.
+
+Em pontos críticos destacam-se o gerenciamento da conexão serial, tratamento do buffer de dados para garantir leitura completa de sentenças, e a decodificação correta das diversas mensagens NMEA para refletir dados confiáveis. O uso do Application.ProcessMessages no evento de recepção permite que a interface se mantenha responsiva durante a leitura de dados serial.
+
+Em resumo, o arquivo funciona como uma interface de recepção e apresentação de dados GPS, configurável via parâmetros externos, capaz de decodificar sentenças NMEA e apresentar aspectos técnicos do sinal e posição geográfica em um contexto visual e interativo, ainda que parcialmente implementado na exibição detalhada dos dados.

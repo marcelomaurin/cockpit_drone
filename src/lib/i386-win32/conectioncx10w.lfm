@@ -6,8 +6,8 @@ object frmConectionCX10W: TfrmConectionCX10W
   Caption = 'Connection'
   ClientHeight = 451
   ClientWidth = 256
+  LCLVersion = '4.4.0.0'
   OnCreate = FormCreate
-  LCLVersion = '1.8.4.0'
   object pnTop: TPanel
     Left = 0
     Height = 128
@@ -21,7 +21,7 @@ object frmConectionCX10W: TfrmConectionCX10W
       Left = 8
       Height = 15
       Top = 8
-      Width = 67
+      Width = 65
       Caption = 'Device Type:'
       ParentColor = False
     end
@@ -53,7 +53,7 @@ object frmConectionCX10W: TfrmConectionCX10W
       Left = 25
       Height = 15
       Top = 48
-      Width = 50
+      Width = 48
       Caption = 'Port TCP:'
       ParentColor = False
     end
@@ -135,20 +135,20 @@ object frmConectionCX10W: TfrmConectionCX10W
     OnAccept = LTCPComponent1Accept
     Timeout = 0
     ReuseAddress = False
-    left = 192
-    top = 392
+    Left = 192
+    Top = 392
   end
   object LUDPComponent1: TLUDPComponent
     Port = 0
     OnReceive = LUDPComponent1Receive
     OnError = LUDPComponent1Error
     Timeout = 0
-    left = 120
-    top = 392
+    Left = 120
+    Top = 392
   end
   object popLog: TPopupMenu
-    left = 60
-    top = 210
+    Left = 60
+    Top = 210
     object MenuItem1: TMenuItem
       Caption = 'Save as'
     end
@@ -157,7 +157,7 @@ object frmConectionCX10W: TfrmConectionCX10W
     Enabled = False
     Interval = 100
     OnTimer = timerJoystickTimer
-    left = 32
-    top = 360
+    Left = 32
+    Top = 360
   end
 end

@@ -7,7 +7,7 @@ object frmCam: TfrmCam
   Caption = 'Camera'
   ClientHeight = 243
   ClientWidth = 320
-  LCLVersion = '1.8.4.0'
+  LCLVersion = '4.4.0.0'
   object Label1: TLabel
     Left = 251
     Height = 15
@@ -365,5 +365,13 @@ object frmCam: TfrmCam
     GridHeight = 200
     BlockWidth = 30
     BlockHeight = 30
+  end
+  object tmAtualizaImagem: TTimer
+    Enabled = False
+    OnTimer = tmAtualizaImagemTimer
+    OnStartTimer = tmAtualizaImagemStartTimer
+    OnStopTimer = tmAtualizaImagemStopTimer
+    Left = 23
+    Top = 38
   end
 end

@@ -16,7 +16,7 @@ var
   valor : double;
 begin
 
-     valor := (((valueX * (Y1-Y0)) / (X1-X0))+Y0);
+     valor := (((valueX - X0) * (Y1 - Y0)) / (X1 - X0)) + Y0;
      result := byte(trunc(valor) and $FF);
      //result := byte(trunc(valueX/100) and $FF);
 end;

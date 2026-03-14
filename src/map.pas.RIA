@@ -1,0 +1,12 @@
+Arquivo:D:\projetos\maurinsoft\cockpit_drone\src\
+FullPath:D:\projetos\maurinsoft\cockpit_drone\src\map.pas
+Criado em:12/03/2026 17:39:43
+O arquivo map.pas é um módulo escrito em Object Pascal, provavelmente direcionado para utilização em ambiente Lazarus ou Delphi, dado o uso do modo objfpc e os componentes visuais típicos destas plataformas. A principal finalidade deste arquivo é definir um formulário visual denominado TfrmMap, que parece estar relacionado à exibição ou manipulação de um mapa ou grade visual. 
+
+As principais estruturas presentes são a declaração da classe TfrmMap, que herda de TForm, e dentro dela a inclusão de três componentes visuais: um componente do tipo TBCGameGrid chamado gridMAP, uma imagem denominada Image2 e um rótulo conhecido como Label9. A biblioteca BCGameGrid, mencionada nos uses, é uma dependência externa que fornece o componente TBCGameGrid, provavelmente uma grid customizada para exibição gráfica ou interativa, usada aqui para representar o mapa.
+
+O arquivo não define métodos, eventos ou propriedades adicionais para o formulário, portanto, trata-se basicamente da definição estrutural inicial do formulário com seus controles visuais. A implementação está presente, porém vazia, limitando-se a carregar os recursos associados ao formulário (arquivo .lfm), onde provavelmente estão definidos os detalhes visuais e posicionamento dos componentes.
+
+Quanto às dependências, o arquivo utiliza unidades padrão do Free Pascal/Lazarus como Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls e StdCtrls, fornecendo suporte para manipulação de formulários, controles, arquivos e gráficos. A unidade BCGameGrid é a única que indica uma dependência específica, possivelmente de um componente gráfico de grade para jogos ou mapas.
+
+Em resumo, o arquivo map.pas é responsável por criar uma interface visual para exibir um mapa ou grade através do componente TBCGameGrid, integrando outros elementos gráficos e textuais para apoio visual. Por se tratar de um esqueleto básico, as regras de negócio, manipulação de dados ou eventos são provavelmente implementadas em outras partes do projeto ou serão adicionadas posteriormente neste formulário.

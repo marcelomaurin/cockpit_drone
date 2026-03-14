@@ -7,7 +7,8 @@ object frmAbout: TfrmAbout
   Caption = 'About me'
   ClientHeight = 240
   ClientWidth = 320
-  LCLVersion = '1.8.4.0'
+  LCLVersion = '4.4.0.0'
+  OnShow = FormShow
   object Image1: TImage
     Left = 0
     Height = 240
@@ -294,9 +295,10 @@ object frmAbout: TfrmAbout
   object Label1: TLabel
     Left = 136
     Height = 21
-    Top = 16
+    Top = 176
     Width = 42
     Caption = 'GPL 3'
+    Font.Color = clYellow
     Font.Height = -16
     Font.Style = [fsBold]
     ParentColor = False
@@ -305,32 +307,25 @@ object frmAbout: TfrmAbout
   object Label2: TLabel
     Left = 104
     Height = 21
-    Top = 72
+    Top = 48
     Width = 109
     Caption = 'Cockpit Drone'
+    Font.Color = clYellow
     Font.Height = -16
     Font.Style = [fsBold]
     ParentColor = False
     ParentFont = False
   end
-  object Label3: TLabel
-    Left = 144
+  object lbversao: TLabel
+    Left = 112
     Height = 21
     Top = 104
     Width = 31
     Caption = '0.33'
+    Font.Color = clYellow
     Font.Height = -16
     Font.Style = [fsBold]
     ParentColor = False
     ParentFont = False
-  end
-  object Button1: TButton
-    Left = 96
-    Height = 41
-    Top = 160
-    Width = 136
-    Caption = 'Close'
-    OnClick = Button1Click
-    TabOrder = 0
   end
 end

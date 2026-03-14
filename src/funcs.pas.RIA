@@ -1,0 +1,10 @@
+Arquivo:D:\projetos\maurinsoft\cockpit_drone\src\
+FullPath:D:\projetos\maurinsoft\cockpit_drone\src\funcs.pas
+Criado em:12/03/2026 17:40:43
+O arquivo funcs.pas é uma unidade (unit) escrita em Pascal/Delphi que declara e implementa uma função chamada MAPA. A finalidade principal dessa função é realizar uma transformação linear de escala, semelhante à função map encontrada em Arduino, convertendo um valor de um intervalo de entrada definido pelos parâmetros X0 e X1 para um correspondente valor em outro intervalo definido por Y0 e Y1. A função recebe cinco parâmetros do tipo real: X0, X1, Y0, Y1, e valueX, onde valueX é o valor que será mapeado do intervalo [X0, X1] para o intervalo [Y0, Y1].
+
+No que diz respeito à implementação, a função calcula o valor mapeado pela fórmula: ((valueX * (Y1 - Y0)) / (X1 - X0)) + Y0. O resultado é convertido em um número do tipo byte, truncando a parte decimal e aplicando uma operação lógica AND com 0xFF para garantir que o valor esteja dentro do intervalo válido para um byte (0 a 255). A função retorna esse valor byte como resultado.
+
+Esse arquivo possui uma dependência interna das units Classes e SysUtils, que são bibliotecas padrão da linguagem Pascal/Delphi, embora essas dependências não sejam diretamente utilizadas na lógica da função MAPA, podendo estar lá para suporte geral ou futuras ampliações.
+
+Pontos críticos da função incluem a ausência de verificação para evitar divisão por zero caso X1 seja igual a X0, o que causaria um erro em tempo de execução. Além disso, como o retorno é um byte, a função não trata explicitamente valores fora do intervalo esperado, podendo ocorrer truncamento ou ajustes inesperados caso os valores passem dos limites definidos. A função é bastante simples e específica, ideal para aplicações que necessitem de escalonamento numérico de valores em controle ou manipulação de sinais, similar ao uso em placas Arduino.

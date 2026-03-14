@@ -8,8 +8,11 @@ object frmMain: TfrmMain
   ClientHeight = 273
   ClientWidth = 776
   Color = clWindowFrame
+  LCLVersion = '4.4.0.0'
   OnCreate = FormCreate
-  LCLVersion = '1.8.4.0'
+  OnDestroy = FormDestroy
+  OnKeyPress = FormKeyPress
+  OnShow = FormShow
   object Label2: TLabel
     Left = 168
     Height = 15
@@ -24,8 +27,8 @@ object frmMain: TfrmMain
     Top = 155
     Width = 104
     Caption = 'Config'
-    OnClick = Button1Click
     TabOrder = 0
+    OnClick = Button1Click
   end
   object btExit: TButton
     Left = 664
@@ -33,8 +36,8 @@ object frmMain: TfrmMain
     Top = 200
     Width = 104
     Caption = 'Exit'
-    OnClick = btExitClick
     TabOrder = 1
+    OnClick = btExitClick
   end
   object pnScreens: TPanel
     Left = 7
@@ -44,6 +47,7 @@ object frmMain: TfrmMain
     ClientHeight = 120
     ClientWidth = 123
     Color = clInactiveBorder
+    ParentBackground = False
     ParentColor = False
     TabOrder = 2
     object Label8: TLabel
@@ -59,8 +63,6 @@ object frmMain: TfrmMain
       Height = 24
       Top = 40
       Width = 24
-      State = lsOff
-      Blink = False
       OnClick = AdvMapClick
       OnChange = AdvMapChange
     end
@@ -77,8 +79,6 @@ object frmMain: TfrmMain
       Height = 24
       Top = 8
       Width = 24
-      State = lsOff
-      Blink = False
       OnClick = AdvCameraClick
       OnChange = AdvCameraChange
     end
@@ -95,8 +95,6 @@ object frmMain: TfrmMain
       Height = 24
       Top = 72
       Width = 24
-      State = lsOff
-      Blink = False
       OnClick = AdvGPSClick
       OnChange = AdvGPSChange
     end
@@ -109,6 +107,7 @@ object frmMain: TfrmMain
     ClientHeight = 106
     ClientWidth = 380
     Color = clGradientActiveCaption
+    ParentBackground = False
     ParentColor = False
     TabOrder = 3
     object ArrowLeft: TArrow
@@ -151,7 +150,7 @@ object frmMain: TfrmMain
       Left = 39
       Height = 15
       Top = 49
-      Width = 24
+      Width = 23
       Caption = 'NAV'
       ParentColor = False
     end
@@ -168,16 +167,12 @@ object frmMain: TfrmMain
       Height = 24
       Top = 8
       Width = 24
-      State = lsOff
-      Blink = False
     end
     object AdvJoyB1: TAdvLed
       Left = 120
       Height = 24
       Top = 40
       Width = 24
-      State = lsOff
-      Blink = False
     end
     object lbB1: TLabel
       Left = 149
@@ -193,8 +188,6 @@ object frmMain: TfrmMain
       Height = 24
       Top = 73
       Width = 24
-      State = lsOff
-      Blink = False
     end
     object B2: TLabel
       Left = 149
@@ -210,8 +203,6 @@ object frmMain: TfrmMain
       Height = 24
       Top = 40
       Width = 24
-      State = lsOff
-      Blink = False
     end
     object B3: TLabel
       Left = 213
@@ -227,8 +218,6 @@ object frmMain: TfrmMain
       Height = 24
       Top = 71
       Width = 24
-      State = lsOff
-      Blink = False
     end
     object B4: TLabel
       Left = 213
@@ -244,8 +233,6 @@ object frmMain: TfrmMain
       Height = 24
       Top = 40
       Width = 24
-      State = lsOff
-      Blink = False
     end
     object B5: TLabel
       Left = 277
@@ -261,8 +248,6 @@ object frmMain: TfrmMain
       Height = 24
       Top = 73
       Width = 24
-      State = lsOff
-      Blink = False
     end
     object B6: TLabel
       Left = 277
@@ -282,6 +267,7 @@ object frmMain: TfrmMain
     ClientHeight = 114
     ClientWidth = 184
     Color = clGradientActiveCaption
+    ParentBackground = False
     ParentColor = False
     TabOrder = 4
     object ledrotor1: TLEDNumber
@@ -357,6 +343,7 @@ object frmMain: TfrmMain
     Width = 164
     ClientHeight = 111
     ClientWidth = 164
+    ParentBackground = False
     TabOrder = 5
     object A3nalogGauge1: TA3nalogGauge
       Left = 13
@@ -380,6 +367,7 @@ object frmMain: TfrmMain
     ClientHeight = 106
     ClientWidth = 122
     Color = clWindowFrame
+    ParentBackground = False
     ParentColor = False
     TabOrder = 6
     object btGridCAM1: TButton
@@ -388,8 +376,8 @@ object frmMain: TfrmMain
       Top = 56
       Width = 104
       Caption = 'Grid MAP'
-      OnClick = btGridCAM1Click
       TabOrder = 0
+      OnClick = btGridCAM1Click
     end
     object btGridCAM: TButton
       Left = 8
@@ -397,8 +385,8 @@ object frmMain: TfrmMain
       Top = 8
       Width = 104
       Caption = 'Grid CAM'
-      OnClick = btGridCAMClick
       TabOrder = 1
+      OnClick = btGridCAMClick
     end
   end
   object AdvStart: TAdvLed
@@ -406,8 +394,6 @@ object frmMain: TfrmMain
     Height = 24
     Top = 184
     Width = 24
-    State = lsOff
-    Blink = False
     OnClick = AdvStartClick
     OnChange = AdvStartChange
   end
@@ -415,28 +401,28 @@ object frmMain: TfrmMain
     Active = False
     DeviceLin = '/dev/input/js0'
     DeviceWin = dwJoystickID1
-    left = 720
-    top = 136
+    Left = 720
+    Top = 136
   end
   object NMEADecode1: TNMEADecode
-    left = 720
-    top = 80
+    Left = 720
+    Top = 80
   end
   object GPSPortConnected1: TGPSPortConnected
-    left = 720
-    top = 16
+    Left = 720
+    Top = 16
   end
   object AcsMixer1: TAcsMixer
     DevNum = 0
-    left = 656
-    top = 16
+    Left = 656
+    Top = 16
   end
   object timerJoystick: TTimer
     Enabled = False
     Interval = 100
     OnTimer = timerJoystickTimer
-    left = 176
-    top = 112
+    Left = 176
+    Top = 112
   end
   object TrayIcon1: TTrayIcon
     BalloonTitle = 'Cockpit Drone'
@@ -995,12 +981,12 @@ object frmMain: TfrmMain
       0000000000000000000000000000000000000000000000000000000000000000
       0000
     }
-    left = 656
-    top = 80
+    Left = 656
+    Top = 80
   end
   object popTray: TPopupMenu
-    left = 656
-    top = 136
+    Left = 656
+    Top = 136
     object MenuItem1: TMenuItem
       Caption = 'Config'
       OnClick = MenuItem1Click
@@ -1031,7 +1017,7 @@ object frmMain: TfrmMain
     About.ComponentName = 'PlaySound'
     About.LicenseType = abModifiedGPL
     PlayCommand = 'sndPlaySound'
-    left = 176
-    top = 232
+    Left = 176
+    Top = 232
   end
 end

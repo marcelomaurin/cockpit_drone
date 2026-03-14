@@ -1,0 +1,24 @@
+Arquivo:D:\projetos\maurinsoft\cockpit_drone\src\
+FullPath:D:\projetos\maurinsoft\cockpit_drone\src\config.pas
+Criado em:12/03/2026 17:32:12
+O arquivo config.pas é um módulo escrito em Object Pascal (Free Pascal/Lazarus) que implementa uma forma de configuração gráfica para uma aplicação, provavelmente relacionada ao controle de drones ou dispositivos semelhantes. Ele define a classe Tfrmconfig, que é um formulário contendo vários componentes visuais para configuração de dispositivos, comunicação e interface joystick.
+
+Principais responsabilidades: o formulário permite ao usuário configurar parâmetros como porta serial, taxa de baud, bits de dados, paridade, controle de fluxo, e configurações de rede (IP, portas TCP e UDP). Além disso, possui componentes para selecionar e interagir com dispositivos joystick (utilizando a biblioteca sdpojoystick), incluindo a ativação do joystick e visualização dos estados dos botões e eixos do controlador de entrada.
+
+Entradas e saídas: as entradas são as interações do usuário com os componentes visuais, como combo boxes, check boxes e botões, que permitem configurar o sistema. As saídas estão ligadas à atualização visual dos estados do joystick (exibição dos valores dos eixos X, Y e Z, e estados dos botões com indicadores LED virtuais advButton0 a advButton5), além da ativação ou desativação do joystick utilizado pela aplicação principal.
+
+Principais funções e métodos:
+
+- FormCreate: método disparado ao criar o formulário, inicializa a variável TipoAtivo com valor zero, embora com indicação que inicialmente só existe um tipo ativo.
+
+- ckJoyActiveChange: método que ativa ou desativa o joystick em frmMain (provavelmente o formulário principal da aplicação), selecionando o dispositivo joystick baseado na seleção do combo cbDevice.
+
+- ckTestChange: gerencia a ativação do teste do joystick. Caso o checkbox "Test" seja marcado, ativa o joystick e o timer que atualiza periodicamente a interface com as leituras do joystick.
+
+- timerJoystickTimer: método executado pelo timer joystick, promove a leitura dos eixos X, Y, Z do joystick convertendo-os de uma escala bruta (0-65535) para intervalo 0-255, atualizando os labels lbX, lbY e lbZ. Também atualiza os indicadores visuais advButton0 a advButton5 conforme o estado dos botões do joystick.
+
+Outros métodos declarados no formulário estão vazios, indicando placeholders para eventos como clicar no botão de calibração, troca de dispositivo, e ações em abas da interface, indicando possibilidade de futura implementação.
+
+Dependências internas/externas: o módulo utiliza a unit sdpojoystick para manipulação dos joysticks, que oferece abstração para acessar os eixos e botões. Também faz uso da unit funcs (presumivelmente com funções auxiliares como MAPA, que é usada para reescalar valores). Importa componentes gráficos padrão do Lazarus/Free Pascal como TForm, TComboBox, TCheckBox, TTimer, bem como componentes visuais avançados como TAdvLed e TArrow.
+
+Em resumo, config.pas oferece uma interface gráfica que agrega configurações de comunicação para um sistema (possivelmente interface com drone ou hardware similar) e também promove a interação e visualização das entradas de joystick para controle e testes, integrando-se com o formulário principal da aplicação para gerenciar o estado do dispositivo joystick em uso. O código atual tem algumas funções ainda não implementadas, destacando ser um módulo em desenvolvimento ou com funcionalidades básicas já operacionais.
