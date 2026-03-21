@@ -41,6 +41,7 @@ type
     FState: TJoystickState;
     FActive: Boolean;
 
+    procedure SetActive(const AValue: Boolean);
     function MapAxisToByte(const AValue: Double): Byte;
     function GetButtonValue(const AIndex: Integer): Byte;
 
@@ -52,7 +53,7 @@ type
     procedure Deactivate;
     function UpdateState: Boolean;
 
-    property Active: Boolean read FActive;
+    property Active: Boolean read FActive write SetActive;
     property State: TJoystickState read FState;
   end;
 
@@ -66,6 +67,14 @@ begin
   FJoystick := AJoystick;
   FActive := False;
   ResetState;
+end;
+
+procedure TJoystickController.SetActive(const AValue: Boolean);
+begin
+  if AValue then
+    Activate
+  else
+    Deactivate;
 end;
 
 procedure TJoystickController.ResetState;

@@ -1017,7 +1017,7 @@ object frmMain: TfrmMain
     About.ComponentName = 'PlaySound'
     About.LicenseType = abModifiedGPL
     PlayCommand = 'sndPlaySound'
-    Left = 176
-    Top = 232
+    Left = 204
+    Top = 245
   end
 end

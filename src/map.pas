@@ -6,8 +6,8 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, BCGameGrid, mvMapViewer, owmurloptions, mvTypes, BGRABitmap,
-  BGRABitmapTypes, Math, mvEngine, mvGpsObj, mvDrawingEngine, objetos;
+  StdCtrls, BCGameGrid, mvTypes, BGRABitmap, BGRABitmapTypes, Math, mvEngine,
+  mvGpsObj, mvDrawingEngine, mvMapViewer, objetos;
 
 type
 
@@ -17,6 +17,7 @@ type
     gridMAP: TBCGameGrid;
     Label9: TLabel;
     MapView1: TMapView;
+
 
     procedure FormClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);

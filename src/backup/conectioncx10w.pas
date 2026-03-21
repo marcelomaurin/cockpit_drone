@@ -7,7 +7,8 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   StdCtrls, Menus, lNetComponents, BCRadialProgressBar, BGRASpriteAnimation,
-  MPlayerCtrl, config, lNet, AdvLed, hexlib, FPImage, FPReadJPEG, IntfGraphics;
+  MPlayerCtrl, config, lNet, AdvLed, hexlib, FPImage, FPReadJPEG, IntfGraphics,
+  Graphics, setmain;
 
 const
   MAGIC_BYTES_CTRL: array[0..105] of Byte = (
@@ -39,8 +40,10 @@ const
   );
 
   DEFAULT_PACKET: array[0..7] of Byte = (
-    $CC, $7F, $7F, $00, $7F, $00, $7F, $33
+    $CC, $7F, $7F, $7F, $7F, $00, $7F, $33
   );
+
+  AXIS_CENTER = $7F;
 
 type
   TTelemetriaOrigem = (toNenhuma, toTCP, toUDP);
@@ -87,6 +90,10 @@ type
     FB1, FB2, FB3, FB4, FB5, FB6: Byte;
     FError: Boolean;
 
+    FHost: string;
+    FTcpPort: Integer;
+    FUdpPort: Integer;
+
     FBitmap: TBitmap;
     FVideoBuffer: TMemoryStream;
     FUltimaImagemDataHora: TDateTime;
@@ -105,6 +112,8 @@ type
     procedure SyncFromMain(var AMudou: Boolean);
     function SafeStrToInt(const S: string; const ADefault: Integer): Integer;
     function BuildChecksum(const AData: array of Byte): Byte;
+    function BuildFlags: Byte;
+    function BuildYaw: Byte;
     procedure UpdateMainOfflineState;
     procedure DisconnectSockets;
     function TcpReady: Boolean;
@@ -115,6 +124,12 @@ type
     procedure ProcessaBytesTCP(const AData: TBytes);
     function ExtraiJPEGDoBuffer: Boolean;
     procedure CarregaJpegNoBitmap(const AJpegData: TBytes; ADestino: TBitmap);
+
+    function LerTextoConfig(const ANome: array of string; const ADefault: string): string;
+    function LerInteiroConfig(const ANome: array of string; const ADefault: Integer): Integer;
+    function LerBooleanoConfig(const ANome: array of string; const ADefault: Boolean): Boolean;
+    procedure EnviaTCP(const ABytes: array of Byte; const ADescricao: string);
+    procedure EnviaUDP(const ABytes: array of Byte; const ADescricao: string);
 
   public
     procedure PegaConfiguracao;
@@ -161,7 +176,8 @@ end;
 
 procedure TfrmConectionCX10W.SetStatus(const ATexto: string);
 begin
-  lbStateConection.Caption := ATexto;
+  if Assigned(lbStateConection) then
+    lbStateConection.Caption := ATexto;
   Log(ATexto);
 end;
 
@@ -173,12 +189,12 @@ end;
 
 function TfrmConectionCX10W.TcpReady: Boolean;
 begin
-  Result := Assigned(LTCPComponent1) and LTCPComponent1.Active and (not FError);
+  Result := Assigned(LTCPComponent1) and LTCPComponent1.Connected and (not FError);
 end;
 
 function TfrmConectionCX10W.UdpReady: Boolean;
 begin
-  Result := Assigned(LUDPComponent1) and LUDPComponent1.Active and (not FError);
+  Result := Assigned(LUDPComponent1) and LUDPComponent1.Connected and (not FError);
 end;
 
 procedure TfrmConectionCX10W.UpdateMainOfflineState;
@@ -194,13 +210,13 @@ end;
 procedure TfrmConectionCX10W.DisconnectSockets;
 begin
   try
-    if Assigned(LTCPComponent1) and LTCPComponent1.Active then
+    if Assigned(LTCPComponent1) and LTCPComponent1.Connected then
       LTCPComponent1.Disconnect(True);
   except
   end;
 
   try
-    if Assigned(LUDPComponent1) and LUDPComponent1.Active then
+    if Assigned(LUDPComponent1) and LUDPComponent1.Connected then
       LUDPComponent1.Disconnect(True);
   except
   end;
@@ -269,18 +285,34 @@ end;
 function TfrmConectionCX10W.BuildChecksum(const AData: array of Byte): Byte;
 var
   I: Integer;
-  V: Byte;
 begin
-  V := 0;
+  Result := 0;
+  if High(AData) < 5 then
+    Exit;
 
-  if High(AData) >= 5 then
-  begin
-    V := AData[1];
-    for I := 2 to 5 do
-      V := V xor AData[I];
-  end;
+  for I := 1 to 5 do
+    Result := Result xor AData[I];
+end;
 
-  Result := V and $FF;
+function TfrmConectionCX10W.BuildFlags: Byte;
+begin
+  Result := 0;
+
+  if FB3 = 255 then Result := Result or $01;
+  if FB4 = 255 then Result := Result or $02;
+  if FB5 = 255 then Result := Result or $04;
+  if FB6 = 255 then Result := Result or $08;
+end;
+
+function TfrmConectionCX10W.BuildYaw: Byte;
+begin
+  Result := AXIS_CENTER;
+
+  if (FB1 = 255) and (FB2 = 0) then
+    Result := 0
+  else
+  if (FB2 = 255) and (FB1 = 0) then
+    Result := 255;
 end;
 
 function TfrmConectionCX10W.BytesToHex(const AData: TBytes): string;
@@ -289,7 +321,11 @@ var
 begin
   Result := '';
   for I := 0 to High(AData) do
+  begin
+    if Result <> '' then
+      Result := Result + ' ';
     Result := Result + IntToHex(AData[I], 2);
+  end;
 end;
 
 procedure TfrmConectionCX10W.AtualizaTelemetria(const AData: TBytes; AOrigem: TTelemetriaOrigem);
@@ -300,150 +336,385 @@ begin
   FUltimaTelemetriaTamanho := Length(AData);
 
   case AOrigem of
-    toTCP:
-      begin
-        FUltimoPacoteTCPHex := FUltimaTelemetriaHex;
-        Inc(FTotalPacotesTCP);
-      end;
-    toUDP:
-      begin
-        FUltimoPacoteUDPHex := FUltimaTelemetriaHex;
-        Inc(FTotalPacotesUDP);
-      end;
+    toTCP: Inc(FTotalPacotesTCP);
+    toUDP: Inc(FTotalPacotesUDP);
   end;
 end;
 
 procedure TfrmConectionCX10W.CarregaJpegNoBitmap(const AJpegData: TBytes; ADestino: TBitmap);
 var
   MS: TMemoryStream;
+  Img: TFPMemoryImage;
   Reader: TFPReaderJPEG;
   IntfImg: TLazIntfImage;
 begin
-  if not Assigned(ADestino) then
-    Exit;
-
-  if Length(AJpegData) = 0 then
+  if (Length(AJpegData) = 0) or (not Assigned(ADestino)) then
     Exit;
 
   MS := TMemoryStream.Create;
+  Img := TFPMemoryImage.Create(0, 0);
   Reader := TFPReaderJPEG.Create;
   IntfImg := TLazIntfImage.Create(0, 0);
   try
     MS.WriteBuffer(AJpegData[0], Length(AJpegData));
     MS.Position := 0;
 
-    IntfImg.LoadFromStream(MS, Reader);
+    Img.LoadFromStream(MS, Reader);
+
+    IntfImg.SetSize(Img.Width, Img.Height);
+    IntfImg.LoadFromBitmap(ADestino.Handle, ADestino.MaskHandle);
+    IntfImg.Assign(Img);
+
     ADestino.LoadFromIntfImage(IntfImg);
+    FUltimaImagemDataHora := Now;
   finally
     IntfImg.Free;
     Reader.Free;
+    Img.Free;
     MS.Free;
   end;
 end;
 
 function TfrmConectionCX10W.ExtraiJPEGDoBuffer: Boolean;
 var
-  P: PByte;
-  I, InicioJPEG, FimJPEG: Integer;
-  Temp: TMemoryStream;
-  BufferBytes: PByte;
-  Tamanho: Integer;
+  PData: PByte;
+  Buf: TBytes;
+  I, J, Tamanho: Integer;
+  InicioJpeg, FimJpeg: Integer;
+  Img: TBytes;
+  Restante: TBytes;
 begin
   Result := False;
 
-  if not Assigned(FVideoBuffer) then
+  if (not Assigned(FVideoBuffer)) or (FVideoBuffer.Size < 4) then
     Exit;
 
-  if FVideoBuffer.Size < 4 then
-    Exit;
+  SetLength(Buf, FVideoBuffer.Size);
+  FVideoBuffer.Position := 0;
+  if Length(Buf) > 0 then
+    FVideoBuffer.ReadBuffer(Buf[0], Length(Buf));
 
-  InicioJPEG := -1;
-  FimJPEG := -1;
+  InicioJpeg := -1;
+  FimJpeg := -1;
 
-  Tamanho := FVideoBuffer.Size;
-  BufferBytes := FVideoBuffer.Memory;
-
-  for I := 0 to Tamanho - 2 do
+  for I := 0 to High(Buf) - 1 do
   begin
-    P := BufferBytes + I;
-    if (P^ = $FF) and ((P + 1)^ = $D8) then
+    if (Buf[I] = $FF) and (Buf[I + 1] = $D8) then
     begin
-      InicioJPEG := I;
+      InicioJpeg := I;
       Break;
     end;
   end;
 
-  if InicioJPEG < 0 then
-    Exit;
-
-  for I := InicioJPEG + 2 to Tamanho - 2 do
+  if InicioJpeg < 0 then
   begin
-    P := BufferBytes + I;
-    if (P^ = $FF) and ((P + 1)^ = $D9) then
-    begin
-      FimJPEG := I + 1;
-      Break;
-    end;
-  end;
-
-  if (FimJPEG <= InicioJPEG) then
-    Exit;
-
-  Temp := TMemoryStream.Create;
-  try
-    Temp.WriteBuffer((BufferBytes + InicioJPEG)^, FimJPEG - InicioJPEG + 1);
-    if CarregaJPEGNoBitmap(Temp) then
-      Result := True;
-  finally
-    Temp.Free;
-  end;
-
-  Temp := TMemoryStream.Create;
-  try
-    if FimJPEG + 1 < Tamanho then
-      Temp.WriteBuffer((BufferBytes + FimJPEG + 1)^, Tamanho - (FimJPEG + 1));
     FVideoBuffer.Clear;
-    if Temp.Size > 0 then
-    begin
-      Temp.Position := 0;
-      FVideoBuffer.CopyFrom(Temp, Temp.Size);
-    end;
-  finally
-    Temp.Free;
+    Exit;
   end;
+
+  for J := InicioJpeg + 2 to High(Buf) - 1 do
+  begin
+    if (Buf[J] = $FF) and (Buf[J + 1] = $D9) then
+    begin
+      FimJpeg := J + 1;
+      Break;
+    end;
+  end;
+
+  if FimJpeg < 0 then
+  begin
+    FVideoBuffer.Clear;
+    FVideoBuffer.WriteBuffer(Buf[InicioJpeg], Length(Buf) - InicioJpeg);
+    Exit;
+  end;
+
+  Tamanho := FimJpeg - InicioJpeg + 1;
+  SetLength(Img, Tamanho);
+  Move(Buf[InicioJpeg], Img[0], Tamanho);
+
+  CarregaJpegNoBitmap(Img, FBitmap);
+
+  if FimJpeg < High(Buf) then
+  begin
+    SetLength(Restante, High(Buf) - FimJpeg);
+    Move(Buf[FimJpeg + 1], Restante[0], Length(Restante));
+    FVideoBuffer.Clear;
+    if Length(Restante) > 0 then
+      FVideoBuffer.WriteBuffer(Restante[0], Length(Restante));
+  end
+  else
+    FVideoBuffer.Clear;
+
+  Result := True;
 end;
 
 procedure TfrmConectionCX10W.ProcessaBytesTCP(const AData: TBytes);
 begin
-  if Length(AData) = 0 then
+  if (Length(AData) = 0) or (not Assigned(FVideoBuffer)) then
     Exit;
 
   FVideoBuffer.Position := FVideoBuffer.Size;
   FVideoBuffer.WriteBuffer(AData[0], Length(AData));
+  ExtraiJPEGDoBuffer;
+end;
 
-  while ExtraiJPEGDoBuffer do
+function TfrmConectionCX10W.LerTextoConfig(const ANome: array of string; const ADefault: string): string;
+var
+  I: Integer;
+  C: TComponent;
+begin
+  Result := ADefault;
+
+  if Assigned(FSetMain) and (ADefault = '192.168.10.1') and (Trim(FSetMain.DroneIP) <> '') then
+    Result := FSetMain.DroneIP;
+
+  if not Assigned(frmConfig) then
+    Exit;
+
+  for I := Low(ANome) to High(ANome) do
   begin
-    { continua enquanto houver mais de um frame no buffer }
+    C := frmConfig.FindComponent(ANome[I]);
+    if Assigned(C) then
+    begin
+      if C is TEdit then
+        Exit(TEdit(C).Text);
+      if C is TLabel then
+        Exit(TLabel(C).Caption);
+      if C is TComboBox then
+        Exit(TComboBox(C).Text);
+    end;
   end;
+end;
+
+function TfrmConectionCX10W.LerInteiroConfig(const ANome: array of string; const ADefault: Integer): Integer;
+begin
+  Result := SafeStrToInt(LerTextoConfig(ANome, IntToStr(ADefault)), ADefault);
+end;
+
+function TfrmConectionCX10W.LerBooleanoConfig(const ANome: array of string; const ADefault: Boolean): Boolean;
+var
+  I: Integer;
+  C: TComponent;
+  S: string;
+begin
+  Result := ADefault;
+
+  if not Assigned(frmConfig) then
+    Exit;
+
+  for I := Low(ANome) to High(ANome) do
+  begin
+    C := frmConfig.FindComponent(ANome[I]);
+    if Assigned(C) then
+    begin
+      if C is TCheckBox then
+        Exit(TCheckBox(C).Checked);
+
+      if C is TComboBox then
+      begin
+        S := Trim(LowerCase(TComboBox(C).Text));
+        Exit((S = '1') or (S = 'true') or (S = 'sim') or (S = 'yes'));
+      end;
+    end;
+  end;
+end;
+
+procedure TfrmConectionCX10W.EnviaTCP(const ABytes: array of Byte; const ADescricao: string);
+var
+  N: Integer;
+  Tmp: TBytes;
+begin
+  if not TcpReady then
+    Exit;
+
+  if Length(ABytes) = 0 then
+    Exit;
+
+  N := LTCPComponent1.Send(ABytes[0], Length(ABytes));
+  if N > 0 then
+  begin
+    SetLength(Tmp, Length(ABytes));
+    Move(ABytes[0], Tmp[0], Length(ABytes));
+    FUltimoPacoteTCPHex := BytesToHex(Tmp);
+    Log(ADescricao + ' enviado via TCP: ' + FUltimoPacoteTCPHex);
+  end
+  else
+    Log('Falha ao enviar ' + ADescricao + ' via TCP');
+end;
+
+procedure TfrmConectionCX10W.EnviaUDP(const ABytes: array of Byte; const ADescricao: string);
+var
+  N: Integer;
+  Tmp: TBytes;
+begin
+  if not UdpReady then
+    Exit;
+
+  if Length(ABytes) = 0 then
+    Exit;
+
+  N := LUDPComponent1.Send(ABytes[0], Length(ABytes));
+  if N > 0 then
+  begin
+    SetLength(Tmp, Length(ABytes));
+    Move(ABytes[0], Tmp[0], Length(ABytes));
+    FUltimoPacoteUDPHex := BytesToHex(Tmp);
+  end
+  else
+    Log('Falha ao enviar ' + ADescricao + ' via UDP');
+end;
+
+procedure TfrmConectionCX10W.PegaConfiguracao;
+begin
+  if Assigned(FSetMain) then
+  begin
+    FHost := FSetMain.DroneIP;
+    FTcpPort := FSetMain.DronePortaComando;
+    FUdpPort := FSetMain.DronePortaVideo;
+  end;
+
+  if Trim(FHost) = '' then
+    FHost := '192.168.10.1';
+
+  if FTcpPort <= 0 then
+    FTcpPort := 8888;
+
+  if FUdpPort <= 0 then
+    FUdpPort := 8895;
+
+  FHost := LerTextoConfig(['edIP', 'edtIP', 'txtIP', 'lbIP'], FHost);
+  FTcpPort := LerInteiroConfig(['edTCP', 'edtTCP', 'edPortTCP', 'edtPortTCP'], FTcpPort);
+  FUdpPort := LerInteiroConfig(['edUDP', 'edtUDP', 'edPortUDP', 'edtPortUDP'], FUdpPort);
+
+  if Assigned(lbIP) then
+    lbIP.Caption := FHost;
+  if Assigned(lbTCP) then
+    lbTCP.Caption := IntToStr(FTcpPort);
+  if Assigned(lbUDP) then
+    lbUDP.Caption := IntToStr(FUdpPort);
+
+  Log('Configuração carregada: IP=' + FHost + ' TCP=' + IntToStr(FTcpPort) +
+    ' UDP=' + IntToStr(FUdpPort));
+end;
+
+procedure TfrmConectionCX10W.InicioHandShake;
+begin
+  FError := False;
+  PegaConfiguracao;
+
+  SetStatus('Iniciando conexão com o drone...');
+
+  try
+    if Assigned(LTCPComponent1) then
+    begin
+      if LTCPComponent1.Connected then
+        LTCPComponent1.Disconnect(True);
+      LTCPComponent1.Connect(FHost, FTcpPort);
+    end;
+  except
+    on E: Exception do
+    begin
+      FError := True;
+      SetStatus('Erro ao iniciar TCP: ' + E.Message);
+      UpdateMainOfflineState;
+    end;
+  end;
+
+  try
+    if Assigned(LUDPComponent1) then
+    begin
+      if LUDPComponent1.Connected then
+        LUDPComponent1.Disconnect(True);
+      LUDPComponent1.Connect(FHost, FUdpPort);
+    end;
+  except
+    on E: Exception do
+    begin
+      FError := True;
+      SetStatus('Erro ao iniciar UDP: ' + E.Message);
+      UpdateMainOfflineState;
+    end;
+  end;
+end;
+
+procedure TfrmConectionCX10W.sendMagicPackets;
+begin
+  EnviaTCP(MAGIC_BYTES_CTRL, 'Handshake CTRL');
+end;
+
+procedure TfrmConectionCX10W.sendMagicPacketsVideo1;
+begin
+  EnviaTCP(MAGIC_BYTES_VIDEO_1A, 'Handshake VIDEO 1A');
+  Sleep(40);
+  EnviaTCP(MAGIC_BYTES_VIDEO_1B, 'Handshake VIDEO 1B');
+end;
+
+procedure TfrmConectionCX10W.sendMagicPacketsVideo2;
+begin
+  EnviaTCP(MAGIC_BYTES_VIDEO_2, 'Handshake VIDEO 2');
+end;
+
+procedure TfrmConectionCX10W.sendGamepadData;
+var
+  Packet: array[0..7] of Byte;
+  Flags: Byte;
+  Yaw: Byte;
+begin
+  Packet := DEFAULT_PACKET;
+
+  Flags := BuildFlags;
+  Yaw := BuildYaw;
+
+  Packet[1] := FZ;     // throttle
+  Packet[2] := Yaw;    // yaw
+  Packet[3] := FY;     // pitch
+  Packet[4] := FX;     // roll
+  Packet[5] := Flags;  // flags / comandos
+  Packet[6] := BuildChecksum(Packet);
+  Packet[7] := $33;
+
+  EnviaUDP(Packet, 'Controle');
+end;
+
+procedure TfrmConectionCX10W.DesativaJoystick;
+begin
+  if Assigned(timerJoystick) then
+    timerJoystick.Enabled := False;
+end;
+
+procedure TfrmConectionCX10W.AtivaJoystick;
+begin
+  if Assigned(timerJoystick) then
+    timerJoystick.Enabled := True;
+end;
+
+procedure TfrmConectionCX10W.DesativaConnection;
+begin
+  DesativaJoystick;
+  DisconnectSockets;
+  SetStatus('Conexão encerrada.');
 end;
 
 procedure TfrmConectionCX10W.FormCreate(Sender: TObject);
 begin
-  FError := False;
-  FX := $7F;
-  FY := $7F;
-  FZ := $7F;
+  FX := AXIS_CENTER;
+  FY := AXIS_CENTER;
+  FZ := AXIS_CENTER;
+
   FB1 := 0;
   FB2 := 0;
   FB3 := 0;
   FB4 := 0;
   FB5 := 0;
   FB6 := 0;
-  timerJoystick.Enabled := False;
+
+  FError := False;
+  FHost := '192.168.10.1';
+  FTcpPort := 8888;
+  FUdpPort := 8895;
 
   FBitmap := TBitmap.Create;
   FVideoBuffer := TMemoryStream.Create;
-  FUltimaImagemDataHora := 0;
 
   FUltimaTelemetriaHex := '';
   FUltimaTelemetriaOrigem := toNenhuma;
@@ -453,12 +724,21 @@ begin
   FUltimoPacoteUDPHex := '';
   FTotalPacotesTCP := 0;
   FTotalPacotesUDP := 0;
+
+  if Assigned(timerJoystick) then
+  begin
+    timerJoystick.Interval := 50;
+    timerJoystick.Enabled := False;
+  end;
+
+  SetStatus('Aguardando início...');
 end;
 
 procedure TfrmConectionCX10W.FormDestroy(Sender: TObject);
 begin
-  FreeAndNil(FBitmap);
+  DesativaConnection;
   FreeAndNil(FVideoBuffer);
+  FreeAndNil(FBitmap);
 end;
 
 procedure TfrmConectionCX10W.Label5Click(Sender: TObject);
@@ -467,116 +747,85 @@ end;
 
 procedure TfrmConectionCX10W.lbStateConectionChangeBounds(Sender: TObject);
 begin
-  Log(lbStateConection.Caption);
 end;
 
 procedure TfrmConectionCX10W.LTCPComponent1Accept(aSocket: TLSocket);
 begin
-  SetStatus('Accept connection');
+  Log('TCP accept.');
 end;
 
 procedure TfrmConectionCX10W.LTCPComponent1Connect(aSocket: TLSocket);
 begin
-  SetStatus('Connection open');
+  FError := False;
+  SetStatus('TCP conectado ao drone.');
 
   sendMagicPackets;
-  Sleep(1000);
-  Application.ProcessMessages;
-
-  { habilitação de vídeo }
+  Sleep(50);
   sendMagicPacketsVideo1;
-  Sleep(500);
-  Application.ProcessMessages;
-
+  Sleep(50);
   sendMagicPacketsVideo2;
-  Sleep(500);
-  Application.ProcessMessages;
+  Sleep(50);
 
   AtivaJoystick;
 
   if Assigned(frmMain) then
     frmMain.AtivouDrone;
 
-  Application.ProcessMessages;
-end;
-
-procedure TfrmConectionCX10W.AtivaJoystick;
-begin
-  timerJoystick.Enabled := True;
-end;
-
-procedure TfrmConectionCX10W.DesativaJoystick;
-begin
-  timerJoystick.Enabled := False;
-  if Assigned(frmMain) then
-    frmMain.DesativaJoystick;
+  SetStatus('Handshake concluído.');
 end;
 
 procedure TfrmConectionCX10W.LTCPComponent1Disconnect(aSocket: TLSocket);
 begin
-  SetStatus('Connection close');
-  DesativaJoystick;
-end;
-
-procedure TfrmConectionCX10W.DesativaConnection;
-begin
-  FError := True;
-  DesativaJoystick;
-  DisconnectSockets;
+  SetStatus('TCP desconectado.');
   UpdateMainOfflineState;
-  Hide;
 end;
 
 procedure TfrmConectionCX10W.LTCPComponent1Error(const msg: string; aSocket: TLSocket);
 begin
-  SetStatus('Erro connection: ' + msg);
   FError := True;
-  DesativaConnection;
+  SetStatus('Erro TCP: ' + msg);
+  UpdateMainOfflineState;
 end;
 
 procedure TfrmConectionCX10W.LTCPComponent1Receive(aSocket: TLSocket);
 var
-  Buffer: array[0..8191] of Byte;
-  Lidos: Integer;
-  Dados: TBytes;
+  Buf: array[0..8191] of Byte;
+  L: Integer;
+  Data: TBytes;
 begin
-  Lidos := aSocket.Get(Buffer[0], SizeOf(Buffer));
-
-  if Lidos <= 0 then
-    Exit;
-
-  SetLength(Dados, Lidos);
-  Move(Buffer[0], Dados[0], Lidos);
-
-  AtualizaTelemetria(Dados, toTCP);
-  ProcessaBytesTCP(Dados);
-
-  Log('RECEIVE_TCP: ' + FUltimoPacoteTCPHex);
+  repeat
+    L := aSocket.Get(Buf[0], SizeOf(Buf));
+    if L > 0 then
+    begin
+      SetLength(Data, L);
+      Move(Buf[0], Data[0], L);
+      AtualizaTelemetria(Data, toTCP);
+      ProcessaBytesTCP(Data);
+    end;
+  until L <= 0;
 end;
 
 procedure TfrmConectionCX10W.LUDPComponent1Error(const msg: string; aSocket: TLSocket);
 begin
-  Log('UDP_Erro: ' + msg);
   FError := True;
+  SetStatus('Erro UDP: ' + msg);
 end;
 
 procedure TfrmConectionCX10W.LUDPComponent1Receive(aSocket: TLSocket);
 var
-  Buffer: array[0..2047] of Byte;
-  Lidos: Integer;
-  Dados: TBytes;
+  Buf: array[0..2047] of Byte;
+  L: Integer;
+  Data: TBytes;
 begin
-  Lidos := aSocket.Get(Buffer[0], SizeOf(Buffer));
-
-  if Lidos <= 0 then
-    Exit;
-
-  SetLength(Dados, Lidos);
-  Move(Buffer[0], Dados[0], Lidos);
-
-  AtualizaTelemetria(Dados, toUDP);
-
-  Log('RECEIVE_UDP: ' + FUltimoPacoteUDPHex);
+  repeat
+    L := aSocket.Get(Buf[0], SizeOf(Buf));
+    if L > 0 then
+    begin
+      SetLength(Data, L);
+      Move(Buf[0], Data[0], L);
+      AtualizaTelemetria(Data, toUDP);
+    end;
+  until L <= 0;
 end;
 
 procedure TfrmConectionCX10W.pnBottonClick(Sender: TObject);
@@ -590,182 +839,8 @@ begin
   Mudou := False;
   SyncFromMain(Mudou);
 
-  if Mudou then
+  if Mudou or (Now - FUltimaTelemetriaDataHora > EncodeTime(0, 0, 0, 150)) then
     sendGamepadData;
-end;
-
-procedure TfrmConectionCX10W.sendMagicPackets;
-begin
-  if not TcpReady then
-    Exit;
-
-  try
-    LTCPComponent1.Send(MAGIC_BYTES_CTRL, Length(MAGIC_BYTES_CTRL));
-    Log('SEND_TCP CTRL: ' + IntToStr(Length(MAGIC_BYTES_CTRL)) + ' bytes');
-  except
-    on E: Exception do
-    begin
-      FError := True;
-      Log('Erro ao enviar pacote CTRL: ' + E.Message);
-    end;
-  end;
-end;
-
-procedure TfrmConectionCX10W.sendMagicPacketsVideo1;
-begin
-  if not TcpReady then
-    Exit;
-
-  try
-    LTCPComponent1.Send(MAGIC_BYTES_VIDEO_1A, Length(MAGIC_BYTES_VIDEO_1A));
-    LTCPComponent1.Send(MAGIC_BYTES_VIDEO_1B, Length(MAGIC_BYTES_VIDEO_1B));
-    Log('SEND_TCP VIDEO1');
-  except
-    on E: Exception do
-    begin
-      FError := True;
-      Log('Erro ao enviar pacote VIDEO1: ' + E.Message);
-    end;
-  end;
-end;
-
-procedure TfrmConectionCX10W.sendMagicPacketsVideo2;
-begin
-  if not TcpReady then
-    Exit;
-
-  try
-    LTCPComponent1.Send(MAGIC_BYTES_VIDEO_2, Length(MAGIC_BYTES_VIDEO_2));
-    Log('SEND_TCP VIDEO2');
-  except
-    on E: Exception do
-    begin
-      FError := True;
-      Log('Erro ao enviar pacote VIDEO2: ' + E.Message);
-    end;
-  end;
-end;
-
-procedure TfrmConectionCX10W.sendGamepadData;
-var
-  DataArray: array[0..7] of Byte;
-  I: Integer;
-  Info: string;
-begin
-  if not UdpReady then
-  begin
-    Log('UDP Erro: componente inativo');
-    FError := True;
-    Exit;
-  end;
-
-  for I := 0 to 7 do
-    DataArray[I] := DEFAULT_PACKET[I];
-
-  DataArray[1] := FZ;
-  DataArray[2] := FX;
-  DataArray[3] := FY;
-  DataArray[4] := FB1;
-  DataArray[5] := FB2;
-  DataArray[6] := BuildChecksum(DataArray);
-
-  Info := '';
-  for I := 0 to High(DataArray) do
-    Info := Info + IntToHex(DataArray[I], 2);
-
-  try
-    LUDPComponent1.Send(DataArray, Length(DataArray));
-    Log('SEND_UDP: ' + Info);
-  except
-    on E: Exception do
-    begin
-      FError := True;
-      Log('Erro ao enviar UDP: ' + E.Message);
-    end;
-  end;
-end;
-
-procedure TfrmConectionCX10W.PegaConfiguracao;
-var
-  VTcpPort, VUdpPort: Integer;
-begin
-  Log('Configuration Begin');
-
-  if not Assigned(frmconfig) then
-  begin
-    FError := True;
-    SetStatus('Configuração indisponível');
-    Exit;
-  end;
-
-  lbIP.Caption := Trim(frmconfig.edIP.Text);
-  lbTCP.Caption := Trim(frmconfig.edTCPPORT.Text);
-  lbUDP.Caption := Trim(frmconfig.edUDPPORT.Text);
-  lbStateConection.Caption := 'Offline';
-
-  VTcpPort := SafeStrToInt(lbTCP.Caption, 0);
-  VUdpPort := SafeStrToInt(lbUDP.Caption, 0);
-
-  if lbIP.Caption = '' then
-  begin
-    FError := True;
-    SetStatus('IP inválido');
-    Exit;
-  end;
-
-  if (VTcpPort <= 0) or (VTcpPort > 65535) then
-  begin
-    FError := True;
-    SetStatus('Porta TCP inválida');
-    Exit;
-  end;
-
-  if (VUdpPort <= 0) or (VUdpPort > 65535) then
-  begin
-    FError := True;
-    SetStatus('Porta UDP inválida');
-    Exit;
-  end;
-
-  DisconnectSockets;
-
-  LTCPComponent1.Host := lbIP.Caption;
-  LUDPComponent1.Host := lbIP.Caption;
-  LTCPComponent1.Port := VTcpPort;
-  LUDPComponent1.Port := VUdpPort;
-
-  FError := False;
-end;
-
-procedure TfrmConectionCX10W.InicioHandShake;
-var
-  VTcpPort, VUdpPort: Integer;
-begin
-  FError := False;
-  Log('Hand Shake');
-  SetStatus('Connecting...');
-
-  VTcpPort := SafeStrToInt(lbTCP.Caption, 0);
-  VUdpPort := SafeStrToInt(lbUDP.Caption, 0);
-
-  if (lbIP.Caption = '') or (VTcpPort <= 0) or (VUdpPort <= 0) then
-  begin
-    FError := True;
-    SetStatus('Fail: configuração inválida');
-    Exit;
-  end;
-
-  try
-    LTCPComponent1.Connect(lbIP.Caption, VTcpPort);
-    LUDPComponent1.Connect(lbIP.Caption, VUdpPort);
-  except
-    on E: Exception do
-    begin
-      Log('Hand Shake fail: ' + E.Message);
-      SetStatus('Fail...');
-      FError := True;
-    end;
-  end;
 end;
 
 end.

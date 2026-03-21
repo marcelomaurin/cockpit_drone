@@ -8,9 +8,9 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   StdCtrls, Arrow, Menus, acs_mixer, CADSys4, SdpoJoystick, A3nalogGauge,
   IndLed, LedNumber, AdvLed, BCGameGrid, BCSVGViewer, gpssignalplot, gpsskyplot,
-  gpstarget, nmeadecode, gpsportconnected, uplaysound, ulazautoupdate,
+  gpstarget, nmeadecode, gpsportconnected, about,
   lNetComponents, config, cd10w, camera, map, ConectionCX10W, funcs, GPS,
-  joystick, LCLType;
+  joystick, LCLType, uplaysound, controler;
 
 const
   refJoy = 127;
@@ -106,6 +106,7 @@ type
 
   private
     FJoystick: TJoystickController;
+    FControler: TDroneControler;
 
     FKeyUp: Boolean;
     FKeyDown: Boolean;
@@ -121,6 +122,7 @@ type
     FKeyB5: Boolean;
     FKeyB6: Boolean;
 
+    procedure EnsureAbout;
     procedure AtualizaLedsBotoes;
     procedure AtualizaRotorDisplay;
     procedure CentralizaComandos;
@@ -130,7 +132,12 @@ type
     procedure AtivaMapa;
     procedure DesativaMapa;
     procedure AtualizaMapaDrone;
-    function  CaptionToFloat(const S: string; out AValue: Double): Boolean;
+
+    procedure EnsureConfig;
+    procedure EnsureCam;
+    procedure EnsureMap;
+    procedure EnsureGPS;
+
   public
     X, Y, Z: Byte;
     B1, B2, B3, B4, B5, B6: Byte;
@@ -155,6 +162,36 @@ implementation
 
 { TfrmMain }
 
+procedure TfrmMain.EnsureConfig;
+begin
+  if not Assigned(frmConfig) then
+    frmConfig := TfrmConfig.Create(Self);
+end;
+
+procedure TfrmMain.EnsureCam;
+begin
+  if not Assigned(frmCam) then
+    frmCam := TfrmCam.Create(Self);
+end;
+
+procedure TfrmMain.EnsureMap;
+begin
+  if not Assigned(frmMap) then
+    frmMap := TfrmMap.Create(Self);
+end;
+
+procedure TfrmMain.EnsureGPS;
+begin
+  if not Assigned(frmGPS) then
+    frmGPS := TfrmGPS.Create(Self);
+end;
+
+procedure TfrmMain.EnsureAbout;
+begin
+  if not Assigned(frmAbout) then
+    frmAbout := TfrmAbout.Create(Self);
+end;
+
 procedure TfrmMain.AtualizaLedsBotoes;
 begin
   if B1 = 255 then AdvJoyB1.State := lsOn else AdvJoyB1.State := lsOff;
@@ -167,9 +204,20 @@ end;
 
 procedure TfrmMain.AtualizaRotorDisplay;
 begin
-  ledrotor1.Caption := IntToStr(X);
-  ledrotor2.Caption := IntToStr(Y);
-  ledrotor3.Caption := IntToStr(Z);
+  if Assigned(FControler) then
+  begin
+    ledrotor1.Caption := IntToStr(FControler.Motor1);
+    ledrotor2.Caption := IntToStr(FControler.Motor2);
+    ledrotor3.Caption := IntToStr(FControler.Motor3);
+    ledrotor4.Caption := IntToStr(FControler.Motor4);
+  end
+  else
+  begin
+    ledrotor1.Caption := '0';
+    ledrotor2.Caption := '0';
+    ledrotor3.Caption := '0';
+    ledrotor4.Caption := '0';
+  end;
 end;
 
 procedure TfrmMain.CentralizaComandos;
@@ -206,26 +254,14 @@ begin
   if FKeyB6 then B6 := 255;
 end;
 
-function TfrmMain.CaptionToFloat(const S: string; out AValue: Double): Boolean;
-var
-  V: string;
-begin
-  V := Trim(S);
-  V := StringReplace(V, ',', FormatSettings.DecimalSeparator, [rfReplaceAll]);
-  V := StringReplace(V, '.', FormatSettings.DecimalSeparator, [rfReplaceAll]);
-  Result := TryStrToFloat(V, AValue);
-end;
-
 procedure TfrmMain.AtivaMapa;
 begin
-  if Assigned(frmMap) then
-  begin
-    frmMap.Show;
-    frmMap.MostrarGrid;
-    AdvMap.Blink := True;
-    AdvMap.State := lsOn;
-    AtualizaMapaDrone;
-  end;
+  EnsureMap;
+  frmMap.Show;
+  frmMap.MostrarGrid;
+  AdvMap.Blink := True;
+  AdvMap.State := lsOn;
+  AtualizaMapaDrone;
 end;
 
 procedure TfrmMain.DesativaMapa;
@@ -245,40 +281,37 @@ begin
   if not Assigned(frmMap) then
     Exit;
 
-  {
-    Primeiro tenta usar posição vinda do GPS real.
-    Se não conseguir, usa posição simulada pelo joystick.
-  }
+  Col := X div 16;
+  Row := Y div 16;
 
-  if Assigned(frmGPS) and
-     CaptionToFloat(frmGPS.lblGLLLat.Caption, Lat) and
-     CaptionToFloat(frmGPS.lblGLLLong.Caption, Lon) then
+  EnsureGPS;
+  if Assigned(frmGPS) then
+    frmGPS.Atualiza;
+
+  if Assigned(frmGPS) and frmGPS.TemPosicao then
   begin
-    Col := X div 16;
-    Row := Y div 16;
+    Lat := frmGPS.Latitude;
+    Lon := frmGPS.Longitude;
     frmMap.AtualizaDrone(Lat, Lon, Col, Row);
     Exit;
   end;
 
-  {
-    Fallback: posição simulada.
-    Você pode trocar depois por coordenadas reais do drone.
-  }
   Lat := -21.1775 + ((Y - refJoy) / 10000);
   Lon := -47.8103 + ((X - refJoy) / 10000);
-
-  Col := X div 16;
-  Row := Y div 16;
 
   frmMap.AtualizaDrone(Lat, Lon, Col, Row);
 end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
+var
+  I: Integer;
 begin
   TrayIcon1.Visible := True;
   KeyPreview := True;
 
   FJoystick := TJoystickController.Create(SdpoJoystick1);
+  FControler := TDroneControler.Create;
+  FControler.Ativo := False;
 
   frmConnection := nil;
   CentralizaComandos;
@@ -293,19 +326,66 @@ begin
 
   AtualizaLedsBotoes;
   AtualizaRotorDisplay;
+
+  { tela de sobre / splash }
+  EnsureAbout;
+  if Assigned(frmAbout) then
+  begin
+    frmAbout.BorderStyle := bsNone;
+    frmAbout.Position := poScreenCenter;
+    frmAbout.AlphaBlend := True;
+    frmAbout.AlphaBlendValue := 0;
+    frmAbout.Show;
+    frmAbout.Update;
+    Application.ProcessMessages;
+
+    for I := 0 to 255 do
+    begin
+      frmAbout.AlphaBlendValue := I;
+      frmAbout.Update;
+      Application.ProcessMessages;
+      Sleep(16);
+    end;
+
+    Sleep(5000);
+
+    frmAbout.Hide;
+    Application.ProcessMessages;
+  end;
 end;
 
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
   timerJoystick.Enabled := False;
-  FreeAndNil(frmConnection);
+
+  if Assigned(frmAbout) then
+    FreeAndNil(frmAbout);
+
+  if Assigned(frmConnection) then
+    FreeAndNil(frmConnection);
+
+  if Assigned(frmCam) then
+    FreeAndNil(frmCam);
+
+  if Assigned(frmMap) then
+    FreeAndNil(frmMap);
+
+  if Assigned(frmGPS) then
+    FreeAndNil(frmGPS);
+
+  if Assigned(frmConfig) then
+    FreeAndNil(frmConfig);
+
+  if Assigned(FControler) then
+    FreeAndNil(FControler);
+
   FreeAndNil(FJoystick);
 end;
 
 procedure TfrmMain.btGridCAMClick(Sender: TObject);
 begin
-  if Assigned(frmCam) then
-    frmCam.AlternaGrid;
+  EnsureCam;
+  frmCam.AlternaGrid;
 end;
 
 procedure TfrmMain.gridCamClickControl(Sender: TObject; n, x, y: integer);
@@ -314,25 +394,25 @@ end;
 
 procedure TfrmMain.btGridCAM1Click(Sender: TObject);
 begin
-  if Assigned(frmMap) then
-    frmMap.AlternaGrid;
+  EnsureMap;
+  frmMap.AlternaGrid;
 end;
 
 procedure TfrmMain.AdvCameraClick(Sender: TObject);
 begin
+  EnsureCam;
+
   if frmCam.Visible then
   begin
     frmCam.Hide;
-    if Assigned(frmCam) then
-      frmCam.DesativaCamera;
+    frmCam.DesativaCamera;
     AdvCamera.Blink := False;
     AdvCamera.State := lsOff;
   end
   else
   begin
     frmCam.Show;
-    if Assigned(frmCam) then
-      frmCam.AtivaCamera;
+    frmCam.AtivaCamera;
     AdvCamera.Blink := True;
     AdvCamera.State := lsOn;
   end;
@@ -340,7 +420,9 @@ end;
 
 procedure TfrmMain.AdvMapClick(Sender: TObject);
 begin
-  if Assigned(frmMap) and frmMap.Visible then
+  EnsureMap;
+
+  if frmMap.Visible then
     DesativaMapa
   else
     AtivaMapa;
@@ -401,8 +483,9 @@ end;
 
 procedure TfrmMain.ConfiguraJoy;
 begin
+  EnsureConfig;
   if Assigned(FJoystick) then
-    FJoystick.ConfigureDevice(frmconfig.cbDevice.ItemIndex);
+    FJoystick.ConfigureDevice(frmConfig.cbDevice.ItemIndex);
 end;
 
 procedure TfrmMain.AtivouDrone;
@@ -413,9 +496,11 @@ end;
 
 procedure TfrmMain.AtivaDrone;
 begin
+  EnsureConfig;
+
   if frmConnection = nil then
   begin
-    if frmconfig.TipoAtivo = 0 then
+    if frmConfig.TipoAtivo = 0 then
     begin
       frmConnection := TfrmConectionCX10W.Create(Self);
       TfrmConectionCX10W(frmConnection).Show;
@@ -431,9 +516,7 @@ procedure TfrmMain.DesativaDrone;
 begin
   if frmConnection <> nil then
   begin
-    if frmconfig.TipoAtivo = 0 then
-      frmConnection.Hide;
-
+    frmConnection.Hide;
     FreeAndNil(frmConnection);
   end;
 end;
@@ -445,6 +528,9 @@ begin
     AdvStart.State := lsOn;
     AdvStart.Blink := True;
 
+    if Assigned(FControler) then
+      FControler.Ativo := True;
+
     ConfiguraJoy;
     AtivaJoystick;
     AtivaDrone;
@@ -453,8 +539,16 @@ begin
   begin
     AdvStart.State := lsOff;
     AdvStart.Blink := False;
+
+    if Assigned(FControler) then
+    begin
+      FControler.Ativo := False;
+      FControler.Reset;
+    end;
+
     DesativaJoystick;
     DesativaDrone;
+    AtualizaRotorDisplay;
   end;
 end;
 
@@ -489,17 +583,14 @@ begin
     'S': FKeyDown := True;
     'A': FKeyLeft := True;
     'D': FKeyRight := True;
-
     'Q': FKeyZDown := True;
     'E': FKeyZUp := True;
-
     '1': FKeyB1 := True;
     '2': FKeyB2 := True;
     '3': FKeyB3 := True;
     '4': FKeyB4 := True;
     '5': FKeyB5 := True;
     '6': FKeyB6 := True;
-
     'R': CentralizaComandos;
   end;
 end;
@@ -527,7 +618,7 @@ procedure TfrmMain.FormShow(Sender: TObject);
 begin
   KeyPreview := True;
 
-  if AdvMap.State = lsOn then
+  if (AdvMap.State = lsOn) and Assigned(frmMap) then
     AtualizaMapaDrone;
 end;
 
@@ -554,6 +645,8 @@ end;
 
 procedure TfrmMain.AdvGPSClick(Sender: TObject);
 begin
+  EnsureGPS;
+
   if frmGPS.Visible then
   begin
     frmGPS.Hide;
@@ -570,6 +663,7 @@ end;
 
 procedure TfrmMain.Button1Click(Sender: TObject);
 begin
+  EnsureConfig;
   frmConfig.ShowModal;
 end;
 
@@ -591,24 +685,31 @@ end;
 
 procedure TfrmMain.MenuItem1Click(Sender: TObject);
 begin
+  EnsureConfig;
   frmConfig.Show;
 end;
 
 procedure TfrmMain.MenuItem2Click(Sender: TObject);
 begin
-  frmMain.Show;
+  Show;
 
   if frmConnection <> nil then
     frmConnection.Show;
 
-  if AdvMap.State = lsOn then
+  if (AdvCamera.State = lsOn) then
+  begin
+    EnsureCam;
+    frmCam.Show;
+  end;
+
+  if (AdvMap.State = lsOn) then
     AtivaMapa;
 
-  if AdvMap.State = lsOn then
-    frmMap.Show;
-
-  if AdvGPS.State = lsOn then
+  if (AdvGPS.State = lsOn) then
+  begin
+    EnsureGPS;
     frmGPS.Show;
+  end;
 end;
 
 procedure TfrmMain.MenuItem3Click(Sender: TObject);
@@ -654,20 +755,15 @@ begin
     B6 := 0;
   end;
 
-  { teclado sobrepõe/complementa }
   if FKeyUp and (not FKeyDown) then
     Y0 := 0
   else if FKeyDown and (not FKeyUp) then
-    Y0 := 255
-  else
-    Y0 := Y0;
+    Y0 := 255;
 
   if FKeyLeft and (not FKeyRight) then
     X0 := 0
   else if FKeyRight and (not FKeyLeft) then
-    X0 := 255
-  else
-    X0 := X0;
+    X0 := 255;
 
   if FKeyZDown and (not FKeyZUp) then
   begin
@@ -691,10 +787,8 @@ begin
   if (Y0 < 120) then
   begin
     ArrowUp.ArrowColor := clRed;
-    if Y < 255 then
-      Inc(Y);
-    if Y < refJoy then
-      Y := refJoy;
+    if Y < 255 then Inc(Y);
+    if Y < refJoy then Y := refJoy;
   end
   else
   begin
@@ -706,10 +800,8 @@ begin
   if (Y0 > 140) then
   begin
     ArrowDown.ArrowColor := clRed;
-    if Y > 0 then
-      Dec(Y);
-    if Y > refJoy then
-      Y := refJoy;
+    if Y > 0 then Dec(Y);
+    if Y > refJoy then Y := refJoy;
   end
   else
   begin
@@ -721,10 +813,8 @@ begin
   if (X0 < 120) then
   begin
     ArrowLeft.ArrowColor := clRed;
-    if X < 255 then
-      Inc(X);
-    if X < refJoy then
-      X := refJoy;
+    if X < 255 then Inc(X);
+    if X < refJoy then X := refJoy;
   end
   else
   begin
@@ -736,10 +826,8 @@ begin
   if (X0 > 140) then
   begin
     ArrowRigth.ArrowColor := clRed;
-    if X > 0 then
-      Dec(X);
-    if X > refJoy then
-      X := refJoy;
+    if X > 0 then Dec(X);
+    if X > refJoy then X := refJoy;
   end
   else
   begin
@@ -748,7 +836,13 @@ begin
       Inc(X);
   end;
 
+  if Assigned(FControler) then
+    FControler.Atualiza(X, Y, Z, B1, B2, B3, B4, B5, B6);
+
   AtualizaRotorDisplay;
+
+  if Assigned(frmMap) and frmMap.Visible then
+    AtualizaMapaDrone;
 end;
 
 end.

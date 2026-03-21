@@ -39,15 +39,5 @@ object frmMap: TfrmMap
     OnZoomChange = MapView1ZoomChange
     OnZoomChanging = MapView1ZoomChanging
     OnResize = MapView1Resize
-    object gridMAP: TBCGameGrid
-      Left = 0
-      Height = 600
-      Top = 0
-      Width = 728
-      GridWidth = 200
-      GridHeight = 200
-      BlockWidth = 30
-      BlockHeight = 30
-    end
   end
 end

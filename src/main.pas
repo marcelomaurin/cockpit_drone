@@ -8,9 +8,9 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   StdCtrls, Arrow, Menus, acs_mixer, CADSys4, SdpoJoystick, A3nalogGauge,
   IndLed, LedNumber, AdvLed, BCGameGrid, BCSVGViewer, gpssignalplot, gpsskyplot,
-  gpstarget, nmeadecode, gpsportconnected, uplaysound, ulazautoupdate, about,
+  gpstarget, nmeadecode, gpsportconnected, about,
   lNetComponents, config, cd10w, camera, map, ConectionCX10W, funcs, GPS,
-  joystick, LCLType, controler;
+  joystick, LCLType, uplaysound, controler, setmain;
 
 const
   refJoy = 127;
@@ -82,6 +82,8 @@ type
     procedure AdvStartChange(Sender: TObject; AState: TLedState);
     procedure AdvStartClick(Sender: TObject);
     procedure ArrowUpChangeBounds(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormKeyPress(Sender: TObject; var Key: char);
     procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -92,8 +94,6 @@ type
     procedure Button1Click(Sender: TObject);
     procedure gridCamClickControl(Sender: TObject; n, x, y: integer);
     procedure btGridCAMClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
     procedure GPSSignalPlot1Click(Sender: TObject);
     procedure Image1Click(Sender: TObject);
     procedure indLed1Click(Sender: TObject);
@@ -123,6 +123,11 @@ type
     FKeyB6: Boolean;
 
     procedure EnsureAbout;
+    procedure EnsureConfig;
+    procedure EnsureCam;
+    procedure EnsureMap;
+    procedure EnsureGPS;
+
     procedure AtualizaLedsBotoes;
     procedure AtualizaRotorDisplay;
     procedure CentralizaComandos;
@@ -133,10 +138,11 @@ type
     procedure DesativaMapa;
     procedure AtualizaMapaDrone;
 
-    procedure EnsureConfig;
-    procedure EnsureCam;
-    procedure EnsureMap;
-    procedure EnsureGPS;
+    procedure CarregaConfiguracoesLocais;
+    procedure SalvaConfiguracoesLocais;
+    procedure AplicaSetMainAoControle;
+    procedure SincronizaConfigComSetMain;
+    function UsaJoystick: Boolean;
 
   public
     X, Y, Z: Byte;
@@ -190,6 +196,85 @@ procedure TfrmMain.EnsureAbout;
 begin
   if not Assigned(frmAbout) then
     frmAbout := TfrmAbout.Create(Self);
+end;
+
+function TfrmMain.UsaJoystick: Boolean;
+begin
+  Result := Assigned(FSetMain) and FSetMain.JoystickAtivo;
+end;
+
+procedure TfrmMain.CarregaConfiguracoesLocais;
+begin
+  if not Assigned(FSetMain) then
+    Exit;
+
+  if FSetMain.Width > 200 then Width := FSetMain.Width;
+  if FSetMain.Height > 200 then Height := FSetMain.Height;
+
+  Left := FSetMain.PosX;
+  Top := FSetMain.PosY;
+
+  if FSetMain.Maximizado then
+    WindowState := wsMaximized
+  else
+    WindowState := wsNormal;
+end;
+
+procedure TfrmMain.SalvaConfiguracoesLocais;
+begin
+  if not Assigned(FSetMain) then
+    Exit;
+
+  if WindowState = wsNormal then
+  begin
+    FSetMain.PosX := Left;
+    FSetMain.PosY := Top;
+    FSetMain.Width := Width;
+    FSetMain.Height := Height;
+  end;
+
+  FSetMain.Maximizado := WindowState = wsMaximized;
+  FSetMain.JoystickAtivo := UsaJoystick;
+  FSetMain.AutoStart := AdvStart.State = lsOn;
+
+  if Assigned(FControler) then
+  begin
+    FSetMain.ThrottleMin := FControler.MinMotor;
+    FSetMain.ThrottleMax := FControler.MaxMotor;
+    FSetMain.CentroJoy := FControler.CentroJoy;
+    FSetMain.ZonaMorta := FControler.ZonaMorta;
+    FSetMain.EscalaComando := FControler.EscalaComando;
+  end;
+
+  FSetMain.SalvaContexto;
+end;
+
+procedure TfrmMain.AplicaSetMainAoControle;
+begin
+  if (not Assigned(FSetMain)) or (not Assigned(FControler)) then
+    Exit;
+
+  FControler.MinMotor := FSetMain.ThrottleMin;
+  FControler.MaxMotor := FSetMain.ThrottleMax;
+  FControler.CentroJoy := FSetMain.CentroJoy;
+  FControler.ZonaMorta := FSetMain.ZonaMorta;
+  FControler.EscalaComando := FSetMain.EscalaComando;
+
+  timerJoystick.Interval := FSetMain.TimerInterval;
+end;
+
+procedure TfrmMain.SincronizaConfigComSetMain;
+begin
+  EnsureConfig;
+
+  if not Assigned(FSetMain) then
+    Exit;
+
+  if Assigned(frmConfig.cbDevice) then
+    frmConfig.cbDevice.ItemIndex := FSetMain.JoystickDeviceIndex;
+
+  if Assigned(frmConfig.ckJoyActive) then
+    frmConfig.ckJoyActive.Checked := FSetMain.JoystickAtivo;
 end;
 
 procedure TfrmMain.AtualizaLedsBotoes;
@@ -324,10 +409,19 @@ begin
   B5 := 0;
   B6 := 0;
 
+  CarregaConfiguracoesLocais;
+  AplicaSetMainAoControle;
+  SincronizaConfigComSetMain;
+
   AtualizaLedsBotoes;
   AtualizaRotorDisplay;
 
-  { tela de sobre / splash }
+  if UsaJoystick then
+    AdvJoystick.State := lsOn
+  else
+    AdvJoystick.State := lsOff;
+  AdvJoystick.Blink := False;
+
   EnsureAbout;
   if Assigned(frmAbout) then
   begin
@@ -352,11 +446,15 @@ begin
     frmAbout.Hide;
     Application.ProcessMessages;
   end;
+
+  if Assigned(FSetMain) and FSetMain.AutoStart then
+    AdvStartClick(Self);
 end;
 
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
   timerJoystick.Enabled := False;
+  SalvaConfiguracoesLocais;
 
   if Assigned(frmAbout) then
     FreeAndNil(frmAbout);
@@ -449,6 +547,14 @@ begin
   if not Assigned(FJoystick) then
     Exit;
 
+  if not UsaJoystick then
+  begin
+    timerJoystick.Enabled := True;
+    AdvJoystick.State := lsOff;
+    AdvJoystick.Blink := False;
+    Exit;
+  end;
+
   try
     if FJoystick.Activate then
     begin
@@ -461,11 +567,13 @@ begin
     begin
       AdvJoystick.State := lsOff;
       AdvJoystick.Blink := False;
+      timerJoystick.Enabled := False;
       Beep;
     end;
   except
     AdvJoystick.State := lsOff;
     AdvJoystick.Blink := False;
+    timerJoystick.Enabled := False;
     Beep;
   end;
 end;
@@ -484,8 +592,19 @@ end;
 procedure TfrmMain.ConfiguraJoy;
 begin
   EnsureConfig;
-  if Assigned(FJoystick) then
+
+  if not Assigned(FJoystick) then
+    Exit;
+
+  if not UsaJoystick then
+    Exit;
+
+  if Assigned(frmConfig.cbDevice) then
+  begin
     FJoystick.ConfigureDevice(frmConfig.cbDevice.ItemIndex);
+    if Assigned(FSetMain) then
+      FSetMain.JoystickDeviceIndex := frmConfig.cbDevice.ItemIndex;
+  end;
 end;
 
 procedure TfrmMain.AtivouDrone;
@@ -665,6 +784,14 @@ procedure TfrmMain.Button1Click(Sender: TObject);
 begin
   EnsureConfig;
   frmConfig.ShowModal;
+
+  if Assigned(frmConfig.ckJoyActive) and Assigned(FSetMain) then
+    FSetMain.JoystickAtivo := frmConfig.ckJoyActive.Checked;
+
+  if Assigned(frmConfig.cbDevice) and Assigned(FSetMain) then
+    FSetMain.JoystickDeviceIndex := frmConfig.cbDevice.ItemIndex;
+
+  AplicaSetMainAoControle;
 end;
 
 procedure TfrmMain.GPSSignalPlot1Click(Sender: TObject);
@@ -729,10 +856,10 @@ begin
   Y0 := refJoy;
   Z0 := Z;
 
-  if Assigned(FJoystick) then
+  if UsaJoystick and Assigned(FJoystick) then
     FJoystick.UpdateState;
 
-  if Assigned(FJoystick) then
+  if UsaJoystick and Assigned(FJoystick) and FJoystick.Active then
   begin
     X0 := FJoystick.State.X;
     Y0 := FJoystick.State.Y;

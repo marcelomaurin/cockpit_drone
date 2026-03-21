@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, BCGameGrid, mvMapViewer, owmurloptions, mvTypes, BGRABitmap,
+  StdCtrls, BCGameGrid, mvTypes, BGRABitmap,
   BGRABitmapTypes, Math, mvEngine, mvGpsObj, mvDrawingEngine, objetos;
 
 type
@@ -14,7 +14,6 @@ type
   { TfrmMap }
 
   TfrmMap = class(TForm)
-    gridMAP: TBCGameGrid;
     Label9: TLabel;
     MapView1: TMapView;
 
@@ -58,6 +57,7 @@ type
     procedure AtualizaReferenciaNoGrid;
     procedure AtualizaDroneNoGridPorLatLon;
     procedure AtualizaReferenciaPorObjetoZero;
+    procedure AtualizaObjetosNoGrid;
     function PontoTelaParaGrid(const APt: TPoint; out ACol, ARow: Integer): Boolean;
 
   public
@@ -90,6 +90,11 @@ begin
   begin
     FRefLat := FObjetos[0].Latitude;
     FRefLon := FObjetos[0].Longitude;
+  end
+  else
+  begin
+    FRefLat := -21.0178;  // fallback Jardinópolis/SP
+    FRefLon := -47.7639;
   end;
 end;
 
@@ -200,6 +205,12 @@ begin
   end;
 end;
 
+procedure TfrmMap.AtualizaObjetosNoGrid;
+begin
+  AtualizaReferenciaNoGrid;
+  AtualizaDroneNoGridPorLatLon;
+end;
+
 procedure TfrmMap.FormCreate(Sender: TObject);
 begin
   Caption := 'Mapa';
@@ -225,11 +236,20 @@ begin
   ConfiguraMapaInicial;
   ConfiguraGridOverlay;
 
+  if Assigned(MapView1) then
+  begin
+    MapView1.OnChange := @MapView1Change;
+    MapView1.OnResize := @MapView1Resize;
+    MapView1.OnZoomChange := @MapView1ZoomChange;
+    MapView1.OnZoomChanging := @MapView1ZoomChanging;
+    MapView1.OnDrawGpsPoint := @MapView1DrawGpsPoint;
+  end;
+
   AjustaGrid;
   AjustaCamadas;
-  AtualizaReferenciaNoGrid;
-  AtualizaDroneNoGridPorLatLon;
+  AtualizaObjetosNoGrid;
   AtualizaStatus;
+  gridMAP.RenderAndDrawControl;
 end;
 
 procedure TfrmMap.FormDestroy(Sender: TObject);
@@ -263,8 +283,7 @@ procedure TfrmMap.FormResize(Sender: TObject);
 begin
   AjustaGrid;
   AjustaCamadas;
-  AtualizaReferenciaNoGrid;
-  AtualizaDroneNoGridPorLatLon;
+  AtualizaObjetosNoGrid;
   AtualizaStatus;
   gridMAP.RenderAndDrawControl;
 end;
@@ -274,8 +293,7 @@ begin
   AtualizaReferenciaPorObjetoZero;
   AjustaGrid;
   AjustaCamadas;
-  AtualizaReferenciaNoGrid;
-  AtualizaDroneNoGridPorLatLon;
+  AtualizaObjetosNoGrid;
   AtualizaStatus;
   gridMAP.RenderAndDrawControl;
 end;
@@ -313,7 +331,7 @@ begin
 
   Label9.Caption :=
     'Objetos: ' + IntToStr(FObjetos.Count) +
-    '  Ref: Grid(' + IntToStr(FRefCol) + ',' + IntToStr(FRefRow) + ')' +
+    '  Ref[0]: Grid(' + IntToStr(FRefCol) + ',' + IntToStr(FRefRow) + ')' +
     '  Drone: Grid(' + IntToStr(FDroneCol) + ',' + IntToStr(FDroneRow) + ')';
 end;
 
@@ -337,8 +355,7 @@ begin
   MapView1.MapCenter.Longitude := ALongitude;
   MapView1.Invalidate;
 
-  AtualizaReferenciaNoGrid;
-  AtualizaDroneNoGridPorLatLon;
+  AtualizaObjetosNoGrid;
   AtualizaStatus;
   gridMAP.RenderAndDrawControl;
 end;
@@ -406,8 +423,7 @@ begin
     MapView1.Invalidate;
   end;
 
-  AtualizaReferenciaNoGrid;
-  AtualizaDroneNoGridPorLatLon;
+  AtualizaObjetosNoGrid;
   AtualizaStatus;
   gridMAP.RenderAndDrawControl;
 end;
@@ -419,8 +435,7 @@ var
   Pt: TPoint;
   Obj: TObjetoMapa;
 begin
-  { desenha todos os objetos visíveis }
-  if Assigned(FObjetos) then
+  if Assigned(FObjetos) and Assigned(MapView1) then
   begin
     for I := 0 to FObjetos.Count - 1 do
     begin
@@ -431,20 +446,23 @@ begin
         Continue;
 
       Pt := MapView1.LatLonToScreen(Obj.Latitude, Obj.Longitude);
+
       if PontoTelaParaGrid(Pt, Col, Row) then
       begin
         if (x = Col) and (y = Row) then
         begin
-          { vetor[0] destacado em azul }
           if I = 0 then
+          begin
             Bitmap.FillEllipseAntialias(
               (r.Left + r.Right) / 2,
               (r.Top + r.Bottom) / 2,
               (r.Right - r.Left) / 4,
               (r.Bottom - r.Top) / 4,
               BGRA(0, 0, 255, 220)
-            )
+            );
+          end
           else
+          begin
             Bitmap.FillEllipseAntialias(
               (r.Left + r.Right) / 2,
               (r.Top + r.Bottom) / 2,
@@ -452,12 +470,12 @@ begin
               (r.Bottom - r.Top) / 5,
               BGRA(0, 180, 0, 220)
             );
+          end;
         end;
       end;
     end;
   end;
 
-  { drone }
   if (x = FDroneCol) and (y = FDroneRow) then
   begin
     Bitmap.FillEllipseAntialias(
@@ -472,8 +490,7 @@ end;
 
 procedure TfrmMap.MapView1Change(Sender: TObject);
 begin
-  AtualizaReferenciaNoGrid;
-  AtualizaDroneNoGridPorLatLon;
+  AtualizaObjetosNoGrid;
   AtualizaStatus;
   gridMAP.RenderAndDrawControl;
 end;
@@ -486,16 +503,14 @@ end;
 procedure TfrmMap.MapView1Resize(Sender: TObject);
 begin
   AjustaGrid;
-  AtualizaReferenciaNoGrid;
-  AtualizaDroneNoGridPorLatLon;
+  AtualizaObjetosNoGrid;
   AtualizaStatus;
   gridMAP.RenderAndDrawControl;
 end;
 
 procedure TfrmMap.MapView1ZoomChange(Sender: TObject);
 begin
-  AtualizaReferenciaNoGrid;
-  AtualizaDroneNoGridPorLatLon;
+  AtualizaObjetosNoGrid;
   AtualizaStatus;
   gridMAP.RenderAndDrawControl;
 end;
