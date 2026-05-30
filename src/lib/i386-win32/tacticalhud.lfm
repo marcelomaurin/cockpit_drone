@@ -1,0 +1,291 @@
+object frmTacticalHUD: TfrmTacticalHUD
+  Left = 320
+  Height = 490
+  Top = 150
+  Width = 720
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsDialog
+  Caption = 'TACTICAL HUD & FLIGHT COMMAND'
+  ClientHeight = 490
+  ClientWidth = 720
+  Color = clBlack
+  Font.Color = 3799828
+  Font.Height = -12
+  Font.Name = 'Consolas'
+  LCLVersion = '4.4.0.0'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnShow = FormShow
+  object pnHUD: TPanel
+    Left = 10
+    Height = 220
+    Top = 10
+    Width = 390
+    BevelOuter = bvNone
+    ClientHeight = 220
+    ClientWidth = 390
+    Color = 2039583
+    ParentBackground = False
+    ParentColor = False
+    TabOrder = 0
+    object Label1: TLabel
+      Left = 15
+      Height = 19
+      Top = 10
+      Width = 198
+      Caption = 'DRONE TELEMETRY DATA'
+      Font.Color = 3799828
+      Font.Height = -16
+      Font.Name = 'Consolas'
+      Font.Style = [fsBold]
+      ParentColor = False
+    end
+    object Label2: TLabel
+      Left = 15
+      Height = 15
+      Top = 45
+      Width = 72
+      Caption = 'LATITUDE: '
+      ParentColor = False
+    end
+    object lblLat: TLabel
+      Left = 110
+      Height = 15
+      Top = 45
+      Width = 56
+      Caption = '0.000000'
+      ParentColor = False
+    end
+    object Label3: TLabel
+      Left = 15
+      Height = 15
+      Top = 75
+      Width = 80
+      Caption = 'LONGITUDE: '
+      ParentColor = False
+    end
+    object lblLon: TLabel
+      Left = 110
+      Height = 15
+      Top = 75
+      Width = 56
+      Caption = '0.000000'
+      ParentColor = False
+    end
+    object Label4: TLabel
+      Left = 15
+      Height = 15
+      Top = 105
+      Width = 72
+      Caption = 'ALTITUDE: '
+      ParentColor = False
+    end
+    object lblAlt: TLabel
+      Left = 110
+      Height = 15
+      Top = 105
+      Width = 28
+      Caption = '0.0 m'
+      ParentColor = False
+    end
+    object Label5: TLabel
+      Left = 15
+      Height = 15
+      Top = 135
+      Width = 80
+      Caption = 'GND SPEED: '
+      ParentColor = False
+    end
+    object lblSpeed: TLabel
+      Left = 110
+      Height = 15
+      Top = 135
+      Width = 42
+      Caption = '0.0 m/s'
+      ParentColor = False
+    end
+    object lblStatus: TLabel
+      Left = 15
+      Height = 15
+      Top = 175
+      Width = 350
+      Caption = 'STATUS: STANDBY'
+      Font.Color = 3799828
+      Font.Style = [fsBold]
+      ParentColor = False
+    end
+  end
+  object pnControls: TPanel
+    Left = 10
+    Height = 190
+    Top = 240
+    Width = 390
+    BevelOuter = bvNone
+    ClientHeight = 190
+    ClientWidth = 390
+    Color = 2039583
+    ParentBackground = False
+    ParentColor = False
+    TabOrder = 1
+    object Label6: TLabel
+      Left = 15
+      Height = 19
+      Top = 10
+      Width = 207
+      Caption = 'SAFETY BOUNDS CONTROLS'
+      Font.Color = 3799828
+      Font.Height = -16
+      Font.Name = 'Consolas'
+      Font.Style = [fsBold]
+      ParentColor = False
+    end
+    object ckGeofenceActive: TCheckBox
+      Left = 15
+      Height = 19
+      Top = 45
+      Width = 175
+      Caption = 'ACTIVATE GEOFENCE'
+      TabOrder = 0
+      OnChange = ckGeofenceActiveChange
+    end
+    object ckAltitudeActive: TCheckBox
+      Left = 15
+      Height = 19
+      Top = 75
+      Width = 210
+      Caption = 'ACTIVATE ALTITUDE ALARM'
+      TabOrder = 1
+      OnChange = ckAltitudeActiveChange
+    end
+    object Label7: TLabel
+      Left = 15
+      Height = 15
+      Top = 115
+      Width = 144
+      Caption = 'MAX/MIN ALTITUDE (m):'
+      ParentColor = False
+    end
+    object edMaxAltitude: TEdit
+      Left = 170
+      Height = 23
+      Top = 110
+      Width = 50
+      Color = clBlack
+      Font.Color = 3799828
+      ParentShowHint = False
+      TabOrder = 2
+      Text = '120.0'
+      OnChange = edMaxAltitudeChange
+    end
+    object edMinAltitude: TEdit
+      Left = 230
+      Height = 23
+      Top = 110
+      Width = 50
+      Color = clBlack
+      Font.Color = 3799828
+      TabOrder = 3
+      Text = '2.0'
+      OnChange = edMinAltitudeChange
+    end
+    object ckSimulationActive: TCheckBox
+      Left = 15
+      Height = 19
+      Top = 150
+      Width = 196
+      Caption = 'ENABLE OFFLINE SIMULATOR'
+      TabOrder = 4
+      OnChange = ckSimulationActiveChange
+    end
+  end
+  object pnWaypoints: TPanel
+    Left = 410
+    Height = 420
+    Top = 10
+    Width = 300
+    BevelOuter = bvNone
+    ClientHeight = 420
+    ClientWidth = 300
+    Color = 2039583
+    ParentBackground = False
+    ParentColor = False
+    TabOrder = 2
+    object lstWaypoints: TListBox
+      Left = 10
+      Height = 350
+      Top = 45
+      Width = 280
+      Color = clBlack
+      ItemHeight = 0
+      TabOrder = 0
+    end
+    object Label6: TLabel
+      Left = 10
+      Height = 19
+      Top = 10
+      Width = 162
+      Caption = 'MISSION WAYPOINTS'
+      Font.Color = 3799828
+      Font.Height = -16
+      Font.Name = 'Consolas'
+      Font.Style = [fsBold]
+      ParentColor = False
+    end
+  end
+  object btnStartRoute: TButton
+    Left = 10
+    Height = 40
+    Top = 440
+    Width = 160
+    Caption = 'ARM & LAUNCH MISSION'
+    Color = clBlack
+    Font.Color = 3799828
+    TabOrder = 3
+    OnClick = btnStartRouteClick
+  end
+  object btnClearWaypoints: TButton
+    Left = 180
+    Height = 40
+    Top = 440
+    Width = 160
+    Caption = 'ABORT / CLEAR MISSION'
+    Color = clBlack
+    Font.Color = 3799828
+    TabOrder = 4
+    OnClick = btnClearWaypointsClick
+  end
+  object btnSimulation: TButton
+    Left = 350
+    Height = 40
+    Top = 440
+    Width = 160
+    Caption = 'RUN FLIGHT SIMULATION'
+    Color = clBlack
+    Font.Color = 3799828
+    TabOrder = 5
+    OnClick = btnSimulationClick
+  end
+  object lblAlarms: TLabel
+    Left = 520
+    Height = 40
+    Top = 440
+    Width = 190
+    Alignment = taCenter
+    AutoSize = False
+    Caption = 'SYSTEM ACTIVE'
+    Color = clBlack
+    Font.Color = 3799828
+    Font.Height = -12
+    Font.Style = [fsBold]
+    Layout = tlCenter
+    ParentColor = False
+    Transparent = False
+  end
+  object tmHUDUpdate: TTimer
+    Enabled = False
+    Interval = 100
+    OnTimer = tmHUDUpdateTimer
+    Left = 350
+    Top = 180
+  end
+end

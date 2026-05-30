@@ -10,7 +10,8 @@ uses
   IndLed, LedNumber, AdvLed, BCGameGrid, BCSVGViewer, gpssignalplot, gpsskyplot,
   gpstarget, nmeadecode, gpsportconnected, about,
   lNetComponents, config, cd10w, camera, map, ConectionCX10W, funcs, GPS,
-  joystick, LCLType, uplaysound, controler, setmain;
+  joystick, LCLType, uplaysound, controler, setmain, tacticalhud, flightplan,
+  conectionmavlink, conectiontello, conectionopendrone;
 
 const
   refJoy = 127;
@@ -21,6 +22,7 @@ type
   { TfrmMain }
 
   TfrmMain = class(TForm)
+// ... (trimmed fields)
     A3nalogGauge1: TA3nalogGauge;
     AcsMixer1: TAcsMixer;
     AdvCamera: TAdvLed;
@@ -127,6 +129,7 @@ type
     procedure EnsureCam;
     procedure EnsureMap;
     procedure EnsureGPS;
+    procedure EnsureTacticalHUD;
 
     procedure AtualizaLedsBotoes;
     procedure AtualizaRotorDisplay;
@@ -190,6 +193,12 @@ procedure TfrmMain.EnsureGPS;
 begin
   if not Assigned(frmGPS) then
     frmGPS := TfrmGPS.Create(Self);
+end;
+
+procedure TfrmMain.EnsureTacticalHUD;
+begin
+  if not Assigned(frmTacticalHUD) then
+    frmTacticalHUD := TfrmTacticalHUD.Create(Self);
 end;
 
 procedure TfrmMain.EnsureAbout;
@@ -369,6 +378,14 @@ begin
   Col := X div 16;
   Row := Y div 16;
 
+  if GlobalFlightPlan.SimulationActive then
+  begin
+    Lat := GlobalFlightPlan.SimulatedDroneLat;
+    Lon := GlobalFlightPlan.SimulatedDroneLon;
+    frmMap.AtualizaDrone(Lat, Lon, Col, Row);
+    Exit;
+  end;
+
   EnsureGPS;
   if Assigned(frmGPS) then
     frmGPS.Atualiza;
@@ -470,6 +487,9 @@ begin
 
   if Assigned(frmGPS) then
     FreeAndNil(frmGPS);
+
+  if Assigned(frmTacticalHUD) then
+    FreeAndNil(frmTacticalHUD);
 
   if Assigned(frmConfig) then
     FreeAndNil(frmConfig);
@@ -619,12 +639,35 @@ begin
 
   if frmConnection = nil then
   begin
-    if frmConfig.TipoAtivo = 0 then
-    begin
-      frmConnection := TfrmConectionCX10W.Create(Self);
-      TfrmConectionCX10W(frmConnection).Show;
-      TfrmConectionCX10W(frmConnection).PegaConfiguracao;
-      TfrmConectionCX10W(frmConnection).InicioHandShake;
+    case frmConfig.TipoAtivo of
+      0:
+        begin
+          frmConnection := TfrmConectionCX10W.Create(Self);
+          TfrmConectionCX10W(frmConnection).Show;
+          TfrmConectionCX10W(frmConnection).PegaConfiguracao;
+          TfrmConectionCX10W(frmConnection).InicioHandShake;
+        end;
+      1:
+        begin
+          frmConnection := TfrmConectionMavlink.Create(Self);
+          TfrmConectionMavlink(frmConnection).Show;
+          TfrmConectionMavlink(frmConnection).PegaConfiguracao;
+          TfrmConectionMavlink(frmConnection).InicioHandShake;
+        end;
+      2:
+        begin
+          frmConnection := TfrmConectionTello.Create(Self);
+          TfrmConectionTello(frmConnection).Show;
+          TfrmConectionTello(frmConnection).PegaConfiguracao;
+          TfrmConectionTello(frmConnection).InicioHandShake;
+        end;
+      3:
+        begin
+          frmConnection := TfrmConectionOpendrone.Create(Self);
+          TfrmConectionOpendrone(frmConnection).Show;
+          TfrmConectionOpendrone(frmConnection).PegaConfiguracao;
+          TfrmConectionOpendrone(frmConnection).InicioHandShake;
+        end;
     end;
   end
   else
@@ -711,6 +754,14 @@ begin
     '5': FKeyB5 := True;
     '6': FKeyB6 := True;
     'R': CentralizaComandos;
+    'T':
+      begin
+        EnsureTacticalHUD;
+        if frmTacticalHUD.Visible then
+          frmTacticalHUD.Hide
+        else
+          frmTacticalHUD.Show;
+      end;
   end;
 end;
 

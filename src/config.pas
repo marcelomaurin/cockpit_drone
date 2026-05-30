@@ -74,6 +74,9 @@ type
     procedure Label4Click(Sender: TObject);
     procedure TabSheet1ContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
     procedure timerJoystickTimer(Sender: TObject);
+    procedure cbProtocolChange(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormShow(Sender: TObject);
 
   private
     procedure AtualizaLedsBotoes;
@@ -85,6 +88,27 @@ type
 
   public
     TipoAtivo: Integer;
+    cbProtocol: TComboBox;
+
+    // Dynamic tabs and edits
+    tsMavlink: TTabSheet;
+    edMavIP: TEdit;
+    edMavPort: TEdit;
+    edMavSysId: TEdit;
+
+    tsTello: TTabSheet;
+    edTelloIP: TEdit;
+    edTelloCmdPort: TEdit;
+    edTelloVidPort: TEdit;
+    edTelloStatePort: TEdit;
+
+    tsOpendrone: TTabSheet;
+    edOpendroneIP: TEdit;
+    edOpendronePort: TEdit;
+
+    procedure AtualizaAbasProtocolo;
+    procedure CarregarValoresTela;
+    procedure SalvarConfiguracoes;
   end;
 
 var
@@ -95,7 +119,7 @@ implementation
 {$R *.lfm}
 
 uses
-  main;
+  main, setmain;
 
 { Tfrmconfig }
 
@@ -233,9 +257,171 @@ end;
 
 procedure Tfrmconfig.FormCreate(Sender: TObject);
 begin
-  TipoAtivo := 0; // Por enquanto só tem 1
+  TipoAtivo := 0;
   LimpaLeitura;
   CarregaPortasSeriais;
+
+  OnShow := @FormShow;
+  OnClose := @FormClose;
+
+  cbProtocol := TComboBox.Create(Self);
+  cbProtocol.Parent := tsEquipamento;
+  cbProtocol.Left := edIP.Left;
+  cbProtocol.Width := edIP.Width;
+  cbProtocol.Top := edIP.Top + edIP.Height + 10;
+  cbProtocol.Style := csDropDownList;
+  cbProtocol.Items.Add('Cheerson CX-10W');
+  cbProtocol.Items.Add('MAVLink (Standard)');
+  cbProtocol.Items.Add('DJI Tello (UDP)');
+  cbProtocol.Items.Add('OpenDrone ESP32 (UDP)');
+
+  if Assigned(FSetMain) then
+  begin
+    cbProtocol.ItemIndex := FSetMain.DroneProtocolo;
+    TipoAtivo := FSetMain.DroneProtocolo;
+  end
+  else
+    cbProtocol.ItemIndex := 0;
+
+  cbProtocol.OnChange := @cbProtocolChange;
+
+  with TLabel.Create(Self) do
+  begin
+    Parent := tsEquipamento;
+    Left := cbProtocol.Left - 85;
+    Top := cbProtocol.Top + 3;
+    Caption := 'Protocol:';
+    Font.Style := [fsBold];
+  end;
+
+  // Create tsMavlink
+  tsMavlink := TTabSheet.Create(Self);
+  tsMavlink.Name := 'tsMavlink';
+  tsMavlink.PageControl := pcDrones;
+  tsMavlink.Caption := 'MAVLink';
+
+  with TLabel.Create(Self) do
+  begin
+    Parent := tsMavlink;
+    Left := 15; Top := 15;
+    Caption := 'MAVLink IP:';
+  end;
+  edMavIP := TEdit.Create(Self);
+  edMavIP.Name := 'edMavIP';
+  edMavIP.Parent := tsMavlink;
+  edMavIP.Left := 15; edMavIP.Top := 32; edMavIP.Width := 150;
+  edMavIP.Text := '192.168.1.1';
+
+  with TLabel.Create(Self) do
+  begin
+    Parent := tsMavlink;
+    Left := 15; Top := 65;
+    Caption := 'UDP Port:';
+  end;
+  edMavPort := TEdit.Create(Self);
+  edMavPort.Name := 'edMavPort';
+  edMavPort.Parent := tsMavlink;
+  edMavPort.Left := 15; edMavPort.Top := 82; edMavPort.Width := 100;
+  edMavPort.Text := '14550';
+
+  with TLabel.Create(Self) do
+  begin
+    Parent := tsMavlink;
+    Left := 15; Top := 115;
+    Caption := 'System ID:';
+  end;
+  edMavSysId := TEdit.Create(Self);
+  edMavSysId.Name := 'edMavSysId';
+  edMavSysId.Parent := tsMavlink;
+  edMavSysId.Left := 15; edMavSysId.Top := 132; edMavSysId.Width := 80;
+  edMavSysId.Text := '255';
+
+  // Create tsTello
+  tsTello := TTabSheet.Create(Self);
+  tsTello.Name := 'tsTello';
+  tsTello.PageControl := pcDrones;
+  tsTello.Caption := 'DJI Tello';
+
+  with TLabel.Create(Self) do
+  begin
+    Parent := tsTello;
+    Left := 15; Top := 15;
+    Caption := 'Tello IP:';
+  end;
+  edTelloIP := TEdit.Create(Self);
+  edTelloIP.Name := 'edTelloIP';
+  edTelloIP.Parent := tsTello;
+  edTelloIP.Left := 15; edTelloIP.Top := 32; edTelloIP.Width := 150;
+  edTelloIP.Text := '192.168.10.1';
+
+  with TLabel.Create(Self) do
+  begin
+    Parent := tsTello;
+    Left := 15; Top := 65;
+    Caption := 'Command Port UDP:';
+  end;
+  edTelloCmdPort := TEdit.Create(Self);
+  edTelloCmdPort.Name := 'edTelloCmdPort';
+  edTelloCmdPort.Parent := tsTello;
+  edTelloCmdPort.Left := 15; edTelloCmdPort.Top := 82; edTelloCmdPort.Width := 100;
+  edTelloCmdPort.Text := '8889';
+
+  with TLabel.Create(Self) do
+  begin
+    Parent := tsTello;
+    Left := 15; Top := 115;
+    Caption := 'State Port UDP:';
+  end;
+  edTelloStatePort := TEdit.Create(Self);
+  edTelloStatePort.Name := 'edTelloStatePort';
+  edTelloStatePort.Parent := tsTello;
+  edTelloStatePort.Left := 15; edTelloStatePort.Top := 132; edTelloStatePort.Width := 100;
+  edTelloStatePort.Text := '8890';
+
+  // Create tsOpendrone
+  tsOpendrone := TTabSheet.Create(Self);
+  tsOpendrone.Name := 'tsOpendrone';
+  tsOpendrone.PageControl := pcDrones;
+  tsOpendrone.Caption := 'OpenDrone ESP32';
+
+  with TLabel.Create(Self) do
+  begin
+    Parent := tsOpendrone;
+    Left := 15; Top := 15;
+    Caption := 'OpenDrone IP:';
+  end;
+  edOpendroneIP := TEdit.Create(Self);
+  edOpendroneIP.Name := 'edOpendroneIP';
+  edOpendroneIP.Parent := tsOpendrone;
+  edOpendroneIP.Left := 15; edOpendroneIP.Top := 32; edOpendroneIP.Width := 150;
+  edOpendroneIP.Text := '192.168.4.1';
+
+  with TLabel.Create(Self) do
+  begin
+    Parent := tsOpendrone;
+    Left := 15; Top := 65;
+    Caption := 'UDP Port:';
+  end;
+  edOpendronePort := TEdit.Create(Self);
+  edOpendronePort.Name := 'edOpendronePort';
+  edOpendronePort.Parent := tsOpendrone;
+  edOpendronePort.Left := 15; edOpendronePort.Top := 82; edOpendronePort.Width := 100;
+  edOpendronePort.Text := '2399';
+
+  TabSheet1.Caption := 'Cheerson CX-10W';
+
+  CarregarValoresTela;
+end;
+
+procedure Tfrmconfig.cbProtocolChange(Sender: TObject);
+begin
+  if Assigned(FSetMain) and Assigned(cbProtocol) then
+  begin
+    FSetMain.DroneProtocolo := cbProtocol.ItemIndex;
+    TipoAtivo := cbProtocol.ItemIndex;
+    AtualizaAbasProtocolo;
+    SalvarConfiguracoes;
+  end;
 end;
 
 procedure Tfrmconfig.Label4Click(Sender: TObject);
@@ -335,6 +521,142 @@ begin
     on E: Exception do
       LimpaLeitura;
   end;
+end;
+
+procedure Tfrmconfig.FormShow(Sender: TObject);
+begin
+  CarregarValoresTela;
+end;
+
+procedure Tfrmconfig.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+begin
+  SalvarConfiguracoes;
+  CloseAction := caHide;
+end;
+
+procedure Tfrmconfig.AtualizaAbasProtocolo;
+begin
+  if Assigned(TabSheet1) then
+    TabSheet1.TabVisible := (TipoAtivo = 0);
+  if Assigned(tsMavlink) then
+    tsMavlink.TabVisible := (TipoAtivo = 1);
+  if Assigned(tsTello) then
+    tsTello.TabVisible := (TipoAtivo = 2);
+  if Assigned(tsOpendrone) then
+    tsOpendrone.TabVisible := (TipoAtivo = 3);
+end;
+
+procedure Tfrmconfig.CarregarValoresTela;
+begin
+  if not Assigned(FSetMain) then
+    Exit;
+
+  ckJoyActive.Checked := FSetMain.JoystickAtivo;
+  cbDevice.ItemIndex := FSetMain.JoystickDeviceIndex;
+
+  cbSerialPort.Text := FSetMain.SerialPort;
+  cbBaudrate.ItemIndex := FSetMain.BaudRate;
+  ckbGPS.Checked := FSetMain.UsaSerial;
+
+  if Assigned(cbProtocol) then
+  begin
+    cbProtocol.ItemIndex := FSetMain.DroneProtocolo;
+    TipoAtivo := FSetMain.DroneProtocolo;
+  end;
+
+  edIP.Text := FSetMain.DroneIP;
+  edTCPPORT.Text := IntToStr(FSetMain.DronePortaComando);
+  edUDPPORT.Text := IntToStr(FSetMain.DronePortaVideo);
+
+  if Assigned(edMavIP) then
+    edMavIP.Text := FSetMain.DroneIP;
+  if Assigned(edMavPort) then
+    edMavPort.Text := IntToStr(FSetMain.DronePortaVideo);
+  if Assigned(edMavSysId) then
+    edMavSysId.Text := IntToStr(FSetMain.DronePortaStatus);
+
+  if Assigned(edTelloIP) then
+    edTelloIP.Text := FSetMain.DroneIP;
+  if Assigned(edTelloCmdPort) then
+    edTelloCmdPort.Text := IntToStr(FSetMain.DronePortaComando);
+  if Assigned(edTelloStatePort) then
+    edTelloStatePort.Text := IntToStr(FSetMain.DronePortaStatus);
+
+  if Assigned(edOpendroneIP) then
+    edOpendroneIP.Text := FSetMain.DroneIP;
+  if Assigned(edOpendronePort) then
+    edOpendronePort.Text := IntToStr(FSetMain.DronePortaComando);
+
+  AtualizaAbasProtocolo;
+end;
+
+procedure Tfrmconfig.SalvarConfiguracoes;
+var
+  Val: Integer;
+begin
+  if not Assigned(FSetMain) then
+    Exit;
+
+  FSetMain.JoystickAtivo := ckJoyActive.Checked;
+  FSetMain.JoystickDeviceIndex := cbDevice.ItemIndex;
+
+  FSetMain.SerialPort := cbSerialPort.Text;
+  FSetMain.BaudRate := cbBaudrate.ItemIndex;
+  FSetMain.UsaSerial := ckbGPS.Checked;
+
+  case TipoAtivo of
+    0:
+      begin
+        FSetMain.DroneIP := edIP.Text;
+        if TryStrToInt(Trim(edTCPPORT.Text), Val) then
+          FSetMain.DronePortaComando := Val;
+        if TryStrToInt(Trim(edUDPPORT.Text), Val) then
+          FSetMain.DronePortaVideo := Val;
+      end;
+    1:
+      begin
+        if Assigned(edMavIP) then
+          FSetMain.DroneIP := edMavIP.Text;
+        if Assigned(edMavPort) then
+        begin
+          if TryStrToInt(Trim(edMavPort.Text), Val) then
+            FSetMain.DronePortaVideo := Val;
+        end;
+        if Assigned(edMavSysId) then
+        begin
+          if TryStrToInt(Trim(edMavSysId.Text), Val) then
+            FSetMain.DronePortaStatus := Val;
+        end;
+      end;
+    2:
+      begin
+        if Assigned(edTelloIP) then
+          FSetMain.DroneIP := edTelloIP.Text;
+        if Assigned(edTelloCmdPort) then
+        begin
+          if TryStrToInt(Trim(edTelloCmdPort.Text), Val) then
+            FSetMain.DronePortaComando := Val;
+        end;
+        if Assigned(edTelloStatePort) then
+        begin
+          if TryStrToInt(Trim(edTelloStatePort.Text), Val) then
+            FSetMain.DronePortaStatus := Val;
+        end;
+      end;
+    3:
+      begin
+        if Assigned(edOpendroneIP) then
+          FSetMain.DroneIP := edOpendroneIP.Text;
+        if Assigned(edOpendronePort) then
+        begin
+          if TryStrToInt(Trim(edOpendronePort.Text), Val) then
+            FSetMain.DronePortaComando := Val;
+        end;
+      end;
+  end;
+
+  FSetMain.DroneProtocolo := TipoAtivo;
+  FSetMain.SalvaContexto;
 end;
 
 end.

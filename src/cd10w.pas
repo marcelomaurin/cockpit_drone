@@ -5,12 +5,8 @@ unit cd10w;
 interface
 
 uses
-  Classes, SysUtils;
-
-
-
+  Classes, SysUtils, protocols, cx10w, mavlinkproto, telloproto, opendroneproto;
 
 implementation
 
 end.
-

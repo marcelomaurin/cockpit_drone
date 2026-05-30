@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   StdCtrls, Menus, lNetComponents, BCRadialProgressBar, BGRASpriteAnimation,
   MPlayerCtrl, config, lNet, AdvLed, hexlib, FPImage, FPReadJPEG, IntfGraphics,
-  setmain;
+  setmain, protocols, cx10w, mavlinkproto, telloproto, opendroneproto;
 
 const
   MAGIC_BYTES_CTRL: array[0..105] of Byte = (
@@ -86,6 +86,7 @@ type
     procedure timerJoystickTimer(Sender: TObject);
 
   private
+    FProtocol: TBaseProtocol;
     FX, FY, FZ: Byte;
     FB1, FB2, FB3, FB4, FB5, FB6: Byte;
     FError: Boolean;
@@ -118,6 +119,10 @@ type
     procedure DisconnectSockets;
     function TcpReady: Boolean;
     function UdpReady: Boolean;
+
+    procedure OnVideoFrameReceived(Sender: TObject; ABitmap: TBitmap);
+    procedure OnProtocolError(Sender: TObject; const AMsg: string);
+    procedure OnProtocolStatus(Sender: TObject; const AStatus: string);
 
     procedure AtualizaTelemetria(const AData: TBytes; AOrigem: TTelemetriaOrigem);
     function BytesToHex(const AData: TBytes): string;
@@ -598,82 +603,65 @@ begin
 end;
 
 procedure TfrmConectionCX10W.InicioHandShake;
+var
+  ProtIdx: Integer;
 begin
   FError := False;
   PegaConfiguracao;
 
-  SetStatus('Iniciando conexão com o drone...');
-
-  try
-    if Assigned(LTCPComponent1) then
-    begin
-      if LTCPComponent1.Connected then
-        LTCPComponent1.Disconnect(True);
-      LTCPComponent1.Connect(FHost, FTcpPort);
-    end;
-  except
-    on E: Exception do
-    begin
-      FError := True;
-      SetStatus('Erro ao iniciar TCP: ' + E.Message);
-      UpdateMainOfflineState;
-    end;
+  if Assigned(FProtocol) then
+  begin
+    FProtocol.Disconnect;
+    FreeAndNil(FProtocol);
   end;
 
-  try
-    if Assigned(LUDPComponent1) then
-    begin
-      if LUDPComponent1.Connected then
-        LUDPComponent1.Disconnect(True);
-      LUDPComponent1.Connect(FHost, FUdpPort);
-    end;
-  except
-    on E: Exception do
-    begin
-      FError := True;
-      SetStatus('Erro ao iniciar UDP: ' + E.Message);
-      UpdateMainOfflineState;
-    end;
+  ProtIdx := 0;
+  if Assigned(FSetMain) then
+    ProtIdx := FSetMain.DroneProtocolo;
+
+  case ProtIdx of
+    0: FProtocol := TCheersonCX10WProtocol.Create;
+    1: FProtocol := TMavlinkProtocol.Create;
+    2: FProtocol := TTelloProtocol.Create;
+    3: FProtocol := TOpendroneProtocol.Create;
+  else
+    FProtocol := TCheersonCX10WProtocol.Create;
   end;
+
+  FProtocol.OnVideoFrame := @OnVideoFrameReceived;
+  FProtocol.OnError := @OnProtocolError;
+  FProtocol.OnStatus := @OnProtocolStatus;
+
+  Log('Carregando protocolo index: ' + IntToStr(ProtIdx));
+  FProtocol.Connect(FHost, FTcpPort, FUdpPort);
+
+  AtivaJoystick;
+  if Assigned(frmMain) then
+    frmMain.AtivouDrone;
 end;
 
 procedure TfrmConectionCX10W.sendMagicPackets;
 begin
-  EnviaTCP(MAGIC_BYTES_CTRL, 'Handshake CTRL');
 end;
 
 procedure TfrmConectionCX10W.sendMagicPacketsVideo1;
 begin
-  EnviaTCP(MAGIC_BYTES_VIDEO_1A, 'Handshake VIDEO 1A');
-  Sleep(40);
-  EnviaTCP(MAGIC_BYTES_VIDEO_1B, 'Handshake VIDEO 1B');
 end;
 
 procedure TfrmConectionCX10W.sendMagicPacketsVideo2;
 begin
-  EnviaTCP(MAGIC_BYTES_VIDEO_2, 'Handshake VIDEO 2');
 end;
 
 procedure TfrmConectionCX10W.sendGamepadData;
 var
-  Packet: array[0..7] of Byte;
-  Flags: Byte;
-  Yaw: Byte;
+  Mudou: Boolean;
 begin
-  Packet := DEFAULT_PACKET;
-
-  Flags := BuildFlags;
-  Yaw := BuildYaw;
-
-  Packet[1] := FZ;     // throttle
-  Packet[2] := Yaw;    // yaw
-  Packet[3] := FY;     // pitch
-  Packet[4] := FX;     // roll
-  Packet[5] := Flags;  // flags / comandos
-  Packet[6] := BuildChecksum(Packet);
-  Packet[7] := $33;
-
-  EnviaUDP(Packet, 'Controle');
+  if Assigned(FProtocol) and FProtocol.Active then
+  begin
+    Mudou := False;
+    SyncFromMain(Mudou);
+    FProtocol.SendCommand(FX, FY, FZ, FB1, FB2, FB3, FB4, FB5, FB6);
+  end;
 end;
 
 procedure TfrmConectionCX10W.DesativaJoystick;
@@ -691,12 +679,38 @@ end;
 procedure TfrmConectionCX10W.DesativaConnection;
 begin
   DesativaJoystick;
-  DisconnectSockets;
+  if Assigned(FProtocol) then
+  begin
+    FProtocol.Disconnect;
+    FreeAndNil(FProtocol);
+  end;
   SetStatus('Conexão encerrada.');
+end;
+
+procedure TfrmConectionCX10W.OnVideoFrameReceived(Sender: TObject; ABitmap: TBitmap);
+begin
+  if Assigned(ABitmap) and Assigned(FBitmap) then
+  begin
+    FBitmap.Assign(ABitmap);
+    FUltimaImagemDataHora := Now;
+  end;
+end;
+
+procedure TfrmConectionCX10W.OnProtocolError(Sender: TObject; const AMsg: string);
+begin
+  Log('Erro Protocolo: ' + AMsg);
+  FError := True;
+  UpdateMainOfflineState;
+end;
+
+procedure TfrmConectionCX10W.OnProtocolStatus(Sender: TObject; const AStatus: string);
+begin
+  SetStatus(AStatus);
 end;
 
 procedure TfrmConectionCX10W.FormCreate(Sender: TObject);
 begin
+  FProtocol := nil;
   FX := AXIS_CENTER;
   FY := AXIS_CENTER;
   FZ := AXIS_CENTER;
@@ -739,6 +753,7 @@ begin
   DesativaConnection;
   FreeAndNil(FVideoBuffer);
   FreeAndNil(FBitmap);
+  FreeAndNil(FProtocol);
 end;
 
 procedure TfrmConectionCX10W.Label5Click(Sender: TObject);

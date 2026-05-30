@@ -1,0 +1,125 @@
+object frmConectionOpendrone: TfrmConectionOpendrone
+  Left = 1155
+  Height = 451
+  Top = 179
+  Width = 256
+  Caption = 'OpenDrone Connection'
+  ClientHeight = 451
+  ClientWidth = 256
+  LCLVersion = '4.4.0.0'
+  OnCreate = FormCreate
+  object pnTop: TPanel
+    Left = 0
+    Height = 128
+    Top = 0
+    Width = 256
+    Align = alTop
+    ClientHeight = 128
+    ClientWidth = 256
+    TabOrder = 0
+    object Label1: TLabel
+      Left = 8
+      Height = 15
+      Top = 8
+      Width = 65
+      Caption = 'Device Type:'
+      ParentColor = False
+    end
+    object lbdevicename: TLabel
+      Left = 80
+      Height = 15
+      Top = 8
+      Width = 70
+      Caption = 'Device Name'
+      ParentColor = False
+    end
+    object Label2: TLabel
+      Left = 62
+      Height = 15
+      Top = 30
+      Width = 13
+      Caption = 'IP:'
+      ParentColor = False
+    end
+    object lbIP: TLabel
+      Left = 80
+      Height = 15
+      Top = 30
+      Width = 33
+      Caption = '0.0.0.0'
+      ParentColor = False
+    end
+    object Label4: TLabel
+      Left = 25
+      Height = 15
+      Top = 48
+      Width = 51
+      Caption = 'Port UDP:'
+      ParentColor = False
+    end
+    object lbUDP: TLabel
+      Left = 80
+      Height = 15
+      Top = 48
+      Width = 6
+      Caption = '0'
+      ParentColor = False
+    end
+    object Label5: TLabel
+      Left = 46
+      Height = 15
+      Top = 71
+      Width = 29
+      Caption = 'State:'
+      ParentColor = False
+    end
+    object lbStateConection: TLabel
+      Left = 85
+      Height = 15
+      Top = 73
+      Width = 36
+      Caption = 'Offline'
+      ParentColor = False
+    end
+    object Label6: TLabel
+      Left = 0
+      Height = 15
+      Top = 113
+      Width = 50
+      Caption = 'Data Log:'
+      ParentColor = False
+    end
+  end
+  object pnBotton: TPanel
+    Left = 0
+    Height = 71
+    Top = 380
+    Width = 256
+    Align = alBottom
+    TabOrder = 1
+    OnClick = pnBottonClick
+  end
+  object meLog: TMemo
+    Left = 0
+    Height = 252
+    Top = 128
+    Width = 256
+    Align = alClient
+    PopupMenu = popLog
+    TabOrder = 2
+  end
+  object popLog: TPopupMenu
+    Left = 60
+    Top = 210
+    object MenuItem1: TMenuItem
+      Caption = 'Save as'
+    end
+  end
+  object timerJoystick: TTimer
+    Enabled = False
+    Interval = 100
+    OnTimer = timerJoystickTimer
+    Left = 32
+    Top = 360
+  end
+end

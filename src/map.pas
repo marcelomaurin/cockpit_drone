@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   StdCtrls, BCGameGrid, mvTypes, BGRABitmap, BGRABitmapTypes, Math, mvEngine,
-  mvGpsObj, mvDrawingEngine, mvMapViewer, objetos;
+  mvGpsObj, mvDrawingEngine, mvMapViewer, objetos, flightplan;
 
 type
 
@@ -35,6 +35,8 @@ type
     procedure MapView1ZoomChange(Sender: TObject);
     procedure MapView1ZoomChanging(Sender: TObject; NewZoom: Integer;
       var Allow: Boolean);
+    procedure MapView1MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
 
   private
     FDroneCol: Integer;
@@ -245,6 +247,7 @@ begin
     MapView1.OnZoomChange := @MapView1ZoomChange;
     MapView1.OnZoomChanging := @MapView1ZoomChanging;
     MapView1.OnDrawGpsPoint := @MapView1DrawGpsPoint;
+    MapView1.OnMouseDown := @MapView1MouseDown;
   end;
 
   AjustaGrid;
@@ -436,7 +439,74 @@ var
   I, Col, Row: Integer;
   Pt: TPoint;
   Obj: TObjetoMapa;
+  Pts: array of TPointF;
+  C0, C1, C2, C3: TGeofencePoint;
+  Pt0, Pt1, Pt2, Pt3: TPoint;
+  W, WPrev: TWaypoint;
 begin
+  if (x = 0) and (y = 0) then
+  begin
+    // Desenha Geofence Quadrilateral
+    if GlobalFlightPlan.GeofenceActive then
+    begin
+      C0 := GlobalFlightPlan.GetGeofenceCorner(0);
+      C1 := GlobalFlightPlan.GetGeofenceCorner(1);
+      C2 := GlobalFlightPlan.GetGeofenceCorner(2);
+      C3 := GlobalFlightPlan.GetGeofenceCorner(3);
+
+      if (Abs(C0.Latitude) > 0.0001) and (Abs(C1.Latitude) > 0.0001) and
+         (Abs(C2.Latitude) > 0.0001) and (Abs(C3.Latitude) > 0.0001) then
+      begin
+        Pt0 := MapView1.LatLonToScreen(C0.Latitude, C0.Longitude);
+        Pt1 := MapView1.LatLonToScreen(C1.Latitude, C1.Longitude);
+        Pt2 := MapView1.LatLonToScreen(C2.Latitude, C2.Longitude);
+        Pt3 := MapView1.LatLonToScreen(C3.Latitude, C3.Longitude);
+
+        SetLength(Pts, 4);
+        Pts[0] := PointF(Pt0.X, Pt0.Y);
+        Pts[1] := PointF(Pt1.X, Pt1.Y);
+        Pts[2] := PointF(Pt2.X, Pt2.Y);
+        Pts[3] := PointF(Pt3.X, Pt3.Y);
+
+        Bitmap.FillPolyAntialias(Pts, BGRA(0, 255, 0, 30));
+        Bitmap.DrawPolygonAntialias(Pts, BGRA(0, 255, 0, 160), 2.0);
+      end;
+    end;
+
+    // Desenha Rotas e Linhas de Waypoint
+    if GlobalFlightPlan.WaypointCount > 0 then
+    begin
+      for I := 0 to GlobalFlightPlan.WaypointCount - 1 do
+      begin
+        W := GlobalFlightPlan.Waypoints[I];
+        Pt0 := MapView1.LatLonToScreen(W.Latitude, W.Longitude);
+
+        if I > 0 then
+        begin
+          WPrev := GlobalFlightPlan.Waypoints[I - 1];
+          Pt1 := MapView1.LatLonToScreen(WPrev.Latitude, WPrev.Longitude);
+          Bitmap.DrawLineAntialias(Pt1.X, Pt1.Y, Pt0.X, Pt0.Y, BGRA(0, 160, 255, 180), 3.0);
+        end;
+
+        if W.Status = 'ACTIVE' then
+        begin
+          Bitmap.EllipseAntialias(Pt0.X, Pt0.Y, 10, 10, BGRA(255, 165, 0, 255), 2.0);
+          Bitmap.FillEllipseAntialias(Pt0.X, Pt0.Y, 5, 5, BGRA(255, 165, 0, 200));
+        end
+        else if W.Status = 'COMPLETED' then
+        begin
+          Bitmap.EllipseAntialias(Pt0.X, Pt0.Y, 8, 8, BGRA(0, 255, 0, 255), 2.0);
+          Bitmap.FillEllipseAntialias(Pt0.X, Pt0.Y, 4, 4, BGRA(0, 255, 0, 180));
+        end
+        else
+        begin
+          Bitmap.EllipseAntialias(Pt0.X, Pt0.Y, 8, 8, BGRA(0, 160, 255, 255), 2.0);
+          Bitmap.FillEllipseAntialias(Pt0.X, Pt0.Y, 4, 4, BGRA(0, 160, 255, 180));
+        end;
+      end;
+    end;
+  end;
+
   if Assigned(FObjetos) and Assigned(MapView1) then
   begin
     for I := 0 to FObjetos.Count - 1 do
@@ -521,6 +591,38 @@ procedure TfrmMap.MapView1ZoomChanging(Sender: TObject; NewZoom: Integer;
   var Allow: Boolean);
 begin
   Allow := True;
+end;
+
+procedure TfrmMap.MapView1MouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+  LatLon: TRealPoint;
+  I: Integer;
+begin
+  if not Assigned(MapView1) then
+    Exit;
+
+  LatLon := MapView1.ScreenToLatLon(Point(X, Y));
+
+  if (ssCtrl in Shift) and (Button = mbLeft) then
+  begin
+    GlobalFlightPlan.AddWaypoint(LatLon.Lat, LatLon.Lon, 15.0, 5.0);
+    gridMAP.RenderAndDrawControl;
+    ShowMessage(Format('Waypoint adicionado em Lat: %.6f, Lon: %.6f', [LatLon.Lat, LatLon.Lon]));
+  end
+  else if (ssAlt in Shift) and (Button = mbLeft) then
+  begin
+    I := 0;
+    while (I < 4) and (Abs(GlobalFlightPlan.GetGeofenceCorner(I).Latitude) > 0.0001) do
+      Inc(I);
+
+    if I = 4 then
+      I := 0;
+
+    GlobalFlightPlan.SetGeofenceCorner(I, LatLon.Lat, LatLon.Lon);
+    gridMAP.RenderAndDrawControl;
+    ShowMessage(Format('Vértice %d do Quadrilátero definido em Lat: %.6f, Lon: %.6f', [I + 1, LatLon.Lat, LatLon.Lon]));
+  end;
 end;
 
 end.

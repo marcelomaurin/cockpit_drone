@@ -31,6 +31,7 @@ type
     FDronePortaVideo: Integer;
     FDronePortaStatus: Integer;
     FAutoConectar: Boolean;
+    FDroneProtocolo: Integer;
 
     // Serial
     FSerialPort: string;
@@ -96,6 +97,7 @@ type
     property DronePortaVideo: Integer read FDronePortaVideo write FDronePortaVideo;
     property DronePortaStatus: Integer read FDronePortaStatus write FDronePortaStatus;
     property AutoConectar: Boolean read FAutoConectar write FAutoConectar;
+    property DroneProtocolo: Integer read FDroneProtocolo write FDroneProtocolo;
 
     property SerialPort: string read FSerialPort write FSerialPort;
     property BaudRate: Integer read FBaudRate write FBaudRate;
@@ -186,6 +188,7 @@ begin
   FDronePortaVideo := 7060;
   FDronePortaStatus := 8081;
   FAutoConectar := False;
+  FDroneProtocolo := 0;
 
   // Serial
   FSerialPort := 'COM1';
@@ -259,6 +262,7 @@ begin
     FDronePortaVideo := Ini.ReadInteger('DRONE', 'PORTA_VIDEO', FDronePortaVideo);
     FDronePortaStatus := Ini.ReadInteger('DRONE', 'PORTA_STATUS', FDronePortaStatus);
     FAutoConectar := Ini.ReadBool('DRONE', 'AUTO_CONECTAR', FAutoConectar);
+    FDroneProtocolo := Ini.ReadInteger('DRONE', 'PROTOCOLO', FDroneProtocolo);
 
     // Serial
     FSerialPort := Ini.ReadString('SERIAL', 'PORTA', FSerialPort);
@@ -323,6 +327,7 @@ begin
     Ini.WriteInteger('DRONE', 'PORTA_VIDEO', FDronePortaVideo);
     Ini.WriteInteger('DRONE', 'PORTA_STATUS', FDronePortaStatus);
     Ini.WriteBool('DRONE', 'AUTO_CONECTAR', FAutoConectar);
+    Ini.WriteInteger('DRONE', 'PROTOCOLO', FDroneProtocolo);
 
     // Serial
     Ini.WriteString('SERIAL', 'PORTA', FSerialPort);
