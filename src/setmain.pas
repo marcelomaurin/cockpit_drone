@@ -12,6 +12,32 @@ const
 
 type
 
+  { Configuração exclusiva do Cheerson CX-10W (seção [CX10W] do drone.cfg),
+    separada da seção [DRONE] usada pelos demais protocolos. }
+  TCX10WSettings = record
+    IP: string;
+    PortaTCP: Integer;           // inicialização e vídeo
+    PortaUDP: Integer;           // comando
+    Video: Boolean;
+    FFmpeg: string;              // '' = procura ao lado do programa e no PATH
+  end;
+
+  { Parrot AR.Drone 2.0 (seção [ARDRONE] do drone.cfg). }
+  TARDroneSettings = record
+    IP: string;
+    Video: Boolean;
+    FFmpeg: string;              // '' = procura ao lado do programa e no PATH
+    AlturaMaxima: Integer;       // metros
+    Externo: Boolean;            // voo ao ar livre (sem protetor de hélices)
+    Sensibilidade: Integer;      // % do comando máximo usado pelo manche
+  end;
+
+  { Drone ESP32 com o firmware Cockpit (seção [ESP32DRONE] do drone.cfg). }
+  TESP32DroneSettings = record
+    IP: string;
+    Porta: Integer;              // UDP
+  end;
+
   { Configuração exclusiva do FQ777-954 (seção [FQ777] do drone.cfg). }
   TFQ777Settings = record
     IP: string;
@@ -97,6 +123,9 @@ type
     procedure Default;
 
   public
+    CX10W: TCX10WSettings;
+    ARDrone: TARDroneSettings;
+    ESP32Drone: TESP32DroneSettings;
     FQ777: TFQ777Settings;
 
     function GetConfigFileName: string;
@@ -248,6 +277,25 @@ begin
   FLogAtivo := True;
   FAutoStart := False;
 
+  // Cheerson CX-10W
+  CX10W.IP := '172.16.10.1';
+  CX10W.PortaTCP := 8888;
+  CX10W.PortaUDP := 8895;
+  CX10W.Video := True;
+  CX10W.FFmpeg := '';
+
+  // Parrot AR.Drone 2.0
+  ARDrone.IP := '192.168.1.1';
+  ARDrone.Video := True;
+  ARDrone.FFmpeg := '';
+  ARDrone.AlturaMaxima := 3;
+  ARDrone.Externo := False;
+  ARDrone.Sensibilidade := 50;
+
+  // Drone ESP32 (firmware Cockpit)
+  ESP32Drone.IP := '192.168.4.1';
+  ESP32Drone.Porta := 4210;
+
   // FQ777-954
   FQ777.IP := '172.16.10.1';
   FQ777.PortaTCP := 8888;
@@ -339,6 +387,25 @@ begin
     FLogAtivo := Ini.ReadBool('GERAL', 'LOG_ATIVO', FLogAtivo);
     FAutoStart := Ini.ReadBool('GERAL', 'AUTO_START', FAutoStart);
 
+    // Cheerson CX-10W
+    CX10W.IP := Ini.ReadString('CX10W', 'IP', CX10W.IP);
+    CX10W.PortaTCP := Ini.ReadInteger('CX10W', 'PORTA_TCP', CX10W.PortaTCP);
+    CX10W.PortaUDP := Ini.ReadInteger('CX10W', 'PORTA_UDP', CX10W.PortaUDP);
+    CX10W.Video := Ini.ReadBool('CX10W', 'VIDEO', CX10W.Video);
+    CX10W.FFmpeg := Ini.ReadString('CX10W', 'FFMPEG', CX10W.FFmpeg);
+
+    // Parrot AR.Drone 2.0
+    ARDrone.IP := Ini.ReadString('ARDRONE', 'IP', ARDrone.IP);
+    ARDrone.Video := Ini.ReadBool('ARDRONE', 'VIDEO', ARDrone.Video);
+    ARDrone.FFmpeg := Ini.ReadString('ARDRONE', 'FFMPEG', ARDrone.FFmpeg);
+    ARDrone.AlturaMaxima := Ini.ReadInteger('ARDRONE', 'ALTURA_MAXIMA', ARDrone.AlturaMaxima);
+    ARDrone.Externo := Ini.ReadBool('ARDRONE', 'EXTERNO', ARDrone.Externo);
+    ARDrone.Sensibilidade := Ini.ReadInteger('ARDRONE', 'SENSIBILIDADE', ARDrone.Sensibilidade);
+
+    // Drone ESP32 (firmware Cockpit)
+    ESP32Drone.IP := Ini.ReadString('ESP32DRONE', 'IP', ESP32Drone.IP);
+    ESP32Drone.Porta := Ini.ReadInteger('ESP32DRONE', 'PORTA', ESP32Drone.Porta);
+
     // FQ777-954
     FQ777.IP := Ini.ReadString('FQ777', 'IP', FQ777.IP);
     FQ777.PortaTCP := Ini.ReadInteger('FQ777', 'PORTA_TCP', FQ777.PortaTCP);
@@ -420,6 +487,25 @@ begin
     Ini.WriteString('GERAL', 'ULTIMO_PROJETO', FUltimoProjeto);
     Ini.WriteBool('GERAL', 'LOG_ATIVO', FLogAtivo);
     Ini.WriteBool('GERAL', 'AUTO_START', FAutoStart);
+
+    // Cheerson CX-10W
+    Ini.WriteString('CX10W', 'IP', CX10W.IP);
+    Ini.WriteInteger('CX10W', 'PORTA_TCP', CX10W.PortaTCP);
+    Ini.WriteInteger('CX10W', 'PORTA_UDP', CX10W.PortaUDP);
+    Ini.WriteBool('CX10W', 'VIDEO', CX10W.Video);
+    Ini.WriteString('CX10W', 'FFMPEG', CX10W.FFmpeg);
+
+    // Parrot AR.Drone 2.0
+    Ini.WriteString('ARDRONE', 'IP', ARDrone.IP);
+    Ini.WriteBool('ARDRONE', 'VIDEO', ARDrone.Video);
+    Ini.WriteString('ARDRONE', 'FFMPEG', ARDrone.FFmpeg);
+    Ini.WriteInteger('ARDRONE', 'ALTURA_MAXIMA', ARDrone.AlturaMaxima);
+    Ini.WriteBool('ARDRONE', 'EXTERNO', ARDrone.Externo);
+    Ini.WriteInteger('ARDRONE', 'SENSIBILIDADE', ARDrone.Sensibilidade);
+
+    // Drone ESP32 (firmware Cockpit)
+    Ini.WriteString('ESP32DRONE', 'IP', ESP32Drone.IP);
+    Ini.WriteInteger('ESP32DRONE', 'PORTA', ESP32Drone.Porta);
 
     // FQ777-954
     Ini.WriteString('FQ777', 'IP', FQ777.IP);

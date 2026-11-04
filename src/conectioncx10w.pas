@@ -1,53 +1,34 @@
 unit ConectionCX10W;
 
+{ Janela de conexão do Cheerson CX-10W.
+
+  O protocolo (pacotes de inicialização, canais TCP, comando UDP e vídeo)
+  fica em cx10w.pas (TCheersonCX10WProtocol). Esta janela:
+    - lê a configuração própria do CX-10W (seção [CX10W] do drone.cfg);
+    - envia os comandos do frmMain a cada 50 ms, sempre (o drone espera um
+      fluxo contínuo; parar de enviar não é "manter a posição");
+    - entrega o vídeo H.264 ao TAIH264Decoder (ffmpeg) e guarda o último
+      quadro em Bitmap, lido pela janela da câmera;
+    - ao fechar, corta a aceleração antes de soltar a conexão.
+
+  LTCPComponent1 e LUDPComponent1 continuam no formulário apenas por
+  compatibilidade com o .lfm; a comunicação é toda feita pelo protocolo. }
+
 {$mode objfpc}{$H+}
 
 interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, Menus, lNetComponents, BCRadialProgressBar, BGRASpriteAnimation,
-  MPlayerCtrl, config, lNet, AdvLed, hexlib, FPImage, FPReadJPEG, IntfGraphics,
-  setmain, protocols, cx10w, mavlinkproto, telloproto, opendroneproto;
+  StdCtrls, Menus, lNetComponents, lNet, AdvLed, setmain, protocols, cx10w,
+  aih264decoder;
 
 const
-  MAGIC_BYTES_CTRL: array[0..105] of Byte = (
-    $49, $54, $64, $00, $00, $00, $5D, $00, $00, $00, $81, $85, $FF, $BD, $2A, $29, $5C, $AD, $67, $82, $5C, $57, $BE, $41, $03, $F8, $CA, $E2, $64, $30, $A3, $C1,
-    $5E, $40, $DE, $30, $F6, $D6, $95, $E0, $30, $B7, $C2, $E5, $B7, $D6, $5D, $A8, $65, $9E, $B2, $E2, $D5, $E0, $C2, $CB, $6C, $59, $CD, $CB, $66, $1E, $7E, $1E,
-    $B0, $CE, $8E, $E8, $DF, $32, $45, $6F, $A8, $42, $EE, $2E, $09, $A3, $9B, $DD, $05, $C8, $30, $A2, $81, $C8, $2A, $9E, $DA, $7F, $D5, $86, $0E, $AF, $AB, $FE,
-    $FA, $3C, $7E, $54, $4F, $F2, $8A, $D2, $93, $CD
-  );
-
-  MAGIC_BYTES_VIDEO_1A: array[0..105] of Byte = (
-    $49, $54, $64, $00, $00, $00, $52, $00, $00, $00, $0F, $32, $81, $95, $45, $2E, $F5, $E1, $A9, $28, $10, $86, $63, $17, $36, $C3, $CA, $E2, $64, $30, $A3, $C1,
-    $5E, $40, $DE, $30, $F6, $D6, $95, $E0, $30, $B7, $C2, $E5, $B7, $D6, $5D, $A8, $65, $9E, $B2, $E2, $D5, $E0, $C2, $CB, $6C, $59, $CD, $CB, $66, $1E, $7E, $1E,
-    $B0, $CE, $8E, $E8, $DF, $32, $45, $6F, $A8, $42, $B7, $33, $0F, $B7, $C9, $57, $82, $FC, $3D, $67, $E7, $C3, $A6, $67, $28, $DA, $D8, $B5, $98, $48, $C7, $67,
-    $0C, $94, $B2, $9B, $54, $D2, $37, $9E, $2E, $7A
-  );
-
-  MAGIC_BYTES_VIDEO_1B: array[0..105] of Byte = (
-    $49, $54, $64, $00, $00, $00, $52, $00, $00, $00, $54, $B2, $D1, $F6, $63, $48, $C7, $CD, $B6, $E0, $5B, $0D, $1D, $BC, $A8, $1B, $CA, $E2, $64, $30, $A3, $C1,
-    $5E, $40, $DE, $30, $F6, $D6, $95, $E0, $30, $B7, $C2, $E5, $B7, $D6, $5D, $A8, $65, $9E, $B2, $E2, $D5, $E0, $C2, $CB, $6C, $59, $CD, $CB, $66, $1E, $7E, $1E,
-    $B0, $CE, $8E, $E8, $DF, $32, $45, $6F, $A8, $42, $B7, $33, $0F, $B7, $C9, $57, $82, $FC, $3D, $67, $E7, $C3, $A6, $67, $28, $DA, $D8, $B5, $98, $48, $C7, $67,
-    $0C, $94, $B2, $9B, $54, $D2, $37, $9E, $2E, $7A
-  );
-
-  MAGIC_BYTES_VIDEO_2: array[0..105] of Byte = (
-    $49, $54, $64, $00, $00, $00, $58, $00, $00, $00, $80, $86, $38, $C3, $8D, $13, $50, $FD, $67, $41, $C2, $EE, $36, $89, $A0, $54, $CA, $E2, $64, $30, $A3, $C1,
-    $5E, $40, $DE, $30, $F6, $D6, $95, $E0, $30, $B7, $C2, $E5, $B7, $D6, $5D, $A8, $65, $9E, $B2, $E2, $D5, $E0, $C2, $CB, $6C, $59, $CD, $CB, $66, $1E, $7E, $1E,
-    $B0, $CE, $8E, $E8, $DF, $32, $45, $6F, $A8, $42, $EB, $20, $BE, $38, $3A, $AB, $05, $A8, $C2, $A7, $1F, $2C, $90, $6D, $93, $F7, $2A, $85, $E7, $35, $6E, $FF,
-    $E1, $B8, $F5, $AF, $09, $7F, $91, $47, $F8, $7E
-  );
-
-  DEFAULT_PACKET: array[0..7] of Byte = (
-    $CC, $7F, $7F, $7F, $7F, $00, $7F, $33
-  );
-
-  AXIS_CENTER = $7F;
+  CX10W_VIDEO_WIDTH = 720;
+  CX10W_VIDEO_HEIGHT = 576;
+  CX10W_INTERVALO_COMANDO_MS = 50;
 
 type
-  TTelemetriaOrigem = (toNenhuma, toTCP, toUDP);
-
   { TfrmConectionCX10W }
 
   TfrmConectionCX10W = class(TForm)
@@ -86,79 +67,46 @@ type
     procedure timerJoystickTimer(Sender: TObject);
 
   private
-    FProtocol: TBaseProtocol;
-    FX, FY, FZ: Byte;
-    FB1, FB2, FB3, FB4, FB5, FB6: Byte;
-    FError: Boolean;
+    FProtocol: TCheersonCX10WProtocol;
+    FDecoder: TAIH264Decoder;
+    FBitmap: TBitmap;
+    FUltimaImagemDataHora: TDateTime;
+    FUltimoStatus: string;
 
     FHost: string;
     FTcpPort: Integer;
     FUdpPort: Integer;
-
-    FBitmap: TBitmap;
-    FVideoBuffer: TMemoryStream;
-    FUltimaImagemDataHora: TDateTime;
-
-    FUltimaTelemetriaHex: string;
-    FUltimaTelemetriaOrigem: TTelemetriaOrigem;
-    FUltimaTelemetriaDataHora: TDateTime;
-    FUltimaTelemetriaTamanho: Integer;
-    FUltimoPacoteTCPHex: string;
-    FUltimoPacoteUDPHex: string;
-    FTotalPacotesTCP: Int64;
-    FTotalPacotesUDP: Int64;
+    FVideo: Boolean;
+    FFFmpeg: string;
 
     procedure Log(const ATexto: string);
     procedure SetStatus(const ATexto: string);
-    procedure SyncFromMain(var AMudou: Boolean);
-    function SafeStrToInt(const S: string; const ADefault: Integer): Integer;
-    function BuildChecksum(const AData: array of Byte): Byte;
-    function BuildFlags: Byte;
-    function BuildYaw: Byte;
     procedure UpdateMainOfflineState;
-    procedure DisconnectSockets;
-    function TcpReady: Boolean;
-    function UdpReady: Boolean;
 
-    procedure OnVideoFrameReceived(Sender: TObject; ABitmap: TBitmap);
-    procedure OnProtocolError(Sender: TObject; const AMsg: string);
-    procedure OnProtocolStatus(Sender: TObject; const AStatus: string);
+    procedure ProtocolStatus(Sender: TObject; const AStatus: string);
+    procedure ProtocolError(Sender: TObject; const AMsg: string);
+    procedure ProtocolVideo(Sender: TObject; AData: PByte; ACount: Integer);
+    procedure DecoderQuadro(Sender: TObject; ABitmap: TBitmap);
+    procedure DecoderErro(Sender: TObject; const AMessage: string);
 
-    procedure AtualizaTelemetria(const AData: TBytes; AOrigem: TTelemetriaOrigem);
-    function BytesToHex(const AData: TBytes): string;
-    procedure ProcessaBytesTCP(const AData: TBytes);
-    function ExtraiJPEGDoBuffer: Boolean;
-    procedure CarregaJpegNoBitmap(const AJpegData: TBytes; ADestino: TBitmap);
-
-    function LerTextoConfig(const ANome: array of string; const ADefault: string): string;
-    function LerInteiroConfig(const ANome: array of string; const ADefault: Integer): Integer;
-    function LerBooleanoConfig(const ANome: array of string; const ADefault: Boolean): Boolean;
-    procedure EnviaTCP(const ABytes: array of Byte; const ADescricao: string);
-    procedure EnviaUDP(const ABytes: array of Byte; const ADescricao: string);
-
+    function GetTotalPacotesTCP: Int64;
+    function GetTotalPacotesUDP: Int64;
+    function GetUltimoPacoteUDPHex: string;
   public
     procedure PegaConfiguracao;
     procedure InicioHandShake;
-    procedure sendMagicPackets;
-    procedure sendMagicPacketsVideo1;
-    procedure sendMagicPacketsVideo2;
-    procedure sendGamepadData;
     procedure DesativaJoystick;
     procedure AtivaJoystick;
     procedure DesativaConnection;
+    { Corta a aceleração imediatamente (eixos centralizados, motores parados). }
+    procedure CorteMotores;
 
+    property Protocol: TCheersonCX10WProtocol read FProtocol;
     property Bitmap: TBitmap read FBitmap;
     property UltimaImagemDataHora: TDateTime read FUltimaImagemDataHora;
-
-    property UltimaTelemetriaHex: string read FUltimaTelemetriaHex;
-    property UltimaTelemetriaOrigem: TTelemetriaOrigem read FUltimaTelemetriaOrigem;
-    property UltimaTelemetriaDataHora: TDateTime read FUltimaTelemetriaDataHora;
-    property UltimaTelemetriaTamanho: Integer read FUltimaTelemetriaTamanho;
-
-    property UltimoPacoteTCPHex: string read FUltimoPacoteTCPHex;
-    property UltimoPacoteUDPHex: string read FUltimoPacoteUDPHex;
-    property TotalPacotesTCP: Int64 read FTotalPacotesTCP;
-    property TotalPacotesUDP: Int64 read FTotalPacotesUDP;
+    property UltimoPacoteUDPHex: string read GetUltimoPacoteUDPHex;
+    property TotalPacotesTCP: Int64 read GetTotalPacotesTCP;
+    property TotalPacotesUDP: Int64 read GetTotalPacotesUDP;
   end;
 
 var
@@ -176,30 +124,21 @@ uses
 procedure TfrmConectionCX10W.Log(const ATexto: string);
 begin
   if Assigned(meLog) then
+  begin
+    // Limita o histórico para não crescer sem fim durante o voo.
+    if meLog.Lines.Count > 500 then
+      meLog.Lines.Delete(0);
     meLog.Append(FormatDateTime('dd/mm/yyyy hh:nn:ss', Now) + ': ' + ATexto);
+  end;
 end;
 
 procedure TfrmConectionCX10W.SetStatus(const ATexto: string);
 begin
   if Assigned(lbStateConection) then
     lbStateConection.Caption := ATexto;
-  Log(ATexto);
-end;
-
-function TfrmConectionCX10W.SafeStrToInt(const S: string; const ADefault: Integer): Integer;
-begin
-  if not TryStrToInt(Trim(S), Result) then
-    Result := ADefault;
-end;
-
-function TfrmConectionCX10W.TcpReady: Boolean;
-begin
-  Result := Assigned(LTCPComponent1) and LTCPComponent1.Connected and (not FError);
-end;
-
-function TfrmConectionCX10W.UdpReady: Boolean;
-begin
-  Result := Assigned(LUDPComponent1) and LUDPComponent1.Connected and (not FError);
+  if ATexto <> FUltimoStatus then
+    Log(ATexto);
+  FUltimoStatus := ATexto;
 end;
 
 procedure TfrmConectionCX10W.UpdateMainOfflineState;
@@ -212,385 +151,54 @@ begin
   end;
 end;
 
-procedure TfrmConectionCX10W.DisconnectSockets;
+function TfrmConectionCX10W.GetTotalPacotesTCP: Int64;
 begin
-  try
-    if Assigned(LTCPComponent1) and LTCPComponent1.Connected then
-      LTCPComponent1.Disconnect(True);
-  except
-  end;
-
-  try
-    if Assigned(LUDPComponent1) and LUDPComponent1.Connected then
-      LUDPComponent1.Disconnect(True);
-  except
-  end;
-end;
-
-procedure TfrmConectionCX10W.SyncFromMain(var AMudou: Boolean);
-begin
-  if not Assigned(frmMain) then
-    Exit;
-
-  if FX <> frmMain.X then
-  begin
-    FX := frmMain.X;
-    AMudou := True;
-  end;
-
-  if FY <> frmMain.Y then
-  begin
-    FY := frmMain.Y;
-    AMudou := True;
-  end;
-
-  if FZ <> frmMain.Z then
-  begin
-    FZ := frmMain.Z;
-    AMudou := True;
-  end;
-
-  if FB1 <> frmMain.B1 then
-  begin
-    FB1 := frmMain.B1;
-    AMudou := True;
-  end;
-
-  if FB2 <> frmMain.B2 then
-  begin
-    FB2 := frmMain.B2;
-    AMudou := True;
-  end;
-
-  if FB3 <> frmMain.B3 then
-  begin
-    FB3 := frmMain.B3;
-    AMudou := True;
-  end;
-
-  if FB4 <> frmMain.B4 then
-  begin
-    FB4 := frmMain.B4;
-    AMudou := True;
-  end;
-
-  if FB5 <> frmMain.B5 then
-  begin
-    FB5 := frmMain.B5;
-    AMudou := True;
-  end;
-
-  if FB6 <> frmMain.B6 then
-  begin
-    FB6 := frmMain.B6;
-    AMudou := True;
-  end;
-end;
-
-function TfrmConectionCX10W.BuildChecksum(const AData: array of Byte): Byte;
-var
-  I: Integer;
-begin
-  Result := 0;
-  if High(AData) < 5 then
-    Exit;
-
-  for I := 1 to 5 do
-    Result := Result xor AData[I];
-end;
-
-function TfrmConectionCX10W.BuildFlags: Byte;
-begin
-  Result := 0;
-
-  if FB3 = 255 then Result := Result or $01;
-  if FB4 = 255 then Result := Result or $02;
-  if FB5 = 255 then Result := Result or $04;
-  if FB6 = 255 then Result := Result or $08;
-end;
-
-function TfrmConectionCX10W.BuildYaw: Byte;
-begin
-  Result := AXIS_CENTER;
-
-  if (FB1 = 255) and (FB2 = 0) then
-    Result := 0
+  if Assigned(FProtocol) then
+    Result := FProtocol.TotalPacotesTCP
   else
-  if (FB2 = 255) and (FB1 = 0) then
-    Result := 255;
+    Result := 0;
 end;
 
-function TfrmConectionCX10W.BytesToHex(const AData: TBytes): string;
-var
-  I: Integer;
+function TfrmConectionCX10W.GetTotalPacotesUDP: Int64;
 begin
-  Result := '';
-  for I := 0 to High(AData) do
-  begin
-    if Result <> '' then
-      Result := Result + ' ';
-    Result := Result + IntToHex(AData[I], 2);
-  end;
-end;
-
-procedure TfrmConectionCX10W.AtualizaTelemetria(const AData: TBytes; AOrigem: TTelemetriaOrigem);
-begin
-  FUltimaTelemetriaHex := BytesToHex(AData);
-  FUltimaTelemetriaOrigem := AOrigem;
-  FUltimaTelemetriaDataHora := Now;
-  FUltimaTelemetriaTamanho := Length(AData);
-
-  case AOrigem of
-    toTCP: Inc(FTotalPacotesTCP);
-    toUDP: Inc(FTotalPacotesUDP);
-  end;
-end;
-
-procedure TfrmConectionCX10W.CarregaJpegNoBitmap(const AJpegData: TBytes; ADestino: TBitmap);
-var
-  MS: TMemoryStream;
-  Img: TFPMemoryImage;
-  Reader: TFPReaderJPEG;
-  IntfImg: TLazIntfImage;
-begin
-  if (Length(AJpegData) = 0) or (not Assigned(ADestino)) then
-    Exit;
-
-  MS := TMemoryStream.Create;
-  Img := TFPMemoryImage.Create(0, 0);
-  Reader := TFPReaderJPEG.Create;
-  IntfImg := TLazIntfImage.Create(0, 0);
-  try
-    MS.WriteBuffer(AJpegData[0], Length(AJpegData));
-    MS.Position := 0;
-
-    Img.LoadFromStream(MS, Reader);
-
-    IntfImg.SetSize(Img.Width, Img.Height);
-    IntfImg.LoadFromBitmap(ADestino.Handle, ADestino.MaskHandle);
-    IntfImg.Assign(Img);
-
-    ADestino.LoadFromIntfImage(IntfImg);
-    FUltimaImagemDataHora := Now;
-  finally
-    IntfImg.Free;
-    Reader.Free;
-    Img.Free;
-    MS.Free;
-  end;
-end;
-
-function TfrmConectionCX10W.ExtraiJPEGDoBuffer: Boolean;
-var
-  PData: PByte;
-  Buf: TBytes;
-  I, J, Tamanho: Integer;
-  InicioJpeg, FimJpeg: Integer;
-  Img: TBytes;
-  Restante: TBytes;
-begin
-  Result := False;
-
-  if (not Assigned(FVideoBuffer)) or (FVideoBuffer.Size < 4) then
-    Exit;
-
-  SetLength(Buf, FVideoBuffer.Size);
-  FVideoBuffer.Position := 0;
-  if Length(Buf) > 0 then
-    FVideoBuffer.ReadBuffer(Buf[0], Length(Buf));
-
-  InicioJpeg := -1;
-  FimJpeg := -1;
-
-  for I := 0 to High(Buf) - 1 do
-  begin
-    if (Buf[I] = $FF) and (Buf[I + 1] = $D8) then
-    begin
-      InicioJpeg := I;
-      Break;
-    end;
-  end;
-
-  if InicioJpeg < 0 then
-  begin
-    FVideoBuffer.Clear;
-    Exit;
-  end;
-
-  for J := InicioJpeg + 2 to High(Buf) - 1 do
-  begin
-    if (Buf[J] = $FF) and (Buf[J + 1] = $D9) then
-    begin
-      FimJpeg := J + 1;
-      Break;
-    end;
-  end;
-
-  if FimJpeg < 0 then
-  begin
-    FVideoBuffer.Clear;
-    FVideoBuffer.WriteBuffer(Buf[InicioJpeg], Length(Buf) - InicioJpeg);
-    Exit;
-  end;
-
-  Tamanho := FimJpeg - InicioJpeg + 1;
-  SetLength(Img, Tamanho);
-  Move(Buf[InicioJpeg], Img[0], Tamanho);
-
-  CarregaJpegNoBitmap(Img, FBitmap);
-
-  if FimJpeg < High(Buf) then
-  begin
-    SetLength(Restante, High(Buf) - FimJpeg);
-    Move(Buf[FimJpeg + 1], Restante[0], Length(Restante));
-    FVideoBuffer.Clear;
-    if Length(Restante) > 0 then
-      FVideoBuffer.WriteBuffer(Restante[0], Length(Restante));
-  end
+  // Comandos enviados: o CX-10W praticamente não responde pelo UDP.
+  if Assigned(FProtocol) then
+    Result := FProtocol.TotalComandos
   else
-    FVideoBuffer.Clear;
-
-  Result := True;
+    Result := 0;
 end;
 
-procedure TfrmConectionCX10W.ProcessaBytesTCP(const AData: TBytes);
+function TfrmConectionCX10W.GetUltimoPacoteUDPHex: string;
 begin
-  if (Length(AData) = 0) or (not Assigned(FVideoBuffer)) then
-    Exit;
-
-  FVideoBuffer.Position := FVideoBuffer.Size;
-  FVideoBuffer.WriteBuffer(AData[0], Length(AData));
-  ExtraiJPEGDoBuffer;
-end;
-
-function TfrmConectionCX10W.LerTextoConfig(const ANome: array of string; const ADefault: string): string;
-var
-  I: Integer;
-  C: TComponent;
-begin
-  Result := ADefault;
-
-  if Assigned(FSetMain) and (ADefault = '192.168.10.1') and (Trim(FSetMain.DroneIP) <> '') then
-    Result := FSetMain.DroneIP;
-
-  if not Assigned(frmConfig) then
-    Exit;
-
-  for I := Low(ANome) to High(ANome) do
-  begin
-    C := frmConfig.FindComponent(ANome[I]);
-    if Assigned(C) then
-    begin
-      if C is TEdit then
-        Exit(TEdit(C).Text);
-      if C is TLabel then
-        Exit(TLabel(C).Caption);
-      if C is TComboBox then
-        Exit(TComboBox(C).Text);
-    end;
-  end;
-end;
-
-function TfrmConectionCX10W.LerInteiroConfig(const ANome: array of string; const ADefault: Integer): Integer;
-begin
-  Result := SafeStrToInt(LerTextoConfig(ANome, IntToStr(ADefault)), ADefault);
-end;
-
-function TfrmConectionCX10W.LerBooleanoConfig(const ANome: array of string; const ADefault: Boolean): Boolean;
-var
-  I: Integer;
-  C: TComponent;
-  S: string;
-begin
-  Result := ADefault;
-
-  if not Assigned(frmConfig) then
-    Exit;
-
-  for I := Low(ANome) to High(ANome) do
-  begin
-    C := frmConfig.FindComponent(ANome[I]);
-    if Assigned(C) then
-    begin
-      if C is TCheckBox then
-        Exit(TCheckBox(C).Checked);
-
-      if C is TComboBox then
-      begin
-        S := Trim(LowerCase(TComboBox(C).Text));
-        Exit((S = '1') or (S = 'true') or (S = 'sim') or (S = 'yes'));
-      end;
-    end;
-  end;
-end;
-
-procedure TfrmConectionCX10W.EnviaTCP(const ABytes: array of Byte; const ADescricao: string);
-var
-  N: Integer;
-  Tmp: TBytes;
-begin
-  if not TcpReady then
-    Exit;
-
-  if Length(ABytes) = 0 then
-    Exit;
-
-  N := LTCPComponent1.Send(ABytes[0], Length(ABytes));
-  if N > 0 then
-  begin
-    SetLength(Tmp, Length(ABytes));
-    Move(ABytes[0], Tmp[0], Length(ABytes));
-    FUltimoPacoteTCPHex := BytesToHex(Tmp);
-    Log(ADescricao + ' enviado via TCP: ' + FUltimoPacoteTCPHex);
-  end
+  if Assigned(FProtocol) then
+    Result := TCheersonCX10WProtocol.PacketToHex(FProtocol.LastPacket)
   else
-    Log('Falha ao enviar ' + ADescricao + ' via TCP');
-end;
-
-procedure TfrmConectionCX10W.EnviaUDP(const ABytes: array of Byte; const ADescricao: string);
-var
-  N: Integer;
-  Tmp: TBytes;
-begin
-  if not UdpReady then
-    Exit;
-
-  if Length(ABytes) = 0 then
-    Exit;
-
-  N := LUDPComponent1.Send(ABytes[0], Length(ABytes));
-  if N > 0 then
-  begin
-    SetLength(Tmp, Length(ABytes));
-    Move(ABytes[0], Tmp[0], Length(ABytes));
-    FUltimoPacoteUDPHex := BytesToHex(Tmp);
-  end
-  else
-    Log('Falha ao enviar ' + ADescricao + ' via UDP');
+    Result := '';
 end;
 
 procedure TfrmConectionCX10W.PegaConfiguracao;
 begin
+  FHost := CX10W_DEFAULT_HOST;
+  FTcpPort := CX10W_DEFAULT_TCP_PORT;
+  FUdpPort := CX10W_DEFAULT_UDP_PORT;
+  FVideo := True;
+  FFFmpeg := '';
+
   if Assigned(FSetMain) then
-  begin
-    FHost := FSetMain.DroneIP;
-    FTcpPort := FSetMain.DronePortaComando;
-    FUdpPort := FSetMain.DronePortaVideo;
-  end;
+    with FSetMain.CX10W do
+    begin
+      if Trim(IP) <> '' then
+        FHost := Trim(IP);
+      if PortaTCP > 0 then
+        FTcpPort := PortaTCP;
+      if PortaUDP > 0 then
+        FUdpPort := PortaUDP;
+      FVideo := Video;
+      FFFmpeg := FFmpeg;
+    end;
 
-  if Trim(FHost) = '' then
-    FHost := '192.168.10.1';
-
-  if FTcpPort <= 0 then
-    FTcpPort := 8888;
-
-  if FUdpPort <= 0 then
-    FUdpPort := 8895;
-
-  FHost := LerTextoConfig(['edIP', 'edtIP', 'txtIP', 'lbIP'], FHost);
-  FTcpPort := LerInteiroConfig(['edTCP', 'edtTCP', 'edPortTCP', 'edtPortTCP'], FTcpPort);
-  FUdpPort := LerInteiroConfig(['edUDP', 'edtUDP', 'edPortUDP', 'edtPortUDP'], FUdpPort);
-
+  if Assigned(lbdevicename) then
+    lbdevicename.Caption := 'Cheerson CX-10W';
   if Assigned(lbIP) then
     lbIP.Caption := FHost;
   if Assigned(lbTCP) then
@@ -598,15 +206,12 @@ begin
   if Assigned(lbUDP) then
     lbUDP.Caption := IntToStr(FUdpPort);
 
-  Log('Configuração carregada: IP=' + FHost + ' TCP=' + IntToStr(FTcpPort) +
-    ' UDP=' + IntToStr(FUdpPort));
+  Log(Format('Configuração CX-10W: IP=%s TCP=%d UDP=%d Vídeo=%s',
+    [FHost, FTcpPort, FUdpPort, BoolToStr(FVideo, 'sim', 'não')]));
 end;
 
 procedure TfrmConectionCX10W.InicioHandShake;
-var
-  ProtIdx: Integer;
 begin
-  FError := False;
   PegaConfiguracao;
 
   if Assigned(FProtocol) then
@@ -615,53 +220,24 @@ begin
     FreeAndNil(FProtocol);
   end;
 
-  ProtIdx := 0;
-  if Assigned(FSetMain) then
-    ProtIdx := FSetMain.DroneProtocolo;
+  FProtocol := TCheersonCX10WProtocol.Create;
+  FProtocol.VideoEnabled := FVideo;
+  FProtocol.OnStatus := @ProtocolStatus;
+  FProtocol.OnError := @ProtocolError;
+  FProtocol.OnVideoData := @ProtocolVideo;
 
-  case ProtIdx of
-    0: FProtocol := TCheersonCX10WProtocol.Create;
-    1: FProtocol := TMavlinkProtocol.Create;
-    2: FProtocol := TTelloProtocol.Create;
-    3: FProtocol := TOpendroneProtocol.Create;
-  else
-    FProtocol := TCheersonCX10WProtocol.Create;
+  if FVideo then
+  begin
+    FDecoder.FFmpegPath := FFFmpeg;
+    if not FDecoder.Start then
+      Log('Vídeo: ffmpeg não encontrado. Coloque o ffmpeg.exe na pasta do programa ou no PATH.');
   end;
 
-  FProtocol.OnVideoFrame := @OnVideoFrameReceived;
-  FProtocol.OnError := @OnProtocolError;
-  FProtocol.OnStatus := @OnProtocolStatus;
-
-  Log('Carregando protocolo index: ' + IntToStr(ProtIdx));
   FProtocol.Connect(FHost, FTcpPort, FUdpPort);
-
   AtivaJoystick;
+
   if Assigned(frmMain) then
     frmMain.AtivouDrone;
-end;
-
-procedure TfrmConectionCX10W.sendMagicPackets;
-begin
-end;
-
-procedure TfrmConectionCX10W.sendMagicPacketsVideo1;
-begin
-end;
-
-procedure TfrmConectionCX10W.sendMagicPacketsVideo2;
-begin
-end;
-
-procedure TfrmConectionCX10W.sendGamepadData;
-var
-  Mudou: Boolean;
-begin
-  if Assigned(FProtocol) and FProtocol.Active then
-  begin
-    Mudou := False;
-    SyncFromMain(Mudou);
-    FProtocol.SendCommand(FX, FY, FZ, FB1, FB2, FB3, FB4, FB5, FB6);
-  end;
 end;
 
 procedure TfrmConectionCX10W.DesativaJoystick;
@@ -673,21 +249,59 @@ end;
 procedure TfrmConectionCX10W.AtivaJoystick;
 begin
   if Assigned(timerJoystick) then
+  begin
+    timerJoystick.Interval := CX10W_INTERVALO_COMANDO_MS;
     timerJoystick.Enabled := True;
+  end;
+end;
+
+procedure TfrmConectionCX10W.CorteMotores;
+begin
+  if Assigned(FProtocol) and FProtocol.Active then
+    FProtocol.SendNeutral;
 end;
 
 procedure TfrmConectionCX10W.DesativaConnection;
 begin
   DesativaJoystick;
+
   if Assigned(FProtocol) then
   begin
+    // Disconnect envia aceleração zero antes de fechar os canais.
+    FProtocol.OnStatus := nil;
+    FProtocol.OnError := nil;
+    FProtocol.OnVideoData := nil;
     FProtocol.Disconnect;
     FreeAndNil(FProtocol);
   end;
+
+  if Assigned(FDecoder) then
+    FDecoder.Stop;
+
   SetStatus('Conexão encerrada.');
 end;
 
-procedure TfrmConectionCX10W.OnVideoFrameReceived(Sender: TObject; ABitmap: TBitmap);
+procedure TfrmConectionCX10W.ProtocolStatus(Sender: TObject; const AStatus: string);
+begin
+  SetStatus(AStatus);
+end;
+
+procedure TfrmConectionCX10W.ProtocolError(Sender: TObject; const AMsg: string);
+begin
+  SetStatus('Erro: ' + AMsg);
+  // Sem canal de controle não há voo: para de enviar e apaga o Start.
+  DesativaJoystick;
+  UpdateMainOfflineState;
+end;
+
+procedure TfrmConectionCX10W.ProtocolVideo(Sender: TObject; AData: PByte;
+  ACount: Integer);
+begin
+  if Assigned(FDecoder) and (ACount > 0) then
+    FDecoder.Feed(AData^, ACount);
+end;
+
+procedure TfrmConectionCX10W.DecoderQuadro(Sender: TObject; ABitmap: TBitmap);
 begin
   if Assigned(ABitmap) and Assigned(FBitmap) then
   begin
@@ -696,52 +310,30 @@ begin
   end;
 end;
 
-procedure TfrmConectionCX10W.OnProtocolError(Sender: TObject; const AMsg: string);
+procedure TfrmConectionCX10W.DecoderErro(Sender: TObject; const AMessage: string);
 begin
-  Log('Erro Protocolo: ' + AMsg);
-  FError := True;
-  UpdateMainOfflineState;
-end;
-
-procedure TfrmConectionCX10W.OnProtocolStatus(Sender: TObject; const AStatus: string);
-begin
-  SetStatus(AStatus);
+  Log('Vídeo: ' + AMessage);
 end;
 
 procedure TfrmConectionCX10W.FormCreate(Sender: TObject);
 begin
+  // O .lfm não liga o OnDestroy: sem isto o corte dos motores nunca rodava.
+  OnDestroy := @FormDestroy;
+
   FProtocol := nil;
-  FX := AXIS_CENTER;
-  FY := AXIS_CENTER;
-  FZ := AXIS_CENTER;
-
-  FB1 := 0;
-  FB2 := 0;
-  FB3 := 0;
-  FB4 := 0;
-  FB5 := 0;
-  FB6 := 0;
-
-  FError := False;
-  FHost := '192.168.10.1';
-  FTcpPort := 8888;
-  FUdpPort := 8895;
-
   FBitmap := TBitmap.Create;
-  FVideoBuffer := TMemoryStream.Create;
+  FUltimaImagemDataHora := 0;
+  FUltimoStatus := '';
 
-  FUltimaTelemetriaHex := '';
-  FUltimaTelemetriaOrigem := toNenhuma;
-  FUltimaTelemetriaDataHora := 0;
-  FUltimaTelemetriaTamanho := 0;
-  FUltimoPacoteTCPHex := '';
-  FUltimoPacoteUDPHex := '';
-  FTotalPacotesTCP := 0;
-  FTotalPacotesUDP := 0;
+  FDecoder := TAIH264Decoder.Create(Self);
+  FDecoder.Width := CX10W_VIDEO_WIDTH;
+  FDecoder.Height := CX10W_VIDEO_HEIGHT;
+  FDecoder.OnFrame := @DecoderQuadro;
+  FDecoder.OnError := @DecoderErro;
 
   if Assigned(timerJoystick) then
   begin
-    timerJoystick.Interval := 50;
+    timerJoystick.Interval := CX10W_INTERVALO_COMANDO_MS;
     timerJoystick.Enabled := False;
   end;
 
@@ -751,10 +343,20 @@ end;
 procedure TfrmConectionCX10W.FormDestroy(Sender: TObject);
 begin
   DesativaConnection;
-  FreeAndNil(FVideoBuffer);
   FreeAndNil(FBitmap);
-  FreeAndNil(FProtocol);
 end;
+
+procedure TfrmConectionCX10W.timerJoystickTimer(Sender: TObject);
+begin
+  if (not Assigned(FProtocol)) or (not FProtocol.Active) or (not Assigned(frmMain)) then
+    Exit;
+
+  // Envio contínuo: o CX-10W precisa receber o comando a cada 50 ms.
+  FProtocol.SendCommand(frmMain.X, frmMain.Y, frmMain.Z,
+    frmMain.B1, frmMain.B2, frmMain.B3, frmMain.B4, frmMain.B5, frmMain.B6);
+end;
+
+{ Componentes do .lfm mantidos por compatibilidade (não são usados). }
 
 procedure TfrmConectionCX10W.Label5Click(Sender: TObject);
 begin
@@ -766,96 +368,34 @@ end;
 
 procedure TfrmConectionCX10W.LTCPComponent1Accept(aSocket: TLSocket);
 begin
-  Log('TCP accept.');
 end;
 
 procedure TfrmConectionCX10W.LTCPComponent1Connect(aSocket: TLSocket);
 begin
-  FError := False;
-  SetStatus('TCP conectado ao drone.');
-
-  sendMagicPackets;
-  Sleep(50);
-  sendMagicPacketsVideo1;
-  Sleep(50);
-  sendMagicPacketsVideo2;
-  Sleep(50);
-
-  AtivaJoystick;
-
-  if Assigned(frmMain) then
-    frmMain.AtivouDrone;
-
-  SetStatus('Handshake concluído.');
 end;
 
 procedure TfrmConectionCX10W.LTCPComponent1Disconnect(aSocket: TLSocket);
 begin
-  SetStatus('TCP desconectado.');
-  UpdateMainOfflineState;
 end;
 
 procedure TfrmConectionCX10W.LTCPComponent1Error(const msg: string; aSocket: TLSocket);
 begin
-  FError := True;
-  SetStatus('Erro TCP: ' + msg);
-  UpdateMainOfflineState;
 end;
 
 procedure TfrmConectionCX10W.LTCPComponent1Receive(aSocket: TLSocket);
-var
-  Buf: array[0..8191] of Byte;
-  L: Integer;
-  Data: TBytes;
 begin
-  repeat
-    L := aSocket.Get(Buf[0], SizeOf(Buf));
-    if L > 0 then
-    begin
-      SetLength(Data, L);
-      Move(Buf[0], Data[0], L);
-      AtualizaTelemetria(Data, toTCP);
-      ProcessaBytesTCP(Data);
-    end;
-  until L <= 0;
 end;
 
 procedure TfrmConectionCX10W.LUDPComponent1Error(const msg: string; aSocket: TLSocket);
 begin
-  FError := True;
-  SetStatus('Erro UDP: ' + msg);
 end;
 
 procedure TfrmConectionCX10W.LUDPComponent1Receive(aSocket: TLSocket);
-var
-  Buf: array[0..2047] of Byte;
-  L: Integer;
-  Data: TBytes;
 begin
-  repeat
-    L := aSocket.Get(Buf[0], SizeOf(Buf));
-    if L > 0 then
-    begin
-      SetLength(Data, L);
-      Move(Buf[0], Data[0], L);
-      AtualizaTelemetria(Data, toUDP);
-    end;
-  until L <= 0;
 end;
 
 procedure TfrmConectionCX10W.pnBottonClick(Sender: TObject);
 begin
-end;
-
-procedure TfrmConectionCX10W.timerJoystickTimer(Sender: TObject);
-var
-  Mudou: Boolean;
-begin
-  Mudou := False;
-  SyncFromMain(Mudou);
-
-  if Mudou or (Now - FUltimaTelemetriaDataHora > EncodeTime(0, 0, 0, 150)) then
-    sendGamepadData;
 end;
 
 end.

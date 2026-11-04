@@ -1,48 +1,136 @@
 unit cx10w;
 
+{ Protocolo Wi-Fi do Cheerson CX-10W
+  ----------------------------------
+  Rede do drone (ponto de acesso do próprio drone, "Cheerson-CX-10W-xxxx"):
+    IP 172.16.10.1, TCP 8888 (inicialização e vídeo), UDP 8895 (comando).
+
+  Sequência de conexão:
+    1. TCP de controle  -> pacote mágico CTRL (106 bytes); fica aberto.
+    2. TCP de vídeo 1   -> pacotes mágicos VIDEO 1A e 1B; fica aberto e é
+                           apenas esvaziado.
+    3. TCP de vídeo 2   -> pacote mágico VIDEO 2; por esta conexão o drone
+                           envia o vídeo em H.264 bruto (códigos de início
+                           00 00 00 01), entremeado com respostas de 106 bytes
+                           iniciadas por 'ITd', que são descartadas.
+    4. UDP, a cada 50 ms, o pacote de comando de 8 bytes:
+         [0] $CC  [1] rolagem  [2] arfagem  [3] aceleração  [4] guinada
+         [5] sinalizadores  [6] XOR dos bytes 1..5  [7] $33
+       Rolagem/arfagem/guinada: 0..255, centro 127 (0 = esquerda/trás).
+       Aceleração: 0..255, 0 = motores parados.
+
+  O vídeo NÃO é JPEG: os bytes H.264 saem pelo evento OnVideoData, para serem
+  entregues a um decodificador (TAIH264Decoder).
+
+  Segurança:
+    - a aceleração só é liberada depois que o comando chega ao mínimo pela
+      primeira vez após a conexão (evita disparar os motores ao ligar);
+    - a perda do vídeo nunca derruba o canal de comando;
+    - ao desconectar, envia aceleração zero com os eixos centralizados. }
+
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, lNetComponents, lNet, Graphics, FPImage, FPReadJPEG, IntfGraphics, protocols;
+  Classes, SysUtils, lNetComponents, lNet, protocols;
+
+const
+  CX10W_DEFAULT_HOST = '172.16.10.1';
+  CX10W_DEFAULT_TCP_PORT = 8888;
+  CX10W_DEFAULT_UDP_PORT = 8895;
+  CX10W_AXIS_CENTER = 127;
+  CX10W_PACKET_SIZE = 8;
+  { Aceleração máxima aceita para liberar o acelerador após conectar. }
+  CX10W_THROTTLE_ARM_LIMIT = 16;
 
 type
+  TCX10WPacket = array[0..CX10W_PACKET_SIZE - 1] of Byte;
+
+  TCX10WVideoDataEvent = procedure(Sender: TObject; AData: PByte;
+    ACount: Integer) of object;
+
+  { TCheersonCX10WProtocol }
+
   TCheersonCX10WProtocol = class(TBaseProtocol)
   private
-    FTcp: TLTCPComponent;
+    FCtrl: TLTCPComponent;
+    FVideo1: TLTCPComponent;
+    FVideo2: TLTCPComponent;
     FUdp: TLUDPComponent;
-    FVideoBuffer: TMemoryStream;
-    FUltimaImagemDataHora: TDateTime;
+
+    FVideoEnabled: Boolean;
+    FVideoConnected: Boolean;
+    FVideoSynced: Boolean;
+    FCarry: array[0..2] of Byte;
+    FCarryLen: Integer;
+
+    FThrottleArmed: Boolean;
+    FArmWarned: Boolean;
+    FDisconnecting: Boolean;
+
+    FLastPacket: TCX10WPacket;
     FTotalPacotesTCP: Int64;
     FTotalPacotesUDP: Int64;
+    FTotalComandos: Int64;
+    FTotalBytesVideo: Int64;
 
-    procedure TcpConnect(aSocket: TLSocket);
-    procedure TcpReceive(aSocket: TLSocket);
-    procedure TcpError(const msg: string; aSocket: TLSocket);
-    procedure TcpDisconnect(aSocket: TLSocket);
+    FOnVideoData: TCX10WVideoDataEvent;
+
+    procedure CtrlConnect(aSocket: TLSocket);
+    procedure CtrlReceive(aSocket: TLSocket);
+    procedure CtrlError(const msg: string; aSocket: TLSocket);
+    procedure CtrlDisconnect(aSocket: TLSocket);
+
+    procedure Video1Connect(aSocket: TLSocket);
+    procedure Video2Connect(aSocket: TLSocket);
+    procedure Video1Receive(aSocket: TLSocket);
+    procedure Video2Receive(aSocket: TLSocket);
+    procedure VideoError(const msg: string; aSocket: TLSocket);
+    procedure VideoDisconnect(aSocket: TLSocket);
+
     procedure UdpReceive(aSocket: TLSocket);
     procedure UdpError(const msg: string; aSocket: TLSocket);
 
-    procedure EnviaTCP(const ABytes: array of Byte; const ADescricao: string);
-    procedure EnviaUDP(const ABytes: array of Byte; const ADescricao: string);
-    procedure Handshake;
-    procedure ProcessaBytesTCP(const AData: TBytes);
-    function ExtraiJPEGDoBuffer: Boolean;
-    procedure CarregaJpegNoBitmap(const AJpegData: TBytes; ADestino: TBitmap);
-    function BuildChecksum(const AData: array of Byte): Byte;
+    function SendAll(ASocket: TLTCPComponent; const ABytes: array of Byte): Boolean;
+    procedure SendPacket(const APacket: TCX10WPacket);
+    procedure StartVideo;
+    procedure StopVideo;
+    procedure ProcessVideoChunk(AData: PByte; ACount: Integer);
+    function DrainSocket(aSocket: TLSocket; ADeliver: Boolean): Boolean;
   public
     constructor Create; override;
     destructor Destroy; override;
 
-    procedure Connect(const AHost: string; ATcpPort, AUdpPort: Integer) override;
-    procedure Disconnect override;
-    procedure SendCommand(AX, AY, AZ, AB1, AB2, AB3, AB4, AB5, AB6: Byte) override;
+    procedure Connect(const AHost: string; ATcpPort, AUdpPort: Integer); override;
+    procedure Disconnect; override;
+    { AX = rolagem, AY = arfagem, AZ = aceleração (valores do frmMain);
+      AB1/AB2 = guinada, AB3..AB6 = sinalizadores $01, $02, $04, $08. }
+    procedure SendCommand(AX, AY, AZ, AB1, AB2, AB3, AB4, AB5, AB6: Byte); override;
+    { Envia aceleração zero com os eixos centralizados (corte dos motores). }
+    procedure SendNeutral;
+
+    class function BuildPacket(ARoll, APitch, AThrottle, AYaw,
+      AFlags: Byte): TCX10WPacket; static;
+    class function IsDroneReply(AData: PByte; ACount: Integer): Boolean; static;
+    class function PacketToHex(const APacket: TCX10WPacket): string; static;
+
+    property VideoEnabled: Boolean read FVideoEnabled write FVideoEnabled;
+    property VideoConnected: Boolean read FVideoConnected;
+    property ThrottleArmed: Boolean read FThrottleArmed;
+    property LastPacket: TCX10WPacket read FLastPacket;
+    property TotalPacotesTCP: Int64 read FTotalPacotesTCP;
+    property TotalPacotesUDP: Int64 read FTotalPacotesUDP;
+    property TotalComandos: Int64 read FTotalComandos;
+    property TotalBytesVideo: Int64 read FTotalBytesVideo;
+    property OnVideoData: TCX10WVideoDataEvent read FOnVideoData write FOnVideoData;
   end;
 
 implementation
 
 const
+  REPLY_SIZE = 106;
+
   MAGIC_BYTES_CTRL: array[0..105] of Byte = (
     $49, $54, $64, $00, $00, $00, $5D, $00, $00, $00, $81, $85, $FF, $BD, $2A, $29, $5C, $AD, $67, $82, $5C, $57, $BE, $41, $03, $F8, $CA, $E2, $64, $30, $A3, $C1,
     $5E, $40, $DE, $30, $F6, $D6, $95, $E0, $30, $B7, $C2, $E5, $B7, $D6, $5D, $A8, $65, $9E, $B2, $E2, $D5, $E0, $C2, $CB, $6C, $59, $CD, $CB, $66, $1E, $7E, $1E,
@@ -71,44 +159,128 @@ const
     $E1, $B8, $F5, $AF, $09, $7F, $91, $47, $F8, $7E
   );
 
+{ TCheersonCX10WProtocol }
+
 constructor TCheersonCX10WProtocol.Create;
 begin
   inherited Create;
-  FTcp := TLTCPComponent.Create(nil);
-  FTcp.OnConnect := @TcpConnect;
-  FTcp.OnReceive := @TcpReceive;
-  FTcp.OnError := @TcpError;
-  FTcp.OnDisconnect := @TcpDisconnect;
+
+  FCtrl := TLTCPComponent.Create(nil);
+  FCtrl.OnConnect := @CtrlConnect;
+  FCtrl.OnReceive := @CtrlReceive;
+  FCtrl.OnError := @CtrlError;
+  FCtrl.OnDisconnect := @CtrlDisconnect;
+
+  FVideo1 := TLTCPComponent.Create(nil);
+  FVideo1.OnConnect := @Video1Connect;
+  FVideo1.OnReceive := @Video1Receive;
+  FVideo1.OnError := @VideoError;
+  FVideo1.OnDisconnect := @VideoDisconnect;
+
+  FVideo2 := TLTCPComponent.Create(nil);
+  FVideo2.OnConnect := @Video2Connect;
+  FVideo2.OnReceive := @Video2Receive;
+  FVideo2.OnError := @VideoError;
+  FVideo2.OnDisconnect := @VideoDisconnect;
 
   FUdp := TLUDPComponent.Create(nil);
   FUdp.OnReceive := @UdpReceive;
   FUdp.OnError := @UdpError;
 
-  FVideoBuffer := TMemoryStream.Create;
-  FTotalPacotesTCP := 0;
-  FTotalPacotesUDP := 0;
+  FHost := CX10W_DEFAULT_HOST;
+  FTcpPort := CX10W_DEFAULT_TCP_PORT;
+  FUdpPort := CX10W_DEFAULT_UDP_PORT;
+  FVideoEnabled := True;
+  FLastPacket := BuildPacket(CX10W_AXIS_CENTER, CX10W_AXIS_CENTER, 0,
+    CX10W_AXIS_CENTER, 0);
 end;
 
 destructor TCheersonCX10WProtocol.Destroy;
 begin
+  // Sem eventos para o formulário durante a destruição.
+  FOnStatus := nil;
+  FOnError := nil;
+  FOnVideoFrame := nil;
+  FOnVideoData := nil;
+
   Disconnect;
-  FTcp.Free;
+  FVideo2.Free;
+  FVideo1.Free;
+  FCtrl.Free;
   FUdp.Free;
-  FVideoBuffer.Free;
   inherited Destroy;
 end;
 
-procedure TCheersonCX10WProtocol.Connect(const AHost: string; ATcpPort, AUdpPort: Integer);
+class function TCheersonCX10WProtocol.BuildPacket(ARoll, APitch, AThrottle,
+  AYaw, AFlags: Byte): TCX10WPacket;
 begin
-  FHost := AHost;
-  FTcpPort := ATcpPort;
-  FUdpPort := AUdpPort;
+  Result[0] := $CC;
+  Result[1] := ARoll;
+  Result[2] := APitch;
+  Result[3] := AThrottle;
+  Result[4] := AYaw;
+  Result[5] := AFlags;
+  Result[6] := ARoll xor APitch xor AThrottle xor AYaw xor AFlags;
+  Result[7] := $33;
+end;
+
+class function TCheersonCX10WProtocol.IsDroneReply(AData: PByte;
+  ACount: Integer): Boolean;
+begin
+  Result := (ACount = REPLY_SIZE) and (AData[0] = $49) and (AData[1] = $54) and
+    (AData[2] = $64);
+end;
+
+class function TCheersonCX10WProtocol.PacketToHex(const APacket: TCX10WPacket): string;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := 0 to High(APacket) do
+  begin
+    if I > 0 then
+      Result := Result + ' ';
+    Result := Result + IntToHex(APacket[I], 2);
+  end;
+end;
+
+function TCheersonCX10WProtocol.SendAll(ASocket: TLTCPComponent;
+  const ABytes: array of Byte): Boolean;
+begin
+  Result := Assigned(ASocket) and ASocket.Connected and (Length(ABytes) > 0) and
+    (ASocket.Send(ABytes[0], Length(ABytes)) = Length(ABytes));
+end;
+
+procedure TCheersonCX10WProtocol.Connect(const AHost: string; ATcpPort,
+  AUdpPort: Integer);
+begin
   Disconnect;
 
-  DoStatus('Conectando via TCP/UDP...');
+  FHost := Trim(AHost);
+  if FHost = '' then
+    FHost := CX10W_DEFAULT_HOST;
+  FTcpPort := ATcpPort;
+  if FTcpPort <= 0 then
+    FTcpPort := CX10W_DEFAULT_TCP_PORT;
+  FUdpPort := AUdpPort;
+  if FUdpPort <= 0 then
+    FUdpPort := CX10W_DEFAULT_UDP_PORT;
+
+  FDisconnecting := False;
+  FThrottleArmed := False;
+  FArmWarned := False;
+  FTotalComandos := 0;
+
+  DoStatus(Format('Conectando ao CX-10W em %s (TCP %d, UDP %d)...',
+    [FHost, FTcpPort, FUdpPort]));
   try
-    FTcp.Connect(FHost, FTcpPort);
-    FUdp.Connect(FHost, FUdpPort);
+    if not FUdp.Connect(FHost, FUdpPort) then
+    begin
+      DoError('Não foi possível abrir o UDP ' + IntToStr(FUdpPort) + '.');
+      Exit;
+    end;
+    if not FCtrl.Connect(FHost, FTcpPort) then
+      DoError('Não foi possível iniciar a conexão TCP de controle.');
   except
     on E: Exception do
       DoError('Erro na conexão: ' + E.Message);
@@ -116,73 +288,113 @@ begin
 end;
 
 procedure TCheersonCX10WProtocol.Disconnect;
-begin
-  if FTcp.Connected then
-    FTcp.Disconnect(True);
-  if FUdp.Connected then
-    FUdp.Disconnect(True);
-
-  FActive := False;
-  FVideoBuffer.Clear;
-  DoStatus('Desconectado.');
-end;
-
-procedure TCheersonCX10WProtocol.EnviaTCP(const ABytes: array of Byte; const ADescricao: string);
-begin
-  if FTcp.Connected and (Length(ABytes) > 0) then
-  begin
-    FTcp.Send(ABytes[0], Length(ABytes));
-    DoStatus(ADescricao + ' transmitido via TCP.');
-  end;
-end;
-
-procedure TCheersonCX10WProtocol.EnviaUDP(const ABytes: array of Byte; const ADescricao: string);
-begin
-  if FUdp.Connected and (Length(ABytes) > 0) then
-    FUdp.Send(ABytes[0], Length(ABytes));
-end;
-
-procedure TCheersonCX10WProtocol.Handshake;
-begin
-  EnviaTCP(MAGIC_BYTES_CTRL, 'Handshake CTRL');
-  Sleep(40);
-  EnviaTCP(MAGIC_BYTES_VIDEO_1A, 'Handshake VIDEO 1A');
-  Sleep(40);
-  EnviaTCP(MAGIC_BYTES_VIDEO_1B, 'Handshake VIDEO 1B');
-  Sleep(40);
-  EnviaTCP(MAGIC_BYTES_VIDEO_2, 'Handshake VIDEO 2');
-  DoStatus('Handshake de vídeo concluído.');
-end;
-
-function TCheersonCX10WProtocol.BuildChecksum(const AData: array of Byte): Byte;
 var
   I: Integer;
 begin
-  Result := 0;
-  if High(AData) < 5 then
-    Exit;
-  for I := 1 to 5 do
-    Result := Result xor AData[I];
+  FDisconnecting := True;
+  try
+    // Corta os motores antes de soltar o canal de comando.
+    if FActive and FUdp.Connected then
+      for I := 1 to 5 do
+      begin
+        SendNeutral;
+        Sleep(20);
+      end;
+
+    StopVideo;
+
+    if FCtrl.Connected then
+      FCtrl.Disconnect(True);
+    if FUdp.Connected then
+      FUdp.Disconnect(True);
+  except
+  end;
+
+  FActive := False;
+  FThrottleArmed := False;
+  FDisconnecting := False;
 end;
 
-procedure TCheersonCX10WProtocol.SendCommand(AX, AY, AZ, AB1, AB2, AB3, AB4, AB5, AB6: Byte);
-var
-  Packet: array[0..7] of Byte;
-  Flags: Byte;
-  Yaw: Byte;
+procedure TCheersonCX10WProtocol.StartVideo;
 begin
-  Packet[0] := $CC;
-  Packet[1] := AZ; // throttle
+  if (not FVideoEnabled) or FVideo1.Connected then
+    Exit;
+  FVideoSynced := False;
+  FCarryLen := 0;
+  DoStatus('Abrindo canal de vídeo...');
+  if not FVideo1.Connect(FHost, FTcpPort) then
+    DoStatus('Vídeo indisponível: falha ao abrir o canal 1.');
+end;
 
-  Yaw := 127;
-  if (AB1 = 255) and (AB2 = 0) then
+procedure TCheersonCX10WProtocol.StopVideo;
+begin
+  try
+    if FVideo2.Connected then
+      FVideo2.Disconnect(True);
+    if FVideo1.Connected then
+      FVideo1.Disconnect(True);
+  except
+  end;
+  FVideoConnected := False;
+  FVideoSynced := False;
+  FCarryLen := 0;
+end;
+
+procedure TCheersonCX10WProtocol.SendPacket(const APacket: TCX10WPacket);
+begin
+  if not FUdp.Connected then
+    Exit;
+  if FUdp.Send(APacket[0], CX10W_PACKET_SIZE) = CX10W_PACKET_SIZE then
+  begin
+    FLastPacket := APacket;
+    Inc(FTotalComandos);
+  end;
+end;
+
+procedure TCheersonCX10WProtocol.SendNeutral;
+begin
+  SendPacket(BuildPacket(CX10W_AXIS_CENTER, CX10W_AXIS_CENTER, 0,
+    CX10W_AXIS_CENTER, 0));
+end;
+
+procedure TCheersonCX10WProtocol.SendCommand(AX, AY, AZ, AB1, AB2, AB3, AB4,
+  AB5, AB6: Byte);
+var
+  Roll, Pitch, Throttle, Yaw, Flags: Byte;
+begin
+  if (not FActive) or FDisconnecting then
+    Exit;
+
+  { No frmMain, X e Y crescem com o manche para a ESQUERDA e para CIMA.
+    No CX-10W, 255 = direita / frente. Por isso a rolagem é invertida. }
+  Roll := 255 - AX;
+  Pitch := AY;
+
+  { Trava de segurança: só libera a aceleração depois que o comando passa
+    pelo mínimo uma vez após a conexão. }
+  if not FThrottleArmed then
+  begin
+    if AZ <= CX10W_THROTTLE_ARM_LIMIT then
+    begin
+      FThrottleArmed := True;
+      DoStatus('Acelerador liberado.');
+    end
+    else if not FArmWarned then
+    begin
+      FArmWarned := True;
+      DoStatus('Acelerador travado: leve a aceleração ao mínimo para liberar.');
+    end;
+  end;
+  if FThrottleArmed then
+    Throttle := AZ
+  else
+    Throttle := 0;
+
+  Yaw := CX10W_AXIS_CENTER;
+  if (AB1 = 255) and (AB2 <> 255) then
     Yaw := 0
-  else if (AB2 = 255) and (AB1 = 0) then
+  else if (AB2 = 255) and (AB1 <> 255) then
     Yaw := 255;
-
-  Packet[2] := Yaw;
-  Packet[3] := AY; // pitch
-  Packet[4] := AX; // roll
 
   Flags := 0;
   if AB3 = 255 then Flags := Flags or $01;
@@ -190,180 +402,174 @@ begin
   if AB5 = 255 then Flags := Flags or $04;
   if AB6 = 255 then Flags := Flags or $08;
 
-  Packet[5] := Flags;
-  Packet[6] := BuildChecksum(Packet);
-  Packet[7] := $33;
-
-  EnviaUDP(Packet, 'Comando');
+  SendPacket(BuildPacket(Roll, Pitch, Throttle, Yaw, Flags));
 end;
 
-procedure TCheersonCX10WProtocol.TcpConnect(aSocket: TLSocket);
-begin
-  FActive := True;
-  DoStatus('Conectado via TCP.');
-  Handshake;
-end;
-
-procedure TCheersonCX10WProtocol.TcpReceive(aSocket: TLSocket);
+function TCheersonCX10WProtocol.DrainSocket(aSocket: TLSocket;
+  ADeliver: Boolean): Boolean;
 var
-  Buf: array[0..8191] of Byte;
+  Buf: array[0..16383] of Byte;
   L: Integer;
-  Data: TBytes;
 begin
+  Result := False;
   repeat
     L := aSocket.Get(Buf[0], SizeOf(Buf));
     if L > 0 then
     begin
-      SetLength(Data, L);
-      Move(Buf[0], Data[0], L);
-      Inc(FTotalPacotesTCP);
-      ProcessaBytesTCP(Data);
+      Result := True;
+      if ADeliver then
+        ProcessVideoChunk(@Buf[0], L);
     end;
   until L <= 0;
 end;
 
-procedure TCheersonCX10WProtocol.TcpError(const msg: string; aSocket: TLSocket);
+{ Canal de controle }
+
+procedure TCheersonCX10WProtocol.CtrlConnect(aSocket: TLSocket);
 begin
-  DoError('Erro TCP: ' + msg);
+  if not SendAll(FCtrl, MAGIC_BYTES_CTRL) then
+  begin
+    DoError('Falha ao enviar o pacote de inicialização do CX-10W.');
+    Exit;
+  end;
+  FActive := True;
+  DoStatus('Canal de controle ativo. Comandos por UDP ' + IntToStr(FUdpPort) + '.');
+  SendNeutral;
+  StartVideo;
 end;
 
-procedure TCheersonCX10WProtocol.TcpDisconnect(aSocket: TLSocket);
+procedure TCheersonCX10WProtocol.CtrlReceive(aSocket: TLSocket);
+begin
+  // Respostas do canal de controle não carregam dados úteis: descartadas.
+  if DrainSocket(aSocket, False) then
+    Inc(FTotalPacotesTCP);
+end;
+
+procedure TCheersonCX10WProtocol.CtrlError(const msg: string; aSocket: TLSocket);
 begin
   FActive := False;
-  DoStatus('Desconectado via TCP.');
+  if not FDisconnecting then
+    DoError('Controle: ' + msg + ' (verifique se o PC está na rede Wi-Fi do CX-10W).');
 end;
 
-procedure TCheersonCX10WProtocol.UdpReceive(aSocket: TLSocket);
-var
-  Buf: array[0..2047] of Byte;
-  L: Integer;
+procedure TCheersonCX10WProtocol.CtrlDisconnect(aSocket: TLSocket);
 begin
-  repeat
-    L := aSocket.Get(Buf[0], SizeOf(Buf));
-    if L > 0 then
-      Inc(FTotalPacotesUDP);
-  until L <= 0;
+  FActive := False;
+  if not FDisconnecting then
+    DoError('Canal de controle fechado pelo drone.');
+end;
+
+{ Canais de vídeo }
+
+procedure TCheersonCX10WProtocol.Video1Connect(aSocket: TLSocket);
+begin
+  if SendAll(FVideo1, MAGIC_BYTES_VIDEO_1A) and SendAll(FVideo1, MAGIC_BYTES_VIDEO_1B) then
+  begin
+    if not FVideo2.Connect(FHost, FTcpPort) then
+      DoStatus('Vídeo indisponível: falha ao abrir o canal 2.');
+  end
+  else
+    DoStatus('Vídeo indisponível: falha na inicialização do canal 1.');
+end;
+
+procedure TCheersonCX10WProtocol.Video2Connect(aSocket: TLSocket);
+begin
+  if SendAll(FVideo2, MAGIC_BYTES_VIDEO_2) then
+  begin
+    FVideoConnected := True;
+    DoStatus('Canal de vídeo aberto. Aguardando imagem H.264...');
+  end
+  else
+    DoStatus('Vídeo indisponível: falha na inicialização do canal 2.');
+end;
+
+procedure TCheersonCX10WProtocol.Video1Receive(aSocket: TLSocket);
+begin
+  // O canal 1 só precisa ser mantido aberto e esvaziado.
+  if DrainSocket(aSocket, False) then
+    Inc(FTotalPacotesTCP);
+end;
+
+procedure TCheersonCX10WProtocol.Video2Receive(aSocket: TLSocket);
+begin
+  // O canal 2 transporta o vídeo H.264.
+  if DrainSocket(aSocket, True) then
+    Inc(FTotalPacotesTCP);
+end;
+
+procedure TCheersonCX10WProtocol.VideoError(const msg: string; aSocket: TLSocket);
+begin
+  FVideoConnected := False;
+  // A perda do vídeo não derruba o comando de voo.
+  if not FDisconnecting then
+    DoStatus('Vídeo: ' + msg);
+end;
+
+procedure TCheersonCX10WProtocol.VideoDisconnect(aSocket: TLSocket);
+begin
+  FVideoConnected := False;
+  FVideoSynced := False;
+  if not FDisconnecting then
+    DoStatus('Canal de vídeo fechado pelo drone.');
+end;
+
+procedure TCheersonCX10WProtocol.ProcessVideoChunk(AData: PByte; ACount: Integer);
+var
+  Tmp: array of Byte;
+  I, Total: Integer;
+begin
+  if ACount <= 0 then
+    Exit;
+
+  if IsDroneReply(AData, ACount) then
+    Exit;
+
+  if FVideoSynced then
+  begin
+    Inc(FTotalBytesVideo, ACount);
+    if Assigned(FOnVideoData) then
+      FOnVideoData(Self, AData, ACount);
+    Exit;
+  end;
+
+  // Procura o primeiro código de início 00 00 00 01, mesmo dividido entre blocos.
+  Total := FCarryLen + ACount;
+  SetLength(Tmp, Total);
+  if FCarryLen > 0 then
+    Move(FCarry[0], Tmp[0], FCarryLen);
+  Move(AData^, Tmp[FCarryLen], ACount);
+
+  for I := 0 to Total - 4 do
+    if (Tmp[I] = 0) and (Tmp[I + 1] = 0) and (Tmp[I + 2] = 0) and (Tmp[I + 3] = 1) then
+    begin
+      FVideoSynced := True;
+      FCarryLen := 0;
+      DoStatus('Vídeo sincronizado.');
+      Inc(FTotalBytesVideo, Total - I);
+      if Assigned(FOnVideoData) then
+        FOnVideoData(Self, @Tmp[I], Total - I);
+      Exit;
+    end;
+
+  if Total >= 3 then
+    FCarryLen := 3
+  else
+    FCarryLen := Total;
+  Move(Tmp[Total - FCarryLen], FCarry[0], FCarryLen);
+end;
+
+{ UDP }
+
+procedure TCheersonCX10WProtocol.UdpReceive(aSocket: TLSocket);
+begin
+  if DrainSocket(aSocket, False) then
+    Inc(FTotalPacotesUDP);
 end;
 
 procedure TCheersonCX10WProtocol.UdpError(const msg: string; aSocket: TLSocket);
 begin
-  DoError('Erro UDP: ' + msg);
-end;
-
-procedure TCheersonCX10WProtocol.ProcessaBytesTCP(const AData: TBytes);
-begin
-  if (Length(AData) = 0) or (not Assigned(FVideoBuffer)) then
-    Exit;
-
-  FVideoBuffer.Position := FVideoBuffer.Size;
-  FVideoBuffer.WriteBuffer(AData[0], Length(AData));
-  ExtraiJPEGDoBuffer;
-end;
-
-function TCheersonCX10WProtocol.ExtraiJPEGDoBuffer: Boolean;
-var
-  Buf: TBytes;
-  I, J, Tamanho: Integer;
-  InicioJpeg, FimJpeg: Integer;
-  Img: TBytes;
-  Restante: TBytes;
-begin
-  Result := False;
-
-  if (not Assigned(FVideoBuffer)) or (FVideoBuffer.Size < 4) then
-    Exit;
-
-  SetLength(Buf, FVideoBuffer.Size);
-  FVideoBuffer.Position := 0;
-  if Length(Buf) > 0 then
-    FVideoBuffer.ReadBuffer(Buf[0], Length(Buf));
-
-  InicioJpeg := -1;
-  FimJpeg := -1;
-
-  for I := 0 to High(Buf) - 1 do
-  begin
-    if (Buf[I] = $FF) and (Buf[I + 1] = $D8) then
-    begin
-      InicioJpeg := I;
-      Break;
-    end;
-  end;
-
-  if InicioJpeg < 0 then
-  begin
-    FVideoBuffer.Clear;
-    Exit;
-  end;
-
-  for J := InicioJpeg + 2 to High(Buf) - 1 do
-  begin
-    if (Buf[J] = $FF) and (Buf[J + 1] = $D9) then
-    begin
-      FimJpeg := J + 1;
-      Break;
-    end;
-  end;
-
-  if FimJpeg < 0 then
-  begin
-    FVideoBuffer.Clear;
-    FVideoBuffer.WriteBuffer(Buf[InicioJpeg], Length(Buf) - InicioJpeg);
-    Exit;
-  end;
-
-  Tamanho := FimJpeg - InicioJpeg + 1;
-  SetLength(Img, Tamanho);
-  Move(Buf[InicioJpeg], Img[0], Tamanho);
-
-  try
-    CarregaJpegNoBitmap(Img, FBitmap);
-    DoVideoFrame(FBitmap);
-  except
-  end;
-
-  if FimJpeg < High(Buf) then
-  begin
-    SetLength(Restante, High(Buf) - FimJpeg);
-    Move(Buf[FimJpeg + 1], Restante[0], Length(Restante));
-    FVideoBuffer.Clear;
-    if Length(Restante) > 0 then
-      FVideoBuffer.WriteBuffer(Restante[0], Length(Restante));
-  end
-  else
-    FVideoBuffer.Clear;
-
-  Result := True;
-end;
-
-procedure TCheersonCX10WProtocol.CarregaJpegNoBitmap(const AJpegData: TBytes; ADestino: TBitmap);
-var
-  MS: TMemoryStream;
-  Img: TFPMemoryImage;
-  Reader: TFPReaderJPEG;
-  IntfImg: TLazIntfImage;
-begin
-  if (Length(AJpegData) = 0) or (not Assigned(ADestino)) then
-    Exit;
-
-  MS := TMemoryStream.Create;
-  Img := TFPMemoryImage.Create(0, 0);
-  Reader := TFPReaderJPEG.Create;
-  IntfImg := TLazIntfImage.Create(0, 0);
-  try
-    MS.WriteBuffer(AJpegData[0], Length(AJpegData));
-    MS.Position := 0;
-
-    Img.LoadFromStream(MS, Reader);
-    IntfImg.Assign(Img);
-    ADestino.LoadFromIntfImage(IntfImg);
-    FUltimaImagemDataHora := Now;
-  finally
-    IntfImg.Free;
-    Reader.Free;
-    Img.Free;
-    MS.Free;
-  end;
+  if not FDisconnecting then
+    DoError('UDP: ' + msg);
 end;
 
 end.

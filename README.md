@@ -34,6 +34,9 @@ Este projeto, desenvolvido em Object Pascal (Lazarus/Free Pascal), constitui uma
 - **conectionfq777.pas**  
   Conexão exclusiva do quadricóptero FQ777-954 (veja a seção abaixo).
 
+- **cx10w.pas / ardroneproto.pas / esp32droneproto.pas**  
+  Protocolos do Cheerson CX-10W, do Parrot AR.Drone 2.0 e do drone ESP32 (firmware Cockpit), com as janelas `conectioncx10w.pas`, `conectionardrone.pas` e `conectionesp32drone.pas`.
+
 - **funcs.pas**  
   Contém funções utilitárias, como `MAPA`, que realiza mapeamento linear de valores analógicos para o intervalo byte (0-255), fundamental para a normalização dos sinais.
 
@@ -66,6 +69,35 @@ Selecione **FQ777-954 (Wi-Fi)** em Configuração > Protocolo. Ao clicar em Star
 Após um corte, a aceleração só volta depois que o gatilho e o teclado retornarem ao mínimo. Eixos, zona morta, modo do acelerador (gatilho ou manche), nome e senha da rede e gravação do vídeo ficam na aba **FQ777-954** da configuração (seção `[FQ777]` do `drone.cfg`, separada dos outros drones).
 
 O protocolo, o vídeo, o joystick e o Wi-Fi vêm dos componentes `TAIDroneFQ777`, `TAIH264Decoder`, `TAIJoystick` e `TAIWifi` da Lazarus AI Suite.
+
+### Cheerson CX-10W
+
+Selecione **Cheerson CX-10W** em Configuração > Protocolo e conecte o PC na rede Wi-Fi do drone (`Cheerson-CX-10W-…`). Ao clicar em Start o cockpit abre o canal de controle e os dois canais de vídeo (TCP 8888), envia os pacotes de inicialização e passa a mandar o comando por UDP 8895 a cada 50 ms. IP e portas ficam na seção `[CX10W]` do `drone.cfg` (padrão `172.16.10.1`, 8888, 8895), separada dos outros drones.
+
+Por segurança, **a aceleração fica travada até ser levada ao mínimo** (tecla Q ou manche) depois da conexão. O vídeo é H.264 e usa o `ffmpeg.exe` (na pasta do programa ou no PATH).
+
+### Parrot AR.Drone 2.0
+
+Selecione **Parrot AR.Drone 2.0** e conecte o PC na rede `ardrone2_…`. O cockpit usa o protocolo oficial da Parrot: comandos AT por UDP 5556, telemetria (bateria, altura, atitude) por UDP 5554 e vídeo H.264 por TCP 5555.
+
+| Comando | Joystick / teclado |
+|---|---|
+| Decolar | botão 3 (tecla 3) ou botão **Decolar** |
+| Pousar | botão 4 (tecla 4) ou botão **Pousar** |
+| Rolagem / arfagem | manche ou setas / W A S D |
+| Subir / descer | eixo Z ou E / Q (centro = mantém a altura) |
+| Girar | botões 1 / 2 |
+| Emergência | botão **EMERGÊNCIA** na janela do drone |
+
+Com os comandos no centro o drone paira no lugar. Ao desligar, o cockpit manda o drone pousar. Altura máxima, voo ao ar livre e sensibilidade ficam na aba **AR.Drone 2.0** (seção `[ARDRONE]`).
+
+### Drone ESP32 (firmware Cockpit)
+
+A pasta [`firmware/esp32_drone`](firmware/esp32_drone) traz o firmware de um mini quadricóptero com ESP32 + MPU6050 + motores escovados, e o protocolo **CDP** ([PROTOCOLO.md](firmware/esp32_drone/PROTOCOLO.md)). Grave o firmware, conecte o PC na rede `CockpitDrone-XXXX` (senha `cockpit123`) e selecione **Drone ESP32 (firmware Cockpit)**.
+
+Botão 3 arma (só com a aceleração no mínimo), botão 4 desarma; a janela do drone tem **CORTE DOS MOTORES** e **Calibrar**. O firmware corta os motores se perder o sinal por 500 ms (descida de 2 s) ou se o drone capotar. Leia o [README do firmware](firmware/esp32_drone/README.md) e faça o primeiro teste **sem hélices**.
+
+O protocolo **OpenDrone ESP32 (UDP)** continua disponível para placas com o firmware ESP-Drone.
 
 ### Funcionalidades Atuais
 

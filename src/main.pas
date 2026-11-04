@@ -11,11 +11,12 @@ uses
   gpstarget, nmeadecode, gpsportconnected, about,
   lNetComponents, config, cd10w, camera, map, ConectionCX10W, funcs, GPS,
   joystick, LCLType, uplaysound, controler, setmain, tacticalhud, flightplan,
-  conectionmavlink, conectiontello, conectionopendrone, conectionfq777;
+  conectionmavlink, conectiontello, conectionopendrone, conectionfq777,
+  conectionardrone, conectionesp32drone;
 
 const
   refJoy = 127;
-  versao = 0.34;
+  versao = 0.40;
 
 type
 
@@ -636,7 +637,19 @@ end;
 procedure TfrmMain.AtivaDrone;
 var
   ConnFQ: TfrmConectionFQ777;
+  ConnAR: TfrmConectionARDrone;
+  ConnESP: TfrmConectionESP32Drone;
   Motivo: string;
+
+  procedure FalhaAoIniciar(const ATitulo: string);
+  begin
+    MessageDlg(ATitulo, Motivo, mtWarning, [mbOK], 0);
+    if AdvStart.State = lsOn then
+      AdvStartClick(Self) // mesmo caminho do botão desligar
+    else
+      DesativaDrone;
+  end;
+
 begin
   EnsureConfig;
 
@@ -687,6 +700,32 @@ begin
               AdvStartClick(Self) // mesmo caminho do botão desligar
             else
               DesativaDrone;
+          end;
+        end;
+      5:
+        begin
+          ConnAR := TfrmConectionARDrone.Create(Self);
+          frmConnection := ConnAR;
+          ConnAR.Show;
+          if not ConnAR.Iniciar then
+          begin
+            Motivo := ConnAR.UltimoErro;
+            if Motivo = '' then
+              Motivo := 'AR.Drone não encontrado.';
+            FalhaAoIniciar('Parrot AR.Drone');
+          end;
+        end;
+      6:
+        begin
+          ConnESP := TfrmConectionESP32Drone.Create(Self);
+          frmConnection := ConnESP;
+          ConnESP.Show;
+          if not ConnESP.Iniciar then
+          begin
+            Motivo := ConnESP.UltimoErro;
+            if Motivo = '' then
+              Motivo := 'Drone ESP32 não encontrado.';
+            FalhaAoIniciar('Drone ESP32');
           end;
         end;
     end;
@@ -793,6 +832,14 @@ begin
     VK_DOWN:  FKeyDown := False;
     VK_LEFT:  FKeyLeft := False;
     VK_RIGHT: FKeyRight := False;
+    // Teclas de letra: são ligadas no KeyPress e precisam ser soltas aqui,
+    // senão o comando fica preso depois de soltar a tecla.
+    VK_W: FKeyUp := False;
+    VK_S: FKeyDown := False;
+    VK_A: FKeyLeft := False;
+    VK_D: FKeyRight := False;
+    VK_Q: FKeyZDown := False;
+    VK_E: FKeyZUp := False;
     VK_SPACE:
       begin
         FKeyB1 := False;

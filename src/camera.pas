@@ -61,7 +61,7 @@ implementation
 {$R *.lfm}
 
 uses
-  main, ConectionCX10W, conectionfq777;
+  main, ConectionCX10W, conectionfq777, conectionardrone, conectionesp32drone;
 
 { TfrmCam }
 
@@ -195,6 +195,7 @@ procedure TfrmCam.AtualizaDaConexao;
 var
   Conn: TfrmConectionCX10W;
   ConnFQ: TfrmConectionFQ777;
+  ConnAR: TfrmConectionARDrone;
 begin
   if not FCameraAtiva then
   begin
@@ -229,6 +230,28 @@ begin
       DefineStatus('CONECTADO, AGUARDANDO VÍDEO')
     else
       DefineStatus('SEM CONEXÃO COM O FQ777-954');
+    Exit;
+  end;
+
+  if frmMain.frmConnection is TfrmConectionARDrone then
+  begin
+    // A imagem chega por MostraQuadro; aqui só o estado.
+    ConnAR := TfrmConectionARDrone(frmMain.frmConnection);
+    if not ConnAR.Protocol.VideoEnabled then
+      DefineStatus('VÍDEO DESLIGADO NA CONFIGURAÇÃO')
+    else if ConnAR.UltimaImagemDataHora > 0 then
+      DefineStatus('ONLINE  IMG: ' + FormatDateTime('hh:nn:ss', ConnAR.UltimaImagemDataHora) +
+        '  QUADROS: ' + IntToStr(ConnAR.Decoder.FramesDecoded))
+    else if ConnAR.Protocol.VideoConnected then
+      DefineStatus('RECEBENDO VÍDEO, AGUARDANDO DECODIFICADOR (ffmpeg)')
+    else
+      DefineStatus('AGUARDANDO VÍDEO DO AR.DRONE');
+    Exit;
+  end;
+
+  if frmMain.frmConnection is TfrmConectionESP32Drone then
+  begin
+    DefineStatus('O DRONE ESP32 NÃO TEM CÂMERA');
     Exit;
   end;
 

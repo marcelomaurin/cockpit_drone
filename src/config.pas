@@ -90,6 +90,8 @@ type
     function CriaOpcao(AParent: TWinControl; ALeft, ATop: Integer;
       const ARotulo, ANome: string): TCheckBox;
     procedure CriaAbaFQ777;
+    procedure CriaAbaARDrone;
+    procedure CriaAbaESP32Drone;
 
   public
     TipoAtivo: Integer;
@@ -128,6 +130,18 @@ type
     edFQ777EixoAcelerador: TEdit;
     cbFQ777Acelerador: TComboBox;
 
+    tsARDrone: TTabSheet;
+    edARDroneIP: TEdit;
+    ckARDroneVideo: TCheckBox;
+    edARDroneFFmpeg: TEdit;
+    edARDroneAltura: TEdit;
+    ckARDroneExterno: TCheckBox;
+    edARDroneSensibilidade: TEdit;
+
+    tsESP32Drone: TTabSheet;
+    edESP32IP: TEdit;
+    edESP32Porta: TEdit;
+
     procedure AtualizaAbasProtocolo;
     procedure CarregarValoresTela;
     procedure SalvarConfiguracoes;
@@ -141,7 +155,7 @@ implementation
 {$R *.lfm}
 
 uses
-  main, setmain;
+  main, setmain, Math;
 
 { Tfrmconfig }
 
@@ -297,6 +311,8 @@ begin
   cbProtocol.Items.Add('DJI Tello (UDP)');
   cbProtocol.Items.Add('OpenDrone ESP32 (UDP)');
   cbProtocol.Items.Add('FQ777-954 (Wi-Fi)');
+  cbProtocol.Items.Add('Parrot AR.Drone 2.0');
+  cbProtocol.Items.Add('Drone ESP32 (firmware Cockpit)');
 
   if Assigned(FSetMain) then
   begin
@@ -432,6 +448,8 @@ begin
   edOpendronePort.Text := '2399';
 
   CriaAbaFQ777;
+  CriaAbaARDrone;
+  CriaAbaESP32Drone;
 
   TabSheet1.Caption := 'Cheerson CX-10W';
 
@@ -522,6 +540,76 @@ begin
   edFQ777EixoArfagem := CriaCampo(Box, 80, 296, 40, 'Arfagem', 'edFQ777EixoArfagem');
   edFQ777EixoGuinada := CriaCampo(Box, 145, 296, 40, 'Guinada', 'edFQ777EixoGuinada');
   edFQ777EixoAcelerador := CriaCampo(Box, 210, 296, 40, 'Acelerador', 'edFQ777EixoAcelerador');
+end;
+
+procedure Tfrmconfig.CriaAbaARDrone;
+var
+  Box: TScrollBox;
+begin
+  tsARDrone := TTabSheet.Create(Self);
+  tsARDrone.Name := 'tsARDrone';
+  tsARDrone.PageControl := pcDrones;
+  tsARDrone.Caption := 'AR.Drone 2.0';
+
+  Box := TScrollBox.Create(Self);
+  Box.Parent := tsARDrone;
+  Box.Align := alClient;
+  Box.BorderStyle := bsNone;
+
+  edARDroneIP := CriaCampo(Box, 15, 10, 130, 'IP do drone:', 'edARDroneIP');
+  with TLabel.Create(Self) do
+  begin
+    Parent := Box;
+    Left := 155; Top := 30;
+    Caption := 'Portas fixas: AT 5556, telemetria 5554, vídeo 5555';
+  end;
+
+  ckARDroneVideo := CriaOpcao(Box, 15, 60, 'Receber vídeo da câmera frontal', 'ckARDroneVideo');
+  edARDroneFFmpeg := CriaCampo(Box, 15, 82, 270,
+    'ffmpeg (vazio = ao lado do programa ou no PATH):', 'edARDroneFFmpeg');
+
+  edARDroneAltura := CriaCampo(Box, 15, 132, 60, 'Altura máx. (m):', 'edARDroneAltura');
+  edARDroneSensibilidade := CriaCampo(Box, 145, 132, 60, 'Sensibilidade %:', 'edARDroneSensibilidade');
+  ckARDroneExterno := CriaOpcao(Box, 15, 182,
+    'Voo ao ar livre (sem protetor de hélices)', 'ckARDroneExterno');
+
+  with TLabel.Create(Self) do
+  begin
+    Parent := Box;
+    Left := 15; Top := 212;
+    Caption := 'Botão 3 decola, botão 4 pousa. Emergência e calibração na janela do drone.';
+  end;
+end;
+
+procedure Tfrmconfig.CriaAbaESP32Drone;
+var
+  Box: TScrollBox;
+begin
+  tsESP32Drone := TTabSheet.Create(Self);
+  tsESP32Drone.Name := 'tsESP32Drone';
+  tsESP32Drone.PageControl := pcDrones;
+  tsESP32Drone.Caption := 'Drone ESP32';
+
+  Box := TScrollBox.Create(Self);
+  Box.Parent := tsESP32Drone;
+  Box.Align := alClient;
+  Box.BorderStyle := bsNone;
+
+  edESP32IP := CriaCampo(Box, 15, 10, 130, 'IP do drone:', 'edESP32IP');
+  edESP32Porta := CriaCampo(Box, 155, 10, 60, 'UDP:', 'edESP32Porta');
+
+  with TLabel.Create(Self) do
+  begin
+    Parent := Box;
+    Left := 15; Top := 62;
+    Caption := 'Firmware: pasta firmware/esp32_drone (rede CockpitDrone-XXXX).';
+  end;
+  with TLabel.Create(Self) do
+  begin
+    Parent := Box;
+    Left := 15; Top := 82;
+    Caption := 'Botão 3 arma (aceleração no mínimo), botão 4 desarma.';
+  end;
 end;
 
 procedure Tfrmconfig.cbProtocolChange(Sender: TObject);
@@ -657,6 +745,10 @@ begin
     tsOpendrone.TabVisible := (TipoAtivo = 3);
   if Assigned(tsFQ777) then
     tsFQ777.TabVisible := (TipoAtivo = 4);
+  if Assigned(tsARDrone) then
+    tsARDrone.TabVisible := (TipoAtivo = 5);
+  if Assigned(tsESP32Drone) then
+    tsESP32Drone.TabVisible := (TipoAtivo = 6);
 end;
 
 procedure Tfrmconfig.CarregarValoresTela;
@@ -677,9 +769,10 @@ begin
     TipoAtivo := FSetMain.DroneProtocolo;
   end;
 
-  edIP.Text := FSetMain.DroneIP;
-  edTCPPORT.Text := IntToStr(FSetMain.DronePortaComando);
-  edUDPPORT.Text := IntToStr(FSetMain.DronePortaVideo);
+  // Aba do Cheerson CX-10W: seção própria [CX10W].
+  edIP.Text := FSetMain.CX10W.IP;
+  edTCPPORT.Text := IntToStr(FSetMain.CX10W.PortaTCP);
+  edUDPPORT.Text := IntToStr(FSetMain.CX10W.PortaUDP);
 
   if Assigned(edMavIP) then
     edMavIP.Text := FSetMain.DroneIP;
@@ -723,6 +816,24 @@ begin
         cbFQ777Acelerador.ItemIndex := 0;
     end;
 
+  if Assigned(tsARDrone) then
+    with FSetMain.ARDrone do
+    begin
+      edARDroneIP.Text := IP;
+      ckARDroneVideo.Checked := Video;
+      edARDroneFFmpeg.Text := FFmpeg;
+      edARDroneAltura.Text := IntToStr(AlturaMaxima);
+      ckARDroneExterno.Checked := Externo;
+      edARDroneSensibilidade.Text := IntToStr(Sensibilidade);
+    end;
+
+  if Assigned(tsESP32Drone) then
+    with FSetMain.ESP32Drone do
+    begin
+      edESP32IP.Text := IP;
+      edESP32Porta.Text := IntToStr(Porta);
+    end;
+
   AtualizaAbasProtocolo;
 end;
 
@@ -743,11 +854,13 @@ begin
   case TipoAtivo of
     0:
       begin
-        FSetMain.DroneIP := edIP.Text;
-        if TryStrToInt(Trim(edTCPPORT.Text), Val) then
-          FSetMain.DronePortaComando := Val;
-        if TryStrToInt(Trim(edUDPPORT.Text), Val) then
-          FSetMain.DronePortaVideo := Val;
+        // Cheerson CX-10W: não altera a seção [DRONE] dos outros protocolos.
+        if Trim(edIP.Text) <> '' then
+          FSetMain.CX10W.IP := Trim(edIP.Text);
+        if TryStrToInt(Trim(edTCPPORT.Text), Val) and (Val > 0) then
+          FSetMain.CX10W.PortaTCP := Val;
+        if TryStrToInt(Trim(edUDPPORT.Text), Val) and (Val > 0) then
+          FSetMain.CX10W.PortaUDP := Val;
       end;
     1:
       begin
@@ -810,6 +923,28 @@ begin
           EixoGuinada := StrToIntDef(Trim(edFQ777EixoGuinada.Text), EixoGuinada);
           EixoAcelerador := StrToIntDef(Trim(edFQ777EixoAcelerador.Text), EixoAcelerador);
           AceleradorCentrado := cbFQ777Acelerador.ItemIndex = 1;
+        end;
+    5:
+      // Seção própria [ARDRONE].
+      if Assigned(tsARDrone) then
+        with FSetMain.ARDrone do
+        begin
+          if Trim(edARDroneIP.Text) <> '' then
+            IP := Trim(edARDroneIP.Text);
+          Video := ckARDroneVideo.Checked;
+          FFmpeg := Trim(edARDroneFFmpeg.Text);
+          AlturaMaxima := EnsureRange(StrToIntDef(Trim(edARDroneAltura.Text), AlturaMaxima), 1, 100);
+          Externo := ckARDroneExterno.Checked;
+          Sensibilidade := EnsureRange(StrToIntDef(Trim(edARDroneSensibilidade.Text), Sensibilidade), 10, 100);
+        end;
+    6:
+      // Seção própria [ESP32DRONE].
+      if Assigned(tsESP32Drone) then
+        with FSetMain.ESP32Drone do
+        begin
+          if Trim(edESP32IP.Text) <> '' then
+            IP := Trim(edESP32IP.Text);
+          Porta := StrToIntDef(Trim(edESP32Porta.Text), Porta);
         end;
   end;
 

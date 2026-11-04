@@ -37,7 +37,7 @@ uses main;
 
 procedure TfrmAbout.FormShow(Sender: TObject);
 begin
-  lbversao.Caption := 'Versão ' + FloatToStr(versao);
+  lbversao.Caption := 'Versão ' + FormatFloat('0.00', versao);
 end;
 
 
