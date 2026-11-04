@@ -31,15 +31,41 @@ Este projeto, desenvolvido em Object Pascal (Lazarus/Free Pascal), constitui uma
 - **conectioncx10w.pas**  
   Gerencia a comunicação TCP/UDP com o drone CX10W. Envia pacotes mágicos para handshake e ativação de vídeo, transmite comandos do joystick em tempo real e trata erros e logs da conexão.
 
+- **conectionfq777.pas**  
+  Conexão exclusiva do quadricóptero FQ777-954 (veja a seção abaixo).
+
 - **funcs.pas**  
   Contém funções utilitárias, como `MAPA`, que realiza mapeamento linear de valores analógicos para o intervalo byte (0-255), fundamental para a normalização dos sinais.
 
 ### Instalação
 
 1. Instale Lazarus e Free Pascal no seu ambiente de desenvolvimento.  
-2. Clone ou obtenha o código-fonte do projeto.  
-3. Abra o arquivo `main.pas` no Lazarus.  
-4. Compile e execute o projeto.
+2. Instale os pacotes da [Lazarus AI Suite (CHATGPT)](https://github.com/marcelomaurin/CHATGPT): `openai_core`, `openai_input`, `openai_hardware`, `openai_video` e `openai_drone`.  
+3. Clone ou obtenha o código-fonte do projeto.  
+4. Abra o arquivo `src/drone.lpi` no Lazarus.  
+5. Compile e execute o projeto.  
+6. Para a câmera do FQ777-954, coloque o `ffmpeg.exe` na pasta do `drone.exe` (ou no PATH).
+
+### Drone FQ777-954
+
+Selecione **FQ777-954 (Wi-Fi)** em Configuração > Protocolo. Ao clicar em Start:
+
+1. O cockpit procura a rede Wi-Fi do drone (padrão: nome contendo `FQ777`) e conecta sozinho. **Se a rede não for encontrada, o equipamento não é ligado** e a mensagem lista as redes visíveis, para ajustar o nome se necessário.  
+2. Conecta ao drone (`172.16.10.1`, TCP 8888, UDP 8895) e envia comandos a cada 50 ms.  
+3. O vídeo (H.264, 720×576) aparece na janela da câmera.  
+4. Ao desligar, envia aceleração zero e devolve o PC à rede Wi-Fi anterior.
+
+| Comando | Joystick (padrão) | Teclado |
+|---|---|---|
+| Rolagem | manche esquerdo X | A / D |
+| Arfagem | manche esquerdo Y | W / S |
+| Guinada | manche direito X | Q / E |
+| Aceleração | gatilho direito (RT/R2) | seta cima / baixo |
+| Corte dos motores | botão B | Espaço |
+
+Após um corte, a aceleração só volta depois que o gatilho e o teclado retornarem ao mínimo. Eixos, zona morta, modo do acelerador (gatilho ou manche), nome e senha da rede e gravação do vídeo ficam na aba **FQ777-954** da configuração (seção `[FQ777]` do `drone.cfg`, separada dos outros drones).
+
+O protocolo, o vídeo, o joystick e o Wi-Fi vêm dos componentes `TAIDroneFQ777`, `TAIH264Decoder`, `TAIJoystick` e `TAIWifi` da Lazarus AI Suite.
 
 ### Funcionalidades Atuais
 
@@ -100,15 +126,20 @@ This project, developed in Object Pascal (Lazarus/Free Pascal), is an applicatio
 - **conectioncx10w.pas**  
   Manages TCP/UDP communication with CX10W drone. Sends magic packets for handshake and video activation, streams joystick commands in real-time, and handles connection errors and logging.
 
+- **conectionfq777.pas**  
+  Dedicated connection for the FQ777-954 quadcopter: finds and joins the drone's Wi-Fi automatically (the drone is not started if the network is not found), proportional flight control and H.264 camera, built on the Lazarus AI Suite components `TAIDroneFQ777`, `TAIH264Decoder`, `TAIJoystick` and `TAIWifi`.
+
 - **funcs.pas**  
   Contains utility functions like `MAPA` for linear mapping of analog values to byte range (0-255), essential for signal normalization.
 
 ### Installation
 
 1. Install Lazarus and Free Pascal in your development environment.  
-2. Clone or download the project source.  
-3. Open `main.pas` in Lazarus.  
-4. Compile and run the project.
+2. Install the [Lazarus AI Suite (CHATGPT)](https://github.com/marcelomaurin/CHATGPT) packages: `openai_core`, `openai_input`, `openai_hardware`, `openai_video` and `openai_drone`.  
+3. Clone or download the project source.  
+4. Open `src/drone.lpi` in Lazarus.  
+5. Compile and run the project.  
+6. For the FQ777-954 camera, place `ffmpeg.exe` next to `drone.exe` (or on the PATH).
 
 ### Current Features
 

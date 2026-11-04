@@ -46,6 +46,8 @@ type
     procedure AlternaGrid;
     procedure DefineStatus(const ATexto: string);
     procedure LimpaImagem;
+    { Exibe um quadro entregue pela conexão (usado pelo FQ777-954). }
+    procedure MostraQuadro(ABitmap: TBitmap);
 
     property CameraAtiva: Boolean read FCameraAtiva;
     property GridAtiva: Boolean read FGridAtiva;
@@ -59,7 +61,7 @@ implementation
 {$R *.lfm}
 
 uses
-  main, ConectionCX10W;
+  main, ConectionCX10W, conectionfq777;
 
 { TfrmCam }
 
@@ -183,9 +185,16 @@ begin
     gridCam.Visible := FGridAtiva;
 end;
 
+procedure TfrmCam.MostraQuadro(ABitmap: TBitmap);
+begin
+  if FCameraAtiva and Assigned(ABitmap) and (ABitmap.Width > 0) then
+    Image1.Picture.Bitmap.Assign(ABitmap);
+end;
+
 procedure TfrmCam.AtualizaDaConexao;
 var
   Conn: TfrmConectionCX10W;
+  ConnFQ: TfrmConectionFQ777;
 begin
   if not FCameraAtiva then
   begin
@@ -202,6 +211,24 @@ begin
   if not Assigned(frmMain.frmConnection) then
   begin
     DefineStatus('SEM CONEXÃO');
+    Exit;
+  end;
+
+  if frmMain.frmConnection is TfrmConectionFQ777 then
+  begin
+    // A imagem chega por MostraQuadro; aqui só o estado.
+    ConnFQ := TfrmConectionFQ777(frmMain.frmConnection);
+    if not ConnFQ.Drone.VideoEnabled then
+      DefineStatus('VÍDEO DESLIGADO NA CONFIGURAÇÃO')
+    else if ConnFQ.Drone.VideoStreaming and (ConnFQ.UltimaImagemDataHora > 0) then
+      DefineStatus('ONLINE  IMG: ' + FormatDateTime('hh:nn:ss', ConnFQ.UltimaImagemDataHora) +
+        '  QUADROS: ' + IntToStr(ConnFQ.Decoder.FramesDecoded))
+    else if ConnFQ.Drone.VideoStreaming then
+      DefineStatus('RECEBENDO VÍDEO, AGUARDANDO DECODIFICADOR (ffmpeg)')
+    else if ConnFQ.Drone.ControlConnected then
+      DefineStatus('CONECTADO, AGUARDANDO VÍDEO')
+    else
+      DefineStatus('SEM CONEXÃO COM O FQ777-954');
     Exit;
   end;
 

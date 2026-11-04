@@ -12,6 +12,25 @@ const
 
 type
 
+  { Configuração exclusiva do FQ777-954 (seção [FQ777] do drone.cfg). }
+  TFQ777Settings = record
+    IP: string;
+    PortaTCP: Integer;
+    PortaUDP: Integer;
+    Video: Boolean;
+    GravarVideo: Boolean;
+    FFmpeg: string;              // '' = procura ao lado do programa e no PATH
+    WifiAuto: Boolean;           // procura e conecta na rede do drone
+    WifiSSID: string;            // padrões separados por ';' (curingas * ?)
+    WifiSenha: string;           // '' = rede aberta
+    ZonaMorta: Integer;          // % do curso do manche
+    EixoRolagem: Integer;        // índices de eixo do TAIJoystick (0..5)
+    EixoArfagem: Integer;
+    EixoGuinada: Integer;
+    EixoAcelerador: Integer;
+    AceleradorCentrado: Boolean; // False = gatilho 0..1; True = manche -1..1
+  end;
+
   { TSetMain }
 
   TSetMain = class(TObject)
@@ -76,9 +95,11 @@ type
     procedure SetHeight(const AValue: Integer);
 
     procedure Default;
-    function GetConfigFileName: string;
 
   public
+    FQ777: TFQ777Settings;
+
+    function GetConfigFileName: string;
     constructor Create;
     destructor Destroy; override;
 
@@ -226,6 +247,23 @@ begin
   FUltimoProjeto := '';
   FLogAtivo := True;
   FAutoStart := False;
+
+  // FQ777-954
+  FQ777.IP := '172.16.10.1';
+  FQ777.PortaTCP := 8888;
+  FQ777.PortaUDP := 8895;
+  FQ777.Video := True;
+  FQ777.GravarVideo := False;
+  FQ777.FFmpeg := '';
+  FQ777.WifiAuto := True;
+  FQ777.WifiSSID := 'FQ777';
+  FQ777.WifiSenha := '';
+  FQ777.ZonaMorta := 8;
+  FQ777.EixoRolagem := 0;     // manche esquerdo X
+  FQ777.EixoArfagem := 1;     // manche esquerdo Y
+  FQ777.EixoGuinada := 2;     // manche direito X
+  FQ777.EixoAcelerador := 5;  // gatilho direito (R2/RT), como no app original
+  FQ777.AceleradorCentrado := False;
 end;
 
 procedure TSetMain.IdentificaArquivo;
@@ -300,6 +338,23 @@ begin
     FUltimoProjeto := Ini.ReadString('GERAL', 'ULTIMO_PROJETO', FUltimoProjeto);
     FLogAtivo := Ini.ReadBool('GERAL', 'LOG_ATIVO', FLogAtivo);
     FAutoStart := Ini.ReadBool('GERAL', 'AUTO_START', FAutoStart);
+
+    // FQ777-954
+    FQ777.IP := Ini.ReadString('FQ777', 'IP', FQ777.IP);
+    FQ777.PortaTCP := Ini.ReadInteger('FQ777', 'PORTA_TCP', FQ777.PortaTCP);
+    FQ777.PortaUDP := Ini.ReadInteger('FQ777', 'PORTA_UDP', FQ777.PortaUDP);
+    FQ777.Video := Ini.ReadBool('FQ777', 'VIDEO', FQ777.Video);
+    FQ777.GravarVideo := Ini.ReadBool('FQ777', 'GRAVAR_VIDEO', FQ777.GravarVideo);
+    FQ777.FFmpeg := Ini.ReadString('FQ777', 'FFMPEG', FQ777.FFmpeg);
+    FQ777.WifiAuto := Ini.ReadBool('FQ777', 'WIFI_AUTO', FQ777.WifiAuto);
+    FQ777.WifiSSID := Ini.ReadString('FQ777', 'WIFI_SSID', FQ777.WifiSSID);
+    FQ777.WifiSenha := Ini.ReadString('FQ777', 'WIFI_SENHA', FQ777.WifiSenha);
+    FQ777.ZonaMorta := Ini.ReadInteger('FQ777', 'ZONA_MORTA', FQ777.ZonaMorta);
+    FQ777.EixoRolagem := Ini.ReadInteger('FQ777', 'EIXO_ROLAGEM', FQ777.EixoRolagem);
+    FQ777.EixoArfagem := Ini.ReadInteger('FQ777', 'EIXO_ARFAGEM', FQ777.EixoArfagem);
+    FQ777.EixoGuinada := Ini.ReadInteger('FQ777', 'EIXO_GUINADA', FQ777.EixoGuinada);
+    FQ777.EixoAcelerador := Ini.ReadInteger('FQ777', 'EIXO_ACELERADOR', FQ777.EixoAcelerador);
+    FQ777.AceleradorCentrado := Ini.ReadBool('FQ777', 'ACELERADOR_CENTRADO', FQ777.AceleradorCentrado);
   finally
     Ini.Free;
   end;
@@ -365,6 +420,23 @@ begin
     Ini.WriteString('GERAL', 'ULTIMO_PROJETO', FUltimoProjeto);
     Ini.WriteBool('GERAL', 'LOG_ATIVO', FLogAtivo);
     Ini.WriteBool('GERAL', 'AUTO_START', FAutoStart);
+
+    // FQ777-954
+    Ini.WriteString('FQ777', 'IP', FQ777.IP);
+    Ini.WriteInteger('FQ777', 'PORTA_TCP', FQ777.PortaTCP);
+    Ini.WriteInteger('FQ777', 'PORTA_UDP', FQ777.PortaUDP);
+    Ini.WriteBool('FQ777', 'VIDEO', FQ777.Video);
+    Ini.WriteBool('FQ777', 'GRAVAR_VIDEO', FQ777.GravarVideo);
+    Ini.WriteString('FQ777', 'FFMPEG', FQ777.FFmpeg);
+    Ini.WriteBool('FQ777', 'WIFI_AUTO', FQ777.WifiAuto);
+    Ini.WriteString('FQ777', 'WIFI_SSID', FQ777.WifiSSID);
+    Ini.WriteString('FQ777', 'WIFI_SENHA', FQ777.WifiSenha);
+    Ini.WriteInteger('FQ777', 'ZONA_MORTA', FQ777.ZonaMorta);
+    Ini.WriteInteger('FQ777', 'EIXO_ROLAGEM', FQ777.EixoRolagem);
+    Ini.WriteInteger('FQ777', 'EIXO_ARFAGEM', FQ777.EixoArfagem);
+    Ini.WriteInteger('FQ777', 'EIXO_GUINADA', FQ777.EixoGuinada);
+    Ini.WriteInteger('FQ777', 'EIXO_ACELERADOR', FQ777.EixoAcelerador);
+    Ini.WriteBool('FQ777', 'ACELERADOR_CENTRADO', FQ777.AceleradorCentrado);
 
     Ini.UpdateFile;
   finally

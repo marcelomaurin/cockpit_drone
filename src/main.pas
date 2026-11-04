@@ -11,7 +11,7 @@ uses
   gpstarget, nmeadecode, gpsportconnected, about,
   lNetComponents, config, cd10w, camera, map, ConectionCX10W, funcs, GPS,
   joystick, LCLType, uplaysound, controler, setmain, tacticalhud, flightplan,
-  conectionmavlink, conectiontello, conectionopendrone;
+  conectionmavlink, conectiontello, conectionopendrone, conectionfq777;
 
 const
   refJoy = 127;
@@ -634,6 +634,9 @@ begin
 end;
 
 procedure TfrmMain.AtivaDrone;
+var
+  ConnFQ: TfrmConectionFQ777;
+  Motivo: string;
 begin
   EnsureConfig;
 
@@ -667,6 +670,24 @@ begin
           TfrmConectionOpendrone(frmConnection).Show;
           TfrmConectionOpendrone(frmConnection).PegaConfiguracao;
           TfrmConectionOpendrone(frmConnection).InicioHandShake;
+        end;
+      4:
+        begin
+          ConnFQ := TfrmConectionFQ777.Create(Self);
+          frmConnection := ConnFQ;
+          ConnFQ.Show;
+          if not ConnFQ.Iniciar then
+          begin
+            // Sem a rede do drone não há como ligar o equipamento.
+            Motivo := ConnFQ.UltimoErro;
+            if Motivo = '' then
+              Motivo := 'FQ777-954 não encontrado.';
+            MessageDlg('FQ777-954', Motivo, mtWarning, [mbOK], 0);
+            if AdvStart.State = lsOn then
+              AdvStartClick(Self) // mesmo caminho do botão desligar
+            else
+              DesativaDrone;
+          end;
         end;
     end;
   end
