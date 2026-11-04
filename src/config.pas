@@ -85,6 +85,11 @@ type
     function PortaSerialExiste(const APorta: string): Boolean;
     procedure CarregaPortasSeriais;
     procedure AdicionaPortaSeExistir(const APorta: string);
+    function CriaCampo(AParent: TWinControl; ALeft, ATop, AWidth: Integer;
+      const ARotulo, ANome: string): TEdit;
+    function CriaOpcao(AParent: TWinControl; ALeft, ATop: Integer;
+      const ARotulo, ANome: string): TCheckBox;
+    procedure CriaAbaFQ777;
 
   public
     TipoAtivo: Integer;
@@ -105,6 +110,23 @@ type
     tsOpendrone: TTabSheet;
     edOpendroneIP: TEdit;
     edOpendronePort: TEdit;
+
+    tsFQ777: TTabSheet;
+    edFQ777IP: TEdit;
+    edFQ777TCP: TEdit;
+    edFQ777UDP: TEdit;
+    ckFQ777WifiAuto: TCheckBox;
+    edFQ777SSID: TEdit;
+    edFQ777Senha: TEdit;
+    ckFQ777Video: TCheckBox;
+    ckFQ777Gravar: TCheckBox;
+    edFQ777FFmpeg: TEdit;
+    edFQ777ZonaMorta: TEdit;
+    edFQ777EixoRolagem: TEdit;
+    edFQ777EixoArfagem: TEdit;
+    edFQ777EixoGuinada: TEdit;
+    edFQ777EixoAcelerador: TEdit;
+    cbFQ777Acelerador: TComboBox;
 
     procedure AtualizaAbasProtocolo;
     procedure CarregarValoresTela;
@@ -274,6 +296,7 @@ begin
   cbProtocol.Items.Add('MAVLink (Standard)');
   cbProtocol.Items.Add('DJI Tello (UDP)');
   cbProtocol.Items.Add('OpenDrone ESP32 (UDP)');
+  cbProtocol.Items.Add('FQ777-954 (Wi-Fi)');
 
   if Assigned(FSetMain) then
   begin
@@ -408,9 +431,97 @@ begin
   edOpendronePort.Left := 15; edOpendronePort.Top := 82; edOpendronePort.Width := 100;
   edOpendronePort.Text := '2399';
 
+  CriaAbaFQ777;
+
   TabSheet1.Caption := 'Cheerson CX-10W';
 
   CarregarValoresTela;
+end;
+
+function Tfrmconfig.CriaCampo(AParent: TWinControl; ALeft, ATop, AWidth: Integer;
+  const ARotulo, ANome: string): TEdit;
+begin
+  with TLabel.Create(Self) do
+  begin
+    Parent := AParent;
+    Left := ALeft; Top := ATop;
+    Caption := ARotulo;
+  end;
+  Result := TEdit.Create(Self);
+  Result.Name := ANome;
+  Result.Parent := AParent;
+  Result.Left := ALeft; Result.Top := ATop + 17; Result.Width := AWidth;
+  Result.Text := '';
+end;
+
+function Tfrmconfig.CriaOpcao(AParent: TWinControl; ALeft, ATop: Integer;
+  const ARotulo, ANome: string): TCheckBox;
+begin
+  Result := TCheckBox.Create(Self);
+  Result.Name := ANome;
+  Result.Parent := AParent;
+  Result.Left := ALeft; Result.Top := ATop;
+  Result.Caption := ARotulo;
+end;
+
+procedure Tfrmconfig.CriaAbaFQ777;
+var
+  Box: TScrollBox;
+begin
+  tsFQ777 := TTabSheet.Create(Self);
+  tsFQ777.Name := 'tsFQ777';
+  tsFQ777.PageControl := pcDrones;
+  tsFQ777.Caption := 'FQ777-954';
+
+  Box := TScrollBox.Create(Self);
+  Box.Parent := tsFQ777;
+  Box.Align := alClient;
+  Box.BorderStyle := bsNone;
+
+  // Rede do drone
+  edFQ777IP := CriaCampo(Box, 15, 10, 130, 'IP do drone:', 'edFQ777IP');
+  edFQ777TCP := CriaCampo(Box, 155, 10, 60, 'TCP:', 'edFQ777TCP');
+  edFQ777UDP := CriaCampo(Box, 225, 10, 60, 'UDP:', 'edFQ777UDP');
+
+  // Wi-Fi
+  ckFQ777WifiAuto := CriaOpcao(Box, 15, 60,
+    'Procurar e conectar no Wi-Fi do drone ao ligar', 'ckFQ777WifiAuto');
+  edFQ777SSID := CriaCampo(Box, 15, 82, 130, 'Nome da rede (padrões ;):', 'edFQ777SSID');
+  edFQ777Senha := CriaCampo(Box, 155, 82, 130, 'Senha (vazio = aberta):', 'edFQ777Senha');
+  edFQ777Senha.PasswordChar := '*';
+
+  // Vídeo
+  ckFQ777Video := CriaOpcao(Box, 15, 132, 'Receber vídeo da câmera', 'ckFQ777Video');
+  ckFQ777Gravar := CriaOpcao(Box, 15, 152, 'Gravar vídeo (.h264 na pasta videos)', 'ckFQ777Gravar');
+  edFQ777FFmpeg := CriaCampo(Box, 15, 174, 270,
+    'ffmpeg (vazio = ao lado do programa ou no PATH):', 'edFQ777FFmpeg');
+
+  // Controle
+  edFQ777ZonaMorta := CriaCampo(Box, 15, 224, 50, 'Zona morta %:', 'edFQ777ZonaMorta');
+  with TLabel.Create(Self) do
+  begin
+    Parent := Box;
+    Left := 85; Top := 224;
+    Caption := 'Acelerador:';
+  end;
+  cbFQ777Acelerador := TComboBox.Create(Self);
+  cbFQ777Acelerador.Name := 'cbFQ777Acelerador';
+  cbFQ777Acelerador.Parent := Box;
+  cbFQ777Acelerador.Left := 85; cbFQ777Acelerador.Top := 241; cbFQ777Acelerador.Width := 200;
+  cbFQ777Acelerador.Style := csDropDownList;
+  cbFQ777Acelerador.Items.Add('Gatilho (solto = parado)');
+  cbFQ777Acelerador.Items.Add('Manche (embaixo = parado)');
+
+  with TLabel.Create(Self) do
+  begin
+    Parent := Box;
+    Left := 15; Top := 276;
+    Caption := 'Eixo do joystick (0..5) para cada comando:';
+  end;
+  edFQ777EixoRolagem := CriaCampo(Box, 15, 296, 40, 'Rolagem', 'edFQ777EixoRolagem');
+  edFQ777EixoArfagem := CriaCampo(Box, 80, 296, 40, 'Arfagem', 'edFQ777EixoArfagem');
+  edFQ777EixoGuinada := CriaCampo(Box, 145, 296, 40, 'Guinada', 'edFQ777EixoGuinada');
+  edFQ777EixoAcelerador := CriaCampo(Box, 210, 296, 40, 'Acelerador', 'edFQ777EixoAcelerador');
 end;
 
 procedure Tfrmconfig.cbProtocolChange(Sender: TObject);
@@ -544,6 +655,8 @@ begin
     tsTello.TabVisible := (TipoAtivo = 2);
   if Assigned(tsOpendrone) then
     tsOpendrone.TabVisible := (TipoAtivo = 3);
+  if Assigned(tsFQ777) then
+    tsFQ777.TabVisible := (TipoAtivo = 4);
 end;
 
 procedure Tfrmconfig.CarregarValoresTela;
@@ -586,6 +699,29 @@ begin
     edOpendroneIP.Text := FSetMain.DroneIP;
   if Assigned(edOpendronePort) then
     edOpendronePort.Text := IntToStr(FSetMain.DronePortaComando);
+
+  if Assigned(tsFQ777) then
+    with FSetMain.FQ777 do
+    begin
+      edFQ777IP.Text := IP;
+      edFQ777TCP.Text := IntToStr(PortaTCP);
+      edFQ777UDP.Text := IntToStr(PortaUDP);
+      ckFQ777WifiAuto.Checked := WifiAuto;
+      edFQ777SSID.Text := WifiSSID;
+      edFQ777Senha.Text := WifiSenha;
+      ckFQ777Video.Checked := Video;
+      ckFQ777Gravar.Checked := GravarVideo;
+      edFQ777FFmpeg.Text := FFmpeg;
+      edFQ777ZonaMorta.Text := IntToStr(ZonaMorta);
+      edFQ777EixoRolagem.Text := IntToStr(EixoRolagem);
+      edFQ777EixoArfagem.Text := IntToStr(EixoArfagem);
+      edFQ777EixoGuinada.Text := IntToStr(EixoGuinada);
+      edFQ777EixoAcelerador.Text := IntToStr(EixoAcelerador);
+      if AceleradorCentrado then
+        cbFQ777Acelerador.ItemIndex := 1
+      else
+        cbFQ777Acelerador.ItemIndex := 0;
+    end;
 
   AtualizaAbasProtocolo;
 end;
@@ -653,6 +789,28 @@ begin
             FSetMain.DronePortaComando := Val;
         end;
       end;
+    4:
+      // Seção própria [FQ777]: não altera a configuração dos outros drones.
+      if Assigned(tsFQ777) then
+        with FSetMain.FQ777 do
+        begin
+          if Trim(edFQ777IP.Text) <> '' then
+            IP := Trim(edFQ777IP.Text);
+          PortaTCP := StrToIntDef(Trim(edFQ777TCP.Text), PortaTCP);
+          PortaUDP := StrToIntDef(Trim(edFQ777UDP.Text), PortaUDP);
+          WifiAuto := ckFQ777WifiAuto.Checked;
+          WifiSSID := Trim(edFQ777SSID.Text);
+          WifiSenha := edFQ777Senha.Text;
+          Video := ckFQ777Video.Checked;
+          GravarVideo := ckFQ777Gravar.Checked;
+          FFmpeg := Trim(edFQ777FFmpeg.Text);
+          ZonaMorta := StrToIntDef(Trim(edFQ777ZonaMorta.Text), ZonaMorta);
+          EixoRolagem := StrToIntDef(Trim(edFQ777EixoRolagem.Text), EixoRolagem);
+          EixoArfagem := StrToIntDef(Trim(edFQ777EixoArfagem.Text), EixoArfagem);
+          EixoGuinada := StrToIntDef(Trim(edFQ777EixoGuinada.Text), EixoGuinada);
+          EixoAcelerador := StrToIntDef(Trim(edFQ777EixoAcelerador.Text), EixoAcelerador);
+          AceleradorCentrado := cbFQ777Acelerador.ItemIndex = 1;
+        end;
   end;
 
   FSetMain.DroneProtocolo := TipoAtivo;

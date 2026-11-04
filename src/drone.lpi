@@ -24,7 +24,7 @@
         <Mode0 Name="default"/>
       </Modes>
     </RunParams>
-    <RequiredPackages Count="15">
+    <RequiredPackages Count="19">
       <Item1>
         <PackageName Value="lazMapViewerPkg"/>
       </Item1>
@@ -70,8 +70,20 @@
       <Item15>
         <PackageName Value="LCL"/>
       </Item15>
+      <Item16>
+        <PackageName Value="openai_input"/>
+      </Item16>
+      <Item17>
+        <PackageName Value="openai_hardware"/>
+      </Item17>
+      <Item18>
+        <PackageName Value="openai_video"/>
+      </Item18>
+      <Item19>
+        <PackageName Value="openai_drone"/>
+      </Item19>
     </RequiredPackages>
-    <Units Count="14">
+    <Units Count="15">
       <Unit0>
         <Filename Value="drone.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -153,6 +165,10 @@
         <Filename Value="setmain.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit13>
+      <Unit14>
+        <Filename Value="conectionfq777.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit14>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
