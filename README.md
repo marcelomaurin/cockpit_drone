@@ -68,7 +68,7 @@ Este projeto, desenvolvido em Object Pascal (Lazarus/Free Pascal), constitui uma
 3. Clone ou obtenha o código-fonte do projeto.  
 4. Abra o arquivo `src/drone.lpi` no Lazarus.  
 5. Compile e execute o projeto.  
-6. Para a câmera (FQ777-954, CX-10W, Tello e AR.Drone), coloque o `ffmpeg.exe` na pasta do `drone.exe` (ou no PATH).
+6. Para a câmera (FQ777-954, CX-10W, Tello e AR.Drone) é preciso o `ffmpeg.exe` na pasta do `drone.exe` (ou no PATH). O instalador já traz o ffmpeg; para gerar o instalador, baixe o pacote win64-gpl de [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds/releases) e copie `ffmpeg.exe` e `LICENSE.txt` (como `ffmpeg-LICENSE.txt`) para `install/redist` (pasta fora do git).
 
 ### Drone FQ777-954
 
@@ -210,7 +210,7 @@ This project, developed in Object Pascal (Lazarus/Free Pascal), is an applicatio
 3. Clone or download the project source.  
 4. Open `src/drone.lpi` in Lazarus.  
 5. Compile and run the project.  
-6. For the camera (FQ777-954, CX-10W, Tello and AR.Drone), place `ffmpeg.exe` next to `drone.exe` (or on the PATH).
+6. For the camera (FQ777-954, CX-10W, Tello and AR.Drone), `ffmpeg.exe` must be next to `drone.exe` (or on the PATH). The installer already ships it; to build the installer, copy `ffmpeg.exe` from the BtbN/FFmpeg-Builds win64-gpl package into `install/redist`.
 
 ### Current Features
 

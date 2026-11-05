@@ -26,9 +26,6 @@ uses
   Classes, SysUtils, Math, Forms, Controls, Graphics, StdCtrls, ExtCtrls,
   Dialogs, aidronebase, aih264decoder;
 
-const
-  GUINADA_BOTAO = 0.6;  // fração da guinada máxima com os botões 1/2
-
 type
   TComandoManche = record
     Rolagem: Double;     // -1..1, + = direita
@@ -100,8 +97,9 @@ type
     function Iniciar: Boolean;
     procedure Encerrar;
     procedure Log(const ATexto: string);
-    { Converte os comandos atuais do frmMain. }
-    function LeComando: TComandoManche;
+    { Comandos atuais do cockpit (frmMain, convertidos pelo controler.pas).
+      A janela de um drone pode trocar a fonte (ex.: joystick próprio). }
+    function LeComando: TComandoManche; virtual;
     { True se há vídeo chegando (para a janela da câmera). }
     function VideoChegando: Boolean;
 
@@ -116,22 +114,7 @@ type
 implementation
 
 uses
-  main, camera;
-
-const
-  REF = 127;
-  ZONA_MORTA_NORMALIZADA = 0.06;
-
-function EixoComZonaMorta(const Valor: Double): Double;
-begin
-  Result := EnsureRange(Valor, -1.0, 1.0);
-  if Abs(Result) <= ZONA_MORTA_NORMALIZADA then
-    Result := 0
-  else if Result > 0 then
-    Result := (Result - ZONA_MORTA_NORMALIZADA) / (1 - ZONA_MORTA_NORMALIZADA)
-  else
-    Result := (Result + ZONA_MORTA_NORMALIZADA) / (1 - ZONA_MORTA_NORMALIZADA);
-end;
+  main, camera, controler;
 
 { TfrmConexaoDrone }
 
@@ -331,22 +314,21 @@ begin
     Exit;
   B[1] := frmMain.B1; B[2] := frmMain.B2; B[3] := frmMain.B3;
   B[4] := frmMain.B4; B[5] := frmMain.B5; B[6] := frmMain.B6;
-  // Normalizacao compartilhada entre MAVLink, Tello, CX-10W, CRTP, AR.Drone e CDP.
-  // A zona morta evita deriva sem perder a amplitude total do manche.
-  Result.Rolagem := EixoComZonaMorta((REF - Integer(frmMain.X)) / REF);
-  Result.Arfagem := EixoComZonaMorta((Integer(frmMain.Y) - REF) / REF);
-  Result.Acelerador := EnsureRange(frmMain.Z / 255.0, 0.0, 1.0);
-  Result.Subida := EixoComZonaMorta((Integer(frmMain.Z) - REF) / REF);
+  // Conversão única (centro, zona morta, sinais): controler.pas.
+  with frmMain.Controler do
+  begin
+    Result.Rolagem := Rolagem;
+    Result.Arfagem := Arfagem;
+    Result.Guinada := Guinada;
+    Result.Acelerador := Acelerador;
+    Result.Subida := Subida;
+  end;
   for I := 1 to 6 do
   begin
     Result.Botao[I] := B[I] = 255;
     Result.Apertou[I] := Result.Botao[I] and not FBotoesAntes[I];
     FBotoesAntes[I] := Result.Botao[I];
   end;
-  if Result.Botao[1] and not Result.Botao[2] then
-    Result.Guinada := -GUINADA_BOTAO
-  else if Result.Botao[2] and not Result.Botao[1] then
-    Result.Guinada := GUINADA_BOTAO;
 end;
 
 function TfrmConexaoDrone.VideoChegando: Boolean;

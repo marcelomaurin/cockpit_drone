@@ -1,11 +1,27 @@
 unit controler;
 
+{ Conversão única dos comandos do cockpit.
+
+  O frmMain guarda o manche em bytes (X, Y, Z e botões B1..B6). Este
+  controlador é o único lugar que transforma esses bytes em comandos de voo:
+    - Rolagem/Arfagem -1..1 (+ = direita/frente), com centro (CentroJoy) e
+      zona morta (ZonaMorta, % do curso) da configuração;
+    - Guinada pelos botões 1/2;
+    - Acelerador 0..1 (Z inteiro) e Subida -1..1 (Z em relação ao centro).
+  As janelas de conexão (conexaodrone.pas) enviam estes valores ao drone, e a
+  mistura Quad X calculada a partir deles aparece nos mostradores Engine
+  01..04: é a estimativa do que cada motor recebe com o comando atual
+  (EscalaComando = % do curso dos motores usado por rolagem/arfagem/guinada). }
+
 {$mode ObjFPC}{$H+}
 
 interface
 
 uses
   Classes, SysUtils, Math;
+
+const
+  GUINADA_BOTAO = 0.6;  // fração da guinada máxima com os botões 1/2
 
 type
   TMotorArray = array[1..4] of Byte;
@@ -15,22 +31,16 @@ type
   TDroneControler = class
   private
     FMotor: TMotorArray;
-
-    FThrottle: Integer;
-    FRoll: Integer;
-    FPitch: Integer;
-    FYaw: Integer;
-
+    FRolagem, FArfagem, FGuinada: Double;
+    FAcelerador, FSubida: Double;
     FMinMotor: Integer;
     FMaxMotor: Integer;
     FCentroJoy: Integer;
     FZonaMorta: Integer;
     FEscalaComando: Integer;
     FAtivo: Boolean;
-
     function ClampMotor(const AValue: Integer): Byte;
-    function NormalizaEixo(const AValor: Byte): Integer;
-    function AplicaZonaMorta(const AValor: Integer): Integer;
+    function Eixo(const AValor: Byte): Double;
     procedure CalculaMotores;
   public
     constructor Create;
@@ -41,20 +51,24 @@ type
 
     property Ativo: Boolean read FAtivo write FAtivo;
 
+    { Comando de voo atual (zero com o controlador desligado). }
+    property Rolagem: Double read FRolagem;
+    property Arfagem: Double read FArfagem;
+    property Guinada: Double read FGuinada;
+    property Acelerador: Double read FAcelerador;
+    property Subida: Double read FSubida;
+
+    { Mistura Quad X estimada. }
     property Motor1: Byte read FMotor[1];
     property Motor2: Byte read FMotor[2];
     property Motor3: Byte read FMotor[3];
     property Motor4: Byte read FMotor[4];
     property Motores: TMotorArray read FMotor;
 
-    property Throttle: Integer read FThrottle;
-    property Roll: Integer read FRoll;
-    property Pitch: Integer read FPitch;
-    property Yaw: Integer read FYaw;
-
     property MinMotor: Integer read FMinMotor write FMinMotor;
     property MaxMotor: Integer read FMaxMotor write FMaxMotor;
     property CentroJoy: Integer read FCentroJoy write FCentroJoy;
+    { Zona morta em % do curso do manche (0..50). }
     property ZonaMorta: Integer read FZonaMorta write FZonaMorta;
     property EscalaComando: Integer read FEscalaComando write FEscalaComando;
   end;
@@ -66,127 +80,91 @@ implementation
 constructor TDroneControler.Create;
 begin
   inherited Create;
-
   FMinMotor := 0;
   FMaxMotor := 255;
   FCentroJoy := 127;
   FZonaMorta := 8;
   FEscalaComando := 80;
   FAtivo := False;
-
   Reset;
 end;
 
 procedure TDroneControler.Reset;
 begin
-  FThrottle := 0;
-  FRoll := 0;
-  FPitch := 0;
-  FYaw := 0;
-
-  FMotor[1] := 0;
-  FMotor[2] := 0;
-  FMotor[3] := 0;
-  FMotor[4] := 0;
+  FRolagem := 0;
+  FArfagem := 0;
+  FGuinada := 0;
+  FAcelerador := 0;
+  FSubida := 0;
+  FillChar(FMotor, SizeOf(FMotor), 0);
 end;
 
 function TDroneControler.ClampMotor(const AValue: Integer): Byte;
 begin
-  Result := Byte(EnsureRange(AValue, FMinMotor, FMaxMotor));
+  Result := Byte(EnsureRange(AValue, Max(0, FMinMotor), Min(255, FMaxMotor)));
 end;
 
-function TDroneControler.AplicaZonaMorta(const AValor: Integer): Integer;
+function TDroneControler.Eixo(const AValor: Byte): Double;
+var
+  Centro: Integer;
+  Zona: Double;
 begin
-  if Abs(AValor) <= FZonaMorta then
+  // Byte -> -1..1 em relação ao centro configurado, cada lado com o seu curso.
+  Centro := EnsureRange(FCentroJoy, 1, 254);
+  if AValor >= Centro then
+    Result := (AValor - Centro) / (255 - Centro)
+  else
+    Result := (AValor - Centro) / Centro;
+  // Zona morta proporcional: |v| <= zona vira 0 e o restante vai até 1.
+  Zona := EnsureRange(FZonaMorta, 0, 50) / 100;
+  if Abs(Result) <= Zona then
     Result := 0
   else
-    Result := AValor;
-end;
-
-function TDroneControler.NormalizaEixo(const AValor: Byte): Integer;
-begin
-  Result := Round(((Integer(AValor) - FCentroJoy) / 128) * FEscalaComando);
-  Result := AplicaZonaMorta(Result);
+    Result := Sign(Result) * Min(1.0, (Abs(Result) - Zona) / (1 - Zona));
 end;
 
 procedure TDroneControler.CalculaMotores;
 var
-  M1, M2, M3, M4: Integer;
+  T, R, P, Y, Escala: Double;
 begin
-  if not FAtivo then
-  begin
-    Reset;
-    Exit;
-  end;
-
   {
-    Mixagem padrão Quad X
-
-    Convenção usada:
-    Motor1 = Frente Esquerda
-    Motor2 = Frente Direita
-    Motor3 = Traseira Direita
-    Motor4 = Traseira Esquerda
-
-    Pitch +  => anda para frente
-    Roll  +  => inclina para direita
-    Yaw   +  => gira
+    Mixagem Quad X (estimativa para os mostradores)
+    Motor1 = Frente Esquerda    Motor2 = Frente Direita
+    Motor3 = Traseira Direita   Motor4 = Traseira Esquerda
+    Arfagem + = frente: os motores de trás aceleram.
+    Rolagem + = direita: os motores da esquerda aceleram.
+    Guinada + = horário: os motores que giram no sentido anti-horário
+    (frente esquerda e traseira direita) aceleram.
   }
-
-  M1 := FThrottle + FPitch - FRoll + FYaw;
-  M2 := FThrottle + FPitch + FRoll - FYaw;
-  M3 := FThrottle - FPitch + FRoll + FYaw;
-  M4 := FThrottle - FPitch - FRoll - FYaw;
-
-  FMotor[1] := ClampMotor(M1);
-  FMotor[2] := ClampMotor(M2);
-  FMotor[3] := ClampMotor(M3);
-  FMotor[4] := ClampMotor(M4);
+  T := FMinMotor + FAcelerador * (FMaxMotor - FMinMotor);
+  Escala := EnsureRange(FEscalaComando, 0, 100) / 100 * 127;
+  R := FRolagem * Escala;
+  P := FArfagem * Escala;
+  Y := FGuinada * Escala;
+  FMotor[1] := ClampMotor(Round(T - P + R + Y));
+  FMotor[2] := ClampMotor(Round(T - P - R - Y));
+  FMotor[3] := ClampMotor(Round(T + P - R + Y));
+  FMotor[4] := ClampMotor(Round(T + P + R - Y));
 end;
 
 procedure TDroneControler.Atualiza(const AX, AY, AZ: Byte;
   const AB1, AB2, AB3, AB4, AB5, AB6: Byte);
-var
-  VRoll, VPitch, VYaw: Integer;
 begin
   if not FAtivo then
   begin
     Reset;
     Exit;
   end;
-
-  {
-    Z = throttle base
-    X = roll
-    Y = pitch
-
-    Você pode inverter sinais depois se o drone reagir ao contrário.
-  }
-
-  FThrottle := EnsureRange(AZ, FMinMotor, FMaxMotor);
-
-  VRoll := NormalizaEixo(AX);
-  VPitch := NormalizaEixo(AY);
-
-  { yaw via botões:
-    B1 gira para um lado
-    B2 gira para o outro
-  }
-  VYaw := 0;
-  if AB1 = 255 then
-    VYaw := -FEscalaComando div 2
-  else
-  if AB2 = 255 then
-    VYaw := FEscalaComando div 2;
-
-  {
-    Inverte pitch para ficar mais natural:
-    joystick para cima = frente
-  }
-  FRoll := VRoll;
-  FPitch := -VPitch;
-  FYaw := VYaw;
-
+  // No frmMain X cresce para a ESQUERDA e Y para a FRENTE.
+  FRolagem := -Eixo(AX);
+  FArfagem := Eixo(AY);
+  FAcelerador := AZ / 255;
+  FSubida := Eixo(AZ);
+  FGuinada := 0;
+  if (AB1 = 255) and (AB2 <> 255) then
+    FGuinada := -GUINADA_BOTAO
+  else if (AB2 = 255) and (AB1 <> 255) then
+    FGuinada := GUINADA_BOTAO;
   CalculaMotores;
 end;
 

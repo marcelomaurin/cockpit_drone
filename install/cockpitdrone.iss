@@ -1,6 +1,6 @@
 ; Instalador do Cockpit Drone — Inno Setup 6
 ; Compile no Windows, a partir da pasta install:  ISCC.exe cockpitdrone.iss
-; Saída: install\win32\win_setup_042.exe
+; Saída: install\win32\win_setup_043.exe
 ;
 ; Antes de compilar:
 ;   1. Compile o projeto src\drone.lpi no Lazarus — gera src\drone.exe.
@@ -8,7 +8,7 @@
 ;      CX-10W, FQ777-954 e AR.Drone funcionar sem instalar nada a mais.
 
 #define MyAppName "Cockpit Drone"
-#define MyAppVersion "0.42"
+#define MyAppVersion "0.43"
 #define MyAppPublisher "Maurinsoft.com.br"
 #define MyAppURL "https://maurinsoft.com.br/wp/projetos-open-source/projeto-cockpit-drone/"
 #define MyAppExeName "drone.exe"
@@ -29,7 +29,7 @@ DefaultDirName={autopf}\cockpit drone
 DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\{#MyAppExeName}
 OutputDir=win32
-OutputBaseFilename=win_setup_042
+OutputBaseFilename=win_setup_043
 SetupIconFile={#Raiz}\src\drone.ico
 Compression=lzma2
 SolidCompression=yes
@@ -52,6 +52,7 @@ Source: "{#Raiz}\src\objetos.json"; DestDir: "{app}"; Flags: onlyifdoesntexist
 Source: "{#Raiz}\src\imgs\*"; DestDir: "{app}\imgs"; Flags: ignoreversion recursesubdirs
 ; Decodificador de vídeo (opcional): install\redist\ffmpeg.exe
 Source: "redist\ffmpeg.exe"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "redist\ffmpeg-LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 ; Firmware do drone ESP32 e documentação do protocolo CDP
 Source: "{#Raiz}\firmware\*"; DestDir: "{app}\firmware"; Flags: ignoreversion recursesubdirs
 Source: "{#Raiz}\README.md"; DestDir: "{app}"; Flags: ignoreversion

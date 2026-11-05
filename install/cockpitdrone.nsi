@@ -2,13 +2,13 @@
 ; Compile a partir da pasta install:
 ;   makensis cockpitdrone.nsi
 ;   makensis -DEXE=caminho\drone.exe cockpitdrone.nsi   (outro executável)
-; Saída: install\win32\win_setup_042.exe
+; Saída: install\win32\win_setup_043.exe
 
 Unicode true
 SetCompressor /SOLID lzma
 
 !define APP_NAME      "Cockpit Drone"
-!define APP_VERSION   "0.42"
+!define APP_VERSION   "0.43"
 !define APP_PUBLISHER "Maurinsoft.com.br"
 !define APP_URL       "https://maurinsoft.com.br/wp/projetos-open-source/projeto-cockpit-drone/"
 !define APP_EXE       "drone.exe"
@@ -22,13 +22,13 @@ SetCompressor /SOLID lzma
 !include "x64.nsh"
 
 Name "${APP_NAME} ${APP_VERSION}"
-OutFile "win32\win_setup_042.exe"
+OutFile "win32\win_setup_043.exe"
 InstallDir "$PROGRAMFILES64\cockpit drone"
 InstallDirRegKey HKLM "${UNINST_KEY}" "InstallLocation"
 RequestExecutionLevel admin
 BrandingText "${APP_PUBLISHER}"
 
-VIProductVersion "0.42.0.0"
+VIProductVersion "0.43.0.0"
 VIAddVersionKey /LANG=1046 "ProductName" "${APP_NAME}"
 VIAddVersionKey /LANG=1046 "ProductVersion" "${APP_VERSION}"
 VIAddVersionKey /LANG=1046 "CompanyName" "${APP_PUBLISHER}"
@@ -69,9 +69,11 @@ Section "${APP_NAME} (obrigatório)" SecPrograma
   SetOverwrite on
   SetOutPath "$INSTDIR\imgs"
   File /r "${RAIZ}\src\imgs\*.*"
-  ; Decodificador de vídeo opcional (install\redist\ffmpeg.exe)
+  ; Decodificador de vídeo: ffmpeg (GPL, build BtbN/FFmpeg-Builds), copiado
+  ; para install\redist antes de compilar o instalador (não fica no git).
   SetOutPath "$INSTDIR"
   File /nonfatal "redist\ffmpeg.exe"
+  File /nonfatal "redist\ffmpeg-LICENSE.txt"
 
   ; Vídeos e quadros são gravados na pasta do programa.
   nsExec::Exec 'icacls "$INSTDIR" /grant *S-1-5-32-545:(OI)(CI)M /T /Q'
@@ -115,6 +117,7 @@ Section "Uninstall"
   Delete "$INSTDIR\README.md"
   Delete "$INSTDIR\objetos.json"
   Delete "$INSTDIR\ffmpeg.exe"
+  Delete "$INSTDIR\ffmpeg-LICENSE.txt"
   Delete "$INSTDIR\desinstalar.exe"
   RMDir /r "$INSTDIR\imgs"
   RMDir /r "$INSTDIR\firmware"

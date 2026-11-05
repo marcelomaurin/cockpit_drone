@@ -1,0 +1,3 @@
+# ffmpeg.exe (170 MB) entra só no instalador; baixe em
+# https://github.com/BtbN/FFmpeg-Builds/releases (win64-gpl) e copie para cá.
+install/redist/

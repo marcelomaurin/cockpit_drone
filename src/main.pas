@@ -18,7 +18,7 @@ uses
 
 const
   refJoy = 127;
-  versao = 0.42;
+  versao = 0.43;
 
 type
 
@@ -133,8 +133,13 @@ type
     FSitlPanel: TPanel;
     FSitlButton: TButton;
     FSitlStatus: TLabel;
+    FSplashTimer: TTimer;
+    FSplashInicio: QWord;
     procedure SitlToggle(Sender: TObject);
     procedure SitlTick(Sender: TObject);
+    procedure SplashTick(Sender: TObject);
+    procedure SplashClick(Sender: TObject);
+    procedure FimDaAbertura;
 
     procedure BtRotaClick(Sender: TObject);
     procedure EnsureAbout;
@@ -165,6 +170,8 @@ type
     B1, B2, B3, B4, B5, B6: Byte;
 
     frmConnection: TForm;
+    { Conversão do manche em comandos de voo (usada pelas janelas de conexão). }
+    property Controler: TDroneControler read FControler;
     procedure AtivaJoystick;
     procedure DesativaJoystick;
     procedure ConfiguraJoy;
@@ -499,8 +506,6 @@ begin
 end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
-var
-  I: Integer;
 begin
   FSitlBridge := TSitlTelemetryBridge.Create;
   FSitlPanel := TPanel.Create(Self);
@@ -562,32 +567,69 @@ begin
   FBtRota.ShowHint := True;
   FBtRota.OnClick := @BtRotaClick;
 
+  // Tela de abertura conduzida por temporizador: o programa continua
+  // respondendo enquanto ela aparece (antes travava cerca de 9 s).
   EnsureAbout;
   if Assigned(frmAbout) then
   begin
     frmAbout.BorderStyle := bsNone;
+    frmAbout.FormStyle := fsStayOnTop; // fica na frente da janela principal
     frmAbout.Position := poScreenCenter;
     frmAbout.AlphaBlend := True;
     frmAbout.AlphaBlendValue := 0;
+    frmAbout.OnClick := @SplashClick; // clique fecha a abertura
+    frmAbout.Image1.OnClick := @SplashClick;
     frmAbout.Show;
-    frmAbout.Update;
-    Application.ProcessMessages;
+    FSplashInicio := GetTickCount64;
+    FSplashTimer := TTimer.Create(Self);
+    FSplashTimer.Interval := 30;
+    FSplashTimer.OnTimer := @SplashTick;
+    FSplashTimer.Enabled := True;
+  end
+  else
+    FimDaAbertura;
+end;
 
-    for I := 0 to 255 do
-    begin
-      frmAbout.AlphaBlendValue := I;
-      frmAbout.Update;
-      Application.ProcessMessages;
-      Sleep(16);
-    end;
+const
+  ABERTURA_FADE_MS = 800;   // aparecimento gradual
+  ABERTURA_TOTAL_MS = 2500; // tempo total na tela
 
-    Sleep(5000);
+procedure TfrmMain.SplashTick(Sender: TObject);
+var
+  Decorrido: QWord;
+begin
+  Decorrido := GetTickCount64 - FSplashInicio;
+  if Assigned(frmAbout) and (Decorrido < ABERTURA_FADE_MS) then
+    frmAbout.AlphaBlendValue := Byte(Decorrido * 255 div ABERTURA_FADE_MS)
+  else if Assigned(frmAbout) and (Decorrido < ABERTURA_TOTAL_MS) then
+    frmAbout.AlphaBlendValue := 255
+  else
+    FimDaAbertura;
+end;
 
-    frmAbout.Hide;
-    Application.ProcessMessages;
+procedure TfrmMain.SplashClick(Sender: TObject);
+begin
+  FimDaAbertura;
+end;
+
+procedure TfrmMain.FimDaAbertura;
+begin
+  if Assigned(FSplashTimer) then
+  begin
+    FSplashTimer.Enabled := False;
+    FSplashTimer.OnTimer := nil;
   end;
-
-  if Assigned(FSetMain) and FSetMain.AutoStart then
+  if Assigned(frmAbout) and frmAbout.Visible then
+  begin
+    frmAbout.Hide;
+  end;
+  // A janela principal recebe o foco: o primeiro clique já vale.
+  if Visible and CanFocus then
+  begin
+    BringToFront;
+    SetFocus;
+  end;
+  if Assigned(FSetMain) and FSetMain.AutoStart and (AdvStart.State = lsOff) then
     AdvStartClick(Self);
 end;
 
@@ -760,7 +802,6 @@ end;
 
 procedure TfrmMain.AtivaDrone;
 var
-  ConnFQ: TfrmConectionFQ777;
   Conn: TfrmConexaoDrone;
   Motivo: string;
 begin
@@ -772,44 +813,31 @@ begin
     Exit;
   end;
 
-  if frmConfig.TipoAtivo = PROTOCOLO_FQ777 then
+  case frmConfig.TipoAtivo of
+    PROTOCOLO_CX10W: Conn := TfrmConectionCX10W.Create(Self);
+    PROTOCOLO_MAVLINK: Conn := TfrmConectionMavlink.Create(Self);
+    PROTOCOLO_TELLO: Conn := TfrmConectionTello.Create(Self);
+    PROTOCOLO_OPENDRONE: Conn := TfrmConectionOpendrone.Create(Self);
+    PROTOCOLO_FQ777: Conn := TfrmConectionFQ777.Create(Self);
+    PROTOCOLO_ARDRONE: Conn := TfrmConectionARDrone.Create(Self);
+    PROTOCOLO_ESP32DRONE: Conn := TfrmConectionESP32Drone.Create(Self);
+  else
+    Conn := nil;
+  end;
+
+  if Conn = nil then
+    Motivo := 'Selecione o drone em Configuração > Protocolo.'
+  else
   begin
-    ConnFQ := TfrmConectionFQ777.Create(Self);
-    frmConnection := ConnFQ;
-    ConnFQ.Show;
-    if ConnFQ.Iniciar then
+    frmConnection := Conn;
+    Conn.Show;
+    if Conn.Iniciar then
     begin
       AtivouDrone;
       Exit;
     end;
-    // Sem a rede do drone não há como ligar o equipamento.
-    Motivo := ConnFQ.UltimoErro;
-  end
-  else
-  begin
-    case frmConfig.TipoAtivo of
-      PROTOCOLO_CX10W: Conn := TfrmConectionCX10W.Create(Self);
-      PROTOCOLO_MAVLINK: Conn := TfrmConectionMavlink.Create(Self);
-      PROTOCOLO_TELLO: Conn := TfrmConectionTello.Create(Self);
-      PROTOCOLO_OPENDRONE: Conn := TfrmConectionOpendrone.Create(Self);
-      PROTOCOLO_ARDRONE: Conn := TfrmConectionARDrone.Create(Self);
-      PROTOCOLO_ESP32DRONE: Conn := TfrmConectionESP32Drone.Create(Self);
-    else
-      Conn := nil;
-    end;
-    if Conn = nil then
-      Motivo := 'Selecione o drone em Configuração > Protocolo.'
-    else
-    begin
-      frmConnection := Conn;
-      Conn.Show;
-      if Conn.Iniciar then
-      begin
-        AtivouDrone;
-        Exit;
-      end;
-      Motivo := Conn.UltimoErro;
-    end;
+    // Sem o drone não há como ligar o equipamento.
+    Motivo := Conn.UltimoErro;
   end;
 
   if Motivo = '' then
@@ -1130,8 +1158,11 @@ begin
   // Zona morta evita deriva por pequenas oscilacoes do dispositivo.
   if Abs(Round(X0) - refJoy) <= 12 then X0 := refJoy;
   if Abs(Round(Y0) - refJoy) <= 12 then Y0 := refJoy;
-  X := Byte(EnsureRange(Round(X0), 0, 255));
-  Y := Byte(EnsureRange(Round(Y0), 0, 255));
+  // Convenção do cockpit (controler.pas, janelas de conexão e setas):
+  // X cresce para a ESQUERDA e Y para a FRENTE. Na leitura bruta (teclado e
+  // joystick), 0 = esquerda/frente; por isso o valor é espelhado.
+  X := Byte(EnsureRange(2 * refJoy - Round(X0), 0, 255));
+  Y := Byte(EnsureRange(2 * refJoy - Round(Y0), 0, 255));
   ArrowUp.ArrowColor := clBlack;
   ArrowDown.ArrowColor := clBlack;
   ArrowLeft.ArrowColor := clBlack;

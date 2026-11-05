@@ -67,7 +67,7 @@ implementation
 {$R *.lfm}
 
 uses
-  main, conexaodrone, conectionfq777, conectionmavlink, conectionopendrone,
+  main, conexaodrone, conectionmavlink, conectionopendrone,
   conectionesp32drone;
 
 { TfrmCam }
@@ -258,7 +258,6 @@ end;
 
 procedure TfrmCam.AtualizaDaConexao;
 var
-  ConnFQ: TfrmConectionFQ777;
   Conn: TfrmConexaoDrone;
 begin
   if not FCameraAtiva then
@@ -279,31 +278,13 @@ begin
     Exit;
   end;
 
-  if frmMain.frmConnection is TfrmConectionFQ777 then
-  begin
-    // A imagem chega por MostraQuadro; aqui só o estado.
-    ConnFQ := TfrmConectionFQ777(frmMain.frmConnection);
-    if not ConnFQ.Drone.VideoEnabled then
-      DefineStatus('VÍDEO DESLIGADO NA CONFIGURAÇÃO')
-    else if ConnFQ.Drone.VideoStreaming and (ConnFQ.UltimaImagemDataHora > 0) then
-      DefineStatus('ONLINE  IMG: ' + FormatDateTime('hh:nn:ss', ConnFQ.UltimaImagemDataHora) +
-        '  QUADROS: ' + IntToStr(ConnFQ.Decoder.FramesDecoded))
-    else if ConnFQ.Drone.VideoStreaming then
-      DefineStatus('RECEBENDO VÍDEO, AGUARDANDO DECODIFICADOR (ffmpeg)')
-    else if ConnFQ.Drone.ControlConnected then
-      DefineStatus('CONECTADO, AGUARDANDO VÍDEO')
-    else
-      DefineStatus('SEM CONEXÃO COM O FQ777-954');
-    Exit;
-  end;
-
   if not (frmMain.frmConnection is TfrmConexaoDrone) then
   begin
     DefineStatus('CONEXÃO INVÁLIDA');
     Exit;
   end;
 
-  // Demais drones: a imagem chega por MostraQuadro; aqui só o estado.
+  // A imagem chega por MostraQuadro; aqui só o estado.
   Conn := TfrmConexaoDrone(frmMain.frmConnection);
   if (Conn is TfrmConectionMavlink) or (Conn is TfrmConectionOpendrone) or
      (Conn is TfrmConectionESP32Drone) then
