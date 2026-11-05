@@ -90,6 +90,8 @@ type
     function CriaOpcao(AParent: TWinControl; ALeft, ATop: Integer;
       const ARotulo, ANome: string): TCheckBox;
     procedure CriaAbaFQ777;
+    procedure CriaAbaTello;
+    procedure CriaAbaOpendrone;
     procedure CriaAbaARDrone;
     procedure CriaAbaESP32Drone;
 
@@ -105,13 +107,13 @@ type
 
     tsTello: TTabSheet;
     edTelloIP: TEdit;
-    edTelloCmdPort: TEdit;
-    edTelloVidPort: TEdit;
-    edTelloStatePort: TEdit;
+    ckTelloVideo: TCheckBox;
+    edTelloFFmpeg: TEdit;
 
     tsOpendrone: TTabSheet;
     edOpendroneIP: TEdit;
     edOpendronePort: TEdit;
+    edOpendroneAngulo: TEdit;
 
     tsFQ777: TTabSheet;
     edFQ777IP: TEdit;
@@ -307,9 +309,9 @@ begin
   cbProtocol.Top := edIP.Top + edIP.Height + 10;
   cbProtocol.Style := csDropDownList;
   cbProtocol.Items.Add('Cheerson CX-10W');
-  cbProtocol.Items.Add('MAVLink (Standard)');
+  cbProtocol.Items.Add('MAVLink (ArduPilot/PX4)');
   cbProtocol.Items.Add('DJI Tello (UDP)');
-  cbProtocol.Items.Add('OpenDrone ESP32 (UDP)');
+  cbProtocol.Items.Add('ESP-Drone / OpenDrone (CRTP)');
   cbProtocol.Items.Add('FQ777-954 (Wi-Fi)');
   cbProtocol.Items.Add('Parrot AR.Drone 2.0');
   cbProtocol.Items.Add('Drone ESP32 (firmware Cockpit)');
@@ -378,78 +380,8 @@ begin
   edMavSysId.Visible := False;
   edMavSysId.Text := '255';
 
-  // Create tsTello
-  tsTello := TTabSheet.Create(Self);
-  tsTello.Name := 'tsTello';
-  tsTello.PageControl := pcDrones;
-  tsTello.Caption := 'DJI Tello';
-
-  with TLabel.Create(Self) do
-  begin
-    Parent := tsTello;
-    Left := 15; Top := 15;
-    Caption := 'Tello IP:';
-  end;
-  edTelloIP := TEdit.Create(Self);
-  edTelloIP.Name := 'edTelloIP';
-  edTelloIP.Parent := tsTello;
-  edTelloIP.Left := 15; edTelloIP.Top := 32; edTelloIP.Width := 150;
-  edTelloIP.Text := '192.168.10.1';
-
-  with TLabel.Create(Self) do
-  begin
-    Parent := tsTello;
-    Left := 15; Top := 65;
-    Caption := 'Command Port UDP:';
-  end;
-  edTelloCmdPort := TEdit.Create(Self);
-  edTelloCmdPort.Name := 'edTelloCmdPort';
-  edTelloCmdPort.Parent := tsTello;
-  edTelloCmdPort.Left := 15; edTelloCmdPort.Top := 82; edTelloCmdPort.Width := 100;
-  edTelloCmdPort.Text := '8889';
-
-  with TLabel.Create(Self) do
-  begin
-    Parent := tsTello;
-    Left := 15; Top := 115;
-    Caption := 'State Port UDP:';
-  end;
-  edTelloStatePort := TEdit.Create(Self);
-  edTelloStatePort.Name := 'edTelloStatePort';
-  edTelloStatePort.Parent := tsTello;
-  edTelloStatePort.Left := 15; edTelloStatePort.Top := 132; edTelloStatePort.Width := 100;
-  edTelloStatePort.Text := '8890';
-
-  // Create tsOpendrone
-  tsOpendrone := TTabSheet.Create(Self);
-  tsOpendrone.Name := 'tsOpendrone';
-  tsOpendrone.PageControl := pcDrones;
-  tsOpendrone.Caption := 'OpenDrone ESP32';
-
-  with TLabel.Create(Self) do
-  begin
-    Parent := tsOpendrone;
-    Left := 15; Top := 15;
-    Caption := 'OpenDrone IP:';
-  end;
-  edOpendroneIP := TEdit.Create(Self);
-  edOpendroneIP.Name := 'edOpendroneIP';
-  edOpendroneIP.Parent := tsOpendrone;
-  edOpendroneIP.Left := 15; edOpendroneIP.Top := 32; edOpendroneIP.Width := 150;
-  edOpendroneIP.Text := '192.168.4.1';
-
-  with TLabel.Create(Self) do
-  begin
-    Parent := tsOpendrone;
-    Left := 15; Top := 65;
-    Caption := 'UDP Port:';
-  end;
-  edOpendronePort := TEdit.Create(Self);
-  edOpendronePort.Name := 'edOpendronePort';
-  edOpendronePort.Parent := tsOpendrone;
-  edOpendronePort.Left := 15; edOpendronePort.Top := 82; edOpendronePort.Width := 100;
-  edOpendronePort.Text := '2399';
-
+  CriaAbaTello;
+  CriaAbaOpendrone;
   CriaAbaFQ777;
   CriaAbaARDrone;
   CriaAbaESP32Drone;
@@ -483,6 +415,64 @@ begin
   Result.Parent := AParent;
   Result.Left := ALeft; Result.Top := ATop;
   Result.Caption := ARotulo;
+end;
+
+procedure Tfrmconfig.CriaAbaTello;
+var
+  Box: TScrollBox;
+begin
+  tsTello := TTabSheet.Create(Self);
+  tsTello.Name := 'tsTello';
+  tsTello.PageControl := pcDrones;
+  tsTello.Caption := 'DJI Tello';
+
+  Box := TScrollBox.Create(Self);
+  Box.Parent := tsTello;
+  Box.Align := alClient;
+  Box.BorderStyle := bsNone;
+
+  edTelloIP := CriaCampo(Box, 15, 10, 130, 'IP do drone:', 'edTelloIP');
+  with TLabel.Create(Self) do
+  begin
+    Parent := Box;
+    Left := 155; Top := 30;
+    Caption := 'Portas fixas: comandos 8889, telemetria 8890, vídeo 11111';
+  end;
+  ckTelloVideo := CriaOpcao(Box, 15, 60, 'Receber vídeo da câmera', 'ckTelloVideo');
+  edTelloFFmpeg := CriaCampo(Box, 15, 82, 270,
+    'ffmpeg (vazio = ao lado do programa ou no PATH):', 'edTelloFFmpeg');
+  with TLabel.Create(Self) do
+  begin
+    Parent := Box;
+    Left := 15; Top := 132;
+    Caption := 'Botão 3 decola, botão 4 pousa; Q/E sobe e desce. Emergência na janela do drone.';
+  end;
+end;
+
+procedure Tfrmconfig.CriaAbaOpendrone;
+var
+  Box: TScrollBox;
+begin
+  tsOpendrone := TTabSheet.Create(Self);
+  tsOpendrone.Name := 'tsOpendrone';
+  tsOpendrone.PageControl := pcDrones;
+  tsOpendrone.Caption := 'ESP-Drone / OpenDrone';
+
+  Box := TScrollBox.Create(Self);
+  Box.Parent := tsOpendrone;
+  Box.Align := alClient;
+  Box.BorderStyle := bsNone;
+
+  edOpendroneIP := CriaCampo(Box, 15, 10, 130, 'IP do drone:', 'edOpendroneIP');
+  edOpendronePort := CriaCampo(Box, 155, 10, 60, 'UDP:', 'edOpendronePort');
+  edOpendroneAngulo := CriaCampo(Box, 15, 60, 60, 'Ângulo máx. (graus):', 'edOpendroneAngulo');
+  with TLabel.Create(Self) do
+  begin
+    Parent := Box;
+    Left := 15; Top := 112;
+    Caption := 'ESP-Drone da Espressif (CRTP). O cockpit escuta na porta 2399.' + LineEnding +
+      'A aceleração só é liberada depois que o manche desce ao mínimo.';
+  end;
 end;
 
 procedure Tfrmconfig.CriaAbaFQ777;
@@ -783,17 +773,19 @@ begin
   if Assigned(edMavPort) then
     edMavPort.Text := IntToStr(FSetMain.Mavlink.Porta);
 
-  if Assigned(edTelloIP) then
-    edTelloIP.Text := FSetMain.DroneIP;
-  if Assigned(edTelloCmdPort) then
-    edTelloCmdPort.Text := IntToStr(FSetMain.DronePortaComando);
-  if Assigned(edTelloStatePort) then
-    edTelloStatePort.Text := IntToStr(FSetMain.DronePortaStatus);
+  if Assigned(tsTello) then
+  begin
+    edTelloIP.Text := FSetMain.Tello.IP;
+    ckTelloVideo.Checked := FSetMain.Tello.Video;
+    edTelloFFmpeg.Text := FSetMain.Tello.FFmpeg;
+  end;
 
-  if Assigned(edOpendroneIP) then
-    edOpendroneIP.Text := FSetMain.DroneIP;
-  if Assigned(edOpendronePort) then
-    edOpendronePort.Text := IntToStr(FSetMain.DronePortaComando);
+  if Assigned(tsOpendrone) then
+  begin
+    edOpendroneIP.Text := FSetMain.ESPDrone.IP;
+    edOpendronePort.Text := IntToStr(FSetMain.ESPDrone.Porta);
+    edOpendroneAngulo.Text := IntToStr(FSetMain.ESPDrone.AnguloMaximo);
+  end;
 
   if Assigned(tsFQ777) then
     with FSetMain.FQ777 do
@@ -874,30 +866,25 @@ begin
           FSetMain.Mavlink.Porta := Val;
       end;
     2:
-      begin
-        if Assigned(edTelloIP) then
-          FSetMain.DroneIP := edTelloIP.Text;
-        if Assigned(edTelloCmdPort) then
+      // Seção própria [TELLO].
+      if Assigned(tsTello) then
+        with FSetMain.Tello do
         begin
-          if TryStrToInt(Trim(edTelloCmdPort.Text), Val) then
-            FSetMain.DronePortaComando := Val;
+          if Trim(edTelloIP.Text) <> '' then
+            IP := Trim(edTelloIP.Text);
+          Video := ckTelloVideo.Checked;
+          FFmpeg := Trim(edTelloFFmpeg.Text);
         end;
-        if Assigned(edTelloStatePort) then
-        begin
-          if TryStrToInt(Trim(edTelloStatePort.Text), Val) then
-            FSetMain.DronePortaStatus := Val;
-        end;
-      end;
     3:
-      begin
-        if Assigned(edOpendroneIP) then
-          FSetMain.DroneIP := edOpendroneIP.Text;
-        if Assigned(edOpendronePort) then
+      // Seção própria [ESPDRONE].
+      if Assigned(tsOpendrone) then
+        with FSetMain.ESPDrone do
         begin
-          if TryStrToInt(Trim(edOpendronePort.Text), Val) then
-            FSetMain.DronePortaComando := Val;
+          if Trim(edOpendroneIP.Text) <> '' then
+            IP := Trim(edOpendroneIP.Text);
+          Porta := EnsureRange(StrToIntDef(Trim(edOpendronePort.Text), Porta), 1, 65535);
+          AnguloMaximo := EnsureRange(StrToIntDef(Trim(edOpendroneAngulo.Text), AnguloMaximo), 5, 45);
         end;
-      end;
     4:
       // Seção própria [FQ777]: não altera a configuração dos outros drones.
       if Assigned(tsFQ777) then

@@ -24,7 +24,7 @@
         <Mode0 Name="default"/>
       </Modes>
     </RunParams>
-    <RequiredPackages Count="19">
+    <RequiredPackages Count="18">
       <Item1>
         <PackageName Value="lazMapViewerPkg"/>
       </Item1>
@@ -50,40 +50,37 @@
         <PackageName Value="laz_acs"/>
       </Item8>
       <Item9>
-        <PackageName Value="lnetvisual"/>
+        <PackageName Value="opengpsx"/>
       </Item9>
       <Item10>
-        <PackageName Value="opengpsx"/>
+        <PackageName Value="bgracontrols"/>
       </Item10>
       <Item11>
-        <PackageName Value="bgracontrols"/>
+        <PackageName Value="cadsys"/>
       </Item11>
       <Item12>
-        <PackageName Value="cadsys"/>
+        <PackageName Value="bgragames"/>
       </Item12>
       <Item13>
-        <PackageName Value="bgragames"/>
+        <PackageName Value="industrial"/>
       </Item13>
       <Item14>
-        <PackageName Value="industrial"/>
+        <PackageName Value="LCL"/>
       </Item14>
       <Item15>
-        <PackageName Value="LCL"/>
+        <PackageName Value="openai_input"/>
       </Item15>
       <Item16>
-        <PackageName Value="openai_input"/>
+        <PackageName Value="openai_hardware"/>
       </Item16>
       <Item17>
-        <PackageName Value="openai_hardware"/>
+        <PackageName Value="openai_video"/>
       </Item17>
       <Item18>
-        <PackageName Value="openai_video"/>
-      </Item18>
-      <Item19>
         <PackageName Value="openai_drone"/>
-      </Item19>
+      </Item18>
     </RequiredPackages>
-    <Units Count="21">
+    <Units Count="25">
       <Unit0>
         <Filename Value="drone.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -132,9 +129,6 @@
       <Unit7>
         <Filename Value="conectioncx10w.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="frmConectionCX10W"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
         <UnitName Value="ConectionCX10W"/>
       </Unit7>
       <Unit8>
@@ -170,29 +164,45 @@
         <IsPartOfProject Value="True"/>
       </Unit14>
       <Unit15>
-        <Filename Value="ardroneproto.pas"/>
+        <Filename Value="conectionardrone.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit15>
       <Unit16>
-        <Filename Value="conectionardrone.pas"/>
+        <Filename Value="conectionesp32drone.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit16>
       <Unit17>
-        <Filename Value="esp32droneproto.pas"/>
+        <Filename Value="rotamavlink.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit17>
       <Unit18>
-        <Filename Value="conectionesp32drone.pas"/>
+        <Filename Value="rotavoo.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit18>
       <Unit19>
-        <Filename Value="rotamavlink.pas"/>
+        <Filename Value="conexaodrone.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit19>
       <Unit20>
-        <Filename Value="rotavoo.pas"/>
+        <Filename Value="conectionmavlink.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit20>
+      <Unit21>
+        <Filename Value="conectiontello.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="conectionopendrone.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="protocols.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="flightplan.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit24>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -2,222 +2,168 @@ unit conectionmavlink;
 
 { Janela de conexão MAVLink (ArduPilot/PX4).
 
-  Protocolo em mavlinkproto.pas. Esta janela:
-    - lê a configuração própria (seção [MAVLINK] do drone.cfg);
-    - a cada 100 ms chama Tick (sinal de vida, prazos) e repassa o manche do
-      frmMain (ignorado pelo protocolo durante a rota e nos modos autônomos);
-    - mostra GPS, modo, bateria e as mensagens do drone.
-  A rota de voo é planejada e enviada pela janela "Rota de voo" (rotavoo.pas). }
+  Protocolo: TAIDroneMavlink (CHATGPT, pacote openai_drone). Configuração
+  própria na seção [MAVLINK] do drone.cfg. Esta janela:
+    - repassa o manche do frmMain a cada 100 ms (o componente ignora o manche
+      durante a rota e nos modos autônomos);
+    - mostra modo, GPS, bateria e posição;
+    - guarda as mensagens do drone para a janela "Rota de voo" (ProximoAviso).
+  A rota é planejada e enviada pela janela "Rota de voo" (rotavoo.pas). }
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, Menus, setmain, protocols, mavlinkproto;
+  Classes, SysUtils, StdCtrls, conexaodrone, aidronemavlink;
 
 type
+
   { TfrmConectionMavlink }
 
-  TfrmConectionMavlink = class(TForm)
-    Label1: TLabel;
-    Label2: TLabel;
-    Label4: TLabel;
-    lbStateConection: TLabel;
-    lbIP: TLabel;
-    lbdevicename: TLabel;
-    lbUDP: TLabel;
-    meLog: TMemo;
-    MenuItem1: TMenuItem;
-    pnTop: TPanel;
-    pnBotton: TPanel;
-    popLog: TPopupMenu;
-    timerJoystick: TTimer;
-
-    procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
-    procedure pnBottonClick(Sender: TObject);
-    procedure timerJoystickTimer(Sender: TObject);
-
+  TfrmConectionMavlink = class(TfrmConexaoDrone)
   private
-    FProtocol: TMavlinkProtocol;
-    FHost: string;
-    FUdpPort: Integer;
-    FUltimaTela: QWord;
-
-    procedure Log(const ATexto: string);
-    procedure SetStatus(const ATexto: string);
-    procedure OnProtocolError(Sender: TObject; const AMsg: string);
-    procedure OnProtocolStatus(Sender: TObject; const AStatus: string);
-
+    FMav: TAIDroneMavlink;
+    FAvisos: TStringList;
+    FLbLigacao: TLabel;
+    FLbModo: TLabel;
+    FLbGps: TLabel;
+    FLbBateria: TLabel;
+    FLbPosicao: TLabel;
+    procedure BtRotaClick(Sender: TObject);
+    procedure BtVoltarClick(Sender: TObject);
+    procedure BtPousarClick(Sender: TObject);
+  protected
+    function Conectar: Boolean; override;
+    procedure Desconectar; override;
+    procedure Controle(const C: TComandoManche); override;
+    procedure AtualizaPainel; override;
+    procedure MensagemDrone(const AMessage: string; AErro: Boolean); override;
+    function IntervaloMs: Integer; override;
   public
-    procedure PegaConfiguracao;
-    procedure InicioHandShake;
-    procedure sendGamepadData;
-    procedure DesativaJoystick;
-    procedure AtivaJoystick;
-    procedure DesativaConnection;
-
-    property Protocol: TMavlinkProtocol read FProtocol;
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    { Próxima mensagem do drone ainda não lida pela janela de rota. }
+    function ProximoAviso(out AMensagem: string): Boolean;
+    property Mavlink: TAIDroneMavlink read FMav;
   end;
-
-var
-  frmConectionMavlink: TfrmConectionMavlink;
 
 implementation
 
 uses
-  main;
+  setmain, rotavoo;
 
-{$R *.lfm}
-
-procedure TfrmConectionMavlink.FormCreate(Sender: TObject);
+constructor TfrmConectionMavlink.Create(AOwner: TComponent);
 begin
-  FProtocol := nil;
-  // O .lfm não liga o OnDestroy.
-  OnDestroy := @FormDestroy;
-  if Assigned(timerJoystick) then
-  begin
-    timerJoystick.Interval := 100;
-    timerJoystick.Enabled := False;
-  end;
-  SetStatus('Offline');
+  inherited Create(AOwner);
+  Caption := 'MAVLink (ArduPilot/PX4)';
+  FAvisos := TStringList.Create;
+  FMav := TAIDroneMavlink.Create(Self);
+  UsaDrone(FMav);
+  FLbLigacao := NovaLinha('Ligação:');
+  FLbModo := NovaLinha('Modo:');
+  FLbGps := NovaLinha('GPS:');
+  FLbBateria := NovaLinha('Bateria:');
+  FLbPosicao := NovaLinha('Posição:');
+  NovoBotao('Rota de voo', @BtRotaClick);
+  NovoBotao('Voltar à partida', @BtVoltarClick);
+  NovoBotao('Pousar', @BtPousarClick, True);
 end;
 
-procedure TfrmConectionMavlink.FormDestroy(Sender: TObject);
+destructor TfrmConectionMavlink.Destroy;
 begin
-  DesativaConnection;
+  inherited Destroy;
+  FreeAndNil(FAvisos);
 end;
 
-procedure TfrmConectionMavlink.pnBottonClick(Sender: TObject);
+function TfrmConectionMavlink.IntervaloMs: Integer;
 begin
-  DesativaConnection;
-  Close;
+  Result := 100;
 end;
 
-procedure TfrmConectionMavlink.timerJoystickTimer(Sender: TObject);
+function TfrmConectionMavlink.Conectar: Boolean;
+begin
+  FMav.Host := Trim(FSetMain.Mavlink.IP);
+  if FSetMain.Mavlink.Porta > 0 then
+    FMav.Port := FSetMain.Mavlink.Porta;
+  FMav.Connect;
+  Result := FMav.Active;
+  if not Result then
+    DefineErro(Format('Não foi possível abrir a porta UDP %d.', [FMav.Port]));
+end;
+
+procedure TfrmConectionMavlink.Desconectar;
+begin
+  FMav.Disconnect;
+end;
+
+procedure TfrmConectionMavlink.Controle(const C: TComandoManche);
+begin
+  FMav.SetSticks(C.Rolagem, C.Arfagem, C.Guinada, C.Acelerador);
+end;
+
+procedure TfrmConectionMavlink.AtualizaPainel;
 var
-  T: TMavTelemetria;
+  T: TAIMavTelemetry;
 begin
-  if not Assigned(FProtocol) then
+  T := FMav.Telemetry;
+  if not FMav.Active then
+    FLbLigacao.Caption := 'desligado'
+  else if not T.Connected then
+    FLbLigacao.Caption := 'aguardando o drone...'
+  else
+    FLbLigacao.Caption := Format('sistema %d', [T.SysId]);
+  if not T.Connected then
     Exit;
-  sendGamepadData;
-  FProtocol.Tick;
+  FLbModo.Caption := FMav.ModeText;
+  FLbGps.Caption := FMav.GpsText;
+  if T.BatteryPct >= 0 then
+    FLbBateria.Caption := Format('%d%% (%.2f V)', [T.BatteryPct, T.BatteryVoltage])
+  else if T.BatteryVoltage > 0 then
+    FLbBateria.Caption := Format('%.2f V', [T.BatteryVoltage])
+  else
+    FLbBateria.Caption := '-';
+  if T.PositionValid then
+    FLbPosicao.Caption := Format('%.6f, %.6f  alt %.1f m',
+      [T.Lat, T.Lon, T.RelativeAlt])
+  else
+    FLbPosicao.Caption := 'sem posição';
+end;
 
-  if GetTickCount64 - FUltimaTela >= 500 then
+procedure TfrmConectionMavlink.MensagemDrone(const AMessage: string; AErro: Boolean);
+begin
+  if AErro then
+    FAvisos.Add('Erro: ' + AMessage)
+  else
+    FAvisos.Add(AMessage);
+  while FAvisos.Count > 100 do
+    FAvisos.Delete(0);
+end;
+
+function TfrmConectionMavlink.ProximoAviso(out AMensagem: string): Boolean;
+begin
+  AMensagem := '';
+  Result := Assigned(FAvisos) and (FAvisos.Count > 0);
+  if Result then
   begin
-    FUltimaTela := GetTickCount64;
-    T := FProtocol.Telemetria;
-    if not FProtocol.Active then
-      SetStatus('Offline')
-    else if not T.Conectado then
-      SetStatus('Aguardando o drone...')
-    else
-    begin
-      SetStatus(FProtocol.TextoModo + '  |  GPS ' + FProtocol.TextoGps);
-      if T.BateriaPct >= 0 then
-        lbdevicename.Caption := Format('MAVLink — bateria %d%% (%.2f V)', [T.BateriaPct, T.BateriaV]);
-    end;
+    AMensagem := FAvisos[0];
+    FAvisos.Delete(0);
   end;
 end;
 
-procedure TfrmConectionMavlink.Log(const ATexto: string);
+procedure TfrmConectionMavlink.BtRotaClick(Sender: TObject);
 begin
-  if Assigned(meLog) then
-  begin
-    meLog.Lines.Add(FormatDateTime('hh:nn:ss ', Now) + ATexto);
-    if meLog.Lines.Count > 300 then
-      meLog.Lines.Delete(0);
-  end;
+  AbreRotaVoo;
 end;
 
-procedure TfrmConectionMavlink.SetStatus(const ATexto: string);
+procedure TfrmConectionMavlink.BtVoltarClick(Sender: TObject);
 begin
-  if Assigned(lbStateConection) then
-    lbStateConection.Caption := ATexto;
+  FMav.ReturnToLaunch;
 end;
 
-procedure TfrmConectionMavlink.OnProtocolError(Sender: TObject; const AMsg: string);
+procedure TfrmConectionMavlink.BtPousarClick(Sender: TObject);
 begin
-  Log('Erro: ' + AMsg);
-  SetStatus('Erro');
-end;
-
-procedure TfrmConectionMavlink.OnProtocolStatus(Sender: TObject; const AStatus: string);
-begin
-  Log(AStatus);
-end;
-
-procedure TfrmConectionMavlink.PegaConfiguracao;
-begin
-  FHost := '';
-  FUdpPort := MAV_PORTA_PADRAO;
-  if Assigned(FSetMain) then
-  begin
-    FHost := Trim(FSetMain.Mavlink.IP);
-    if FSetMain.Mavlink.Porta > 0 then
-      FUdpPort := FSetMain.Mavlink.Porta;
-  end;
-
-  if Assigned(lbIP) then
-    lbIP.Caption := FHost;
-  if Assigned(lbUDP) then
-    lbUDP.Caption := IntToStr(FUdpPort);
-  if Assigned(lbdevicename) then
-    lbdevicename.Caption := 'MAVLink (ArduPilot/PX4)';
-end;
-
-procedure TfrmConectionMavlink.InicioHandShake;
-begin
-  PegaConfiguracao;
-  DesativaConnection;
-
-  Log('Iniciando MAVLink...');
-  FProtocol := TMavlinkProtocol.Create;
-  FProtocol.OnError := @OnProtocolError;
-  FProtocol.OnStatus := @OnProtocolStatus;
-
-  FProtocol.Connect(FHost, 0, FUdpPort);
-  AtivaJoystick;
-
-  if Assigned(frmMain) then
-    frmMain.AtivouDrone;
-end;
-
-procedure TfrmConectionMavlink.sendGamepadData;
-begin
-  if Assigned(FProtocol) and FProtocol.Active and Assigned(frmMain) then
-    FProtocol.SendCommand(frmMain.X, frmMain.Y, frmMain.Z,
-      frmMain.B1, frmMain.B2, frmMain.B3, frmMain.B4, frmMain.B5, frmMain.B6);
-end;
-
-procedure TfrmConectionMavlink.DesativaJoystick;
-begin
-  if Assigned(timerJoystick) then
-    timerJoystick.Enabled := False;
-end;
-
-procedure TfrmConectionMavlink.AtivaJoystick;
-begin
-  if Assigned(timerJoystick) then
-  begin
-    timerJoystick.Interval := 100;
-    timerJoystick.Enabled := True;
-  end;
-end;
-
-procedure TfrmConectionMavlink.DesativaConnection;
-begin
-  DesativaJoystick;
-  if Assigned(FProtocol) then
-  begin
-    FProtocol.OnError := nil;
-    FProtocol.OnStatus := nil;
-    FProtocol.Disconnect;
-    FreeAndNil(FProtocol);
-  end;
-  SetStatus('Offline');
+  FMav.Land;
 end;
 
 end.

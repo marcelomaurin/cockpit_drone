@@ -1,216 +1,126 @@
 unit conectiontello;
 
+{ Janela de conexão do DJI/Ryze Tello.
+
+  Protocolo: TAIDroneTello (CHATGPT, pacote openai_drone), SDK em texto.
+  Configuração própria na seção [TELLO] do drone.cfg.
+
+  Comandos (frmMain): X/Y = rolagem/arfagem, Z (Q/E) = sobe/desce
+  (centro = mantém a altura), botões 1/2 = giro, botão 3 = decolar,
+  botão 4 = pousar. Nesta janela: Decolar, Pousar e EMERGÊNCIA.
+  Ao desligar, manda pousar antes de soltar a conexão. }
+
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, Menus, setmain, protocols, telloproto;
+  Classes, SysUtils, StdCtrls, Dialogs, Controls, conexaodrone, aidronetello;
 
 type
+
   { TfrmConectionTello }
 
-  TfrmConectionTello = class(TForm)
-    Label1: TLabel;
-    Label2: TLabel;
-    Label4: TLabel;
-    lbStateConection: TLabel;
-    lbIP: TLabel;
-    lbdevicename: TLabel;
-    lbUDP: TLabel;
-    meLog: TMemo;
-    MenuItem1: TMenuItem;
-    pnTop: TPanel;
-    pnBotton: TPanel;
-    popLog: TPopupMenu;
-    timerJoystick: TTimer;
-
-    procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
-    procedure pnBottonClick(Sender: TObject);
-    procedure timerJoystickTimer(Sender: TObject);
-
+  TfrmConectionTello = class(TfrmConexaoDrone)
   private
-    FProtocol: TTelloProtocol;
-    FX, FY, FZ: Byte;
-    FB1, FB2, FB3, FB4, FB5, FB6: Byte;
-    FHost: string;
-    FUdpPort: Integer;
-
-    procedure Log(const ATexto: string);
-    procedure SetStatus(const ATexto: string);
-    procedure SyncFromMain(var AMudou: Boolean);
-    procedure OnProtocolError(Sender: TObject; const AMsg: string);
-    procedure OnProtocolStatus(Sender: TObject; const AStatus: string);
-
+    FTello: TAIDroneTello;
+    FLbEstado: TLabel;
+    FLbBateria: TLabel;
+    FLbAltura: TLabel;
+    FLbAtitude: TLabel;
+    procedure BtDecolarClick(Sender: TObject);
+    procedure BtPousarClick(Sender: TObject);
+    procedure BtEmergenciaClick(Sender: TObject);
+  protected
+    function Conectar: Boolean; override;
+    procedure Desconectar; override;
+    procedure Controle(const C: TComandoManche); override;
+    procedure AtualizaPainel; override;
   public
-    procedure PegaConfiguracao;
-    procedure InicioHandShake;
-    procedure sendGamepadData;
-    procedure DesativaJoystick;
-    procedure AtivaJoystick;
-    procedure DesativaConnection;
+    constructor Create(AOwner: TComponent); override;
+    property Tello: TAIDroneTello read FTello;
   end;
-
-var
-  frmConectionTello: TfrmConectionTello;
 
 implementation
 
 uses
-  main;
+  setmain;
 
-{$R *.lfm}
-
-procedure TfrmConectionTello.FormCreate(Sender: TObject);
+constructor TfrmConectionTello.Create(AOwner: TComponent);
 begin
-  FProtocol := nil;
-  SetStatus('Offline');
-  Log('Carregando Conexão DJI Tello...');
+  inherited Create(AOwner);
+  Caption := 'DJI Tello';
+  FTello := TAIDroneTello.Create(Self);
+  UsaDrone(FTello);
+  FLbEstado := NovaLinha('Estado:');
+  FLbBateria := NovaLinha('Bateria:');
+  FLbAltura := NovaLinha('Altura:');
+  FLbAtitude := NovaLinha('Atitude:');
+  NovoBotao('Decolar (botão 3)', @BtDecolarClick);
+  NovoBotao('Pousar (botão 4)', @BtPousarClick);
+  NovoBotao('EMERGÊNCIA', @BtEmergenciaClick, True);
 end;
 
-procedure TfrmConectionTello.FormDestroy(Sender: TObject);
+function TfrmConectionTello.Conectar: Boolean;
 begin
-  DesativaConnection;
-end;
-
-procedure TfrmConectionTello.pnBottonClick(Sender: TObject);
-begin
-  DesativaConnection;
-  Close;
-end;
-
-procedure TfrmConectionTello.timerJoystickTimer(Sender: TObject);
-begin
-  sendGamepadData;
-end;
-
-procedure TfrmConectionTello.Log(const ATexto: string);
-begin
-  if Assigned(meLog) then
+  with FSetMain.Tello do
   begin
-    meLog.Lines.Add(FormatDateTime('hh:nn:ss.zzz ', Now) + ATexto);
-    if meLog.Lines.Count > 100 then
-      meLog.Lines.Delete(0);
+    if Trim(IP) <> '' then
+      FTello.Host := Trim(IP);
+    FTello.VideoEnabled := Video;
+    PreparaVideo(Video, TELLO_VIDEO_WIDTH, TELLO_VIDEO_HEIGHT, FFmpeg);
   end;
+  FTello.LandOnDisconnect := True;
+  FTello.Connect;
+  Result := FTello.Active;
 end;
 
-procedure TfrmConectionTello.SetStatus(const ATexto: string);
+procedure TfrmConectionTello.Desconectar;
 begin
-  if Assigned(lbStateConection) then
-    lbStateConection.Caption := ATexto;
+  FTello.Disconnect; // pousa antes de fechar
 end;
 
-procedure TfrmConectionTello.SyncFromMain(var AMudou: Boolean);
+procedure TfrmConectionTello.Controle(const C: TComandoManche);
 begin
-  if Assigned(frmMain) then
-  begin
-    if (FX <> frmMain.X) or (FY <> frmMain.Y) or (FZ <> frmMain.Z) or
-       (FB1 <> frmMain.B1) or (FB2 <> frmMain.B2) or (FB3 <> frmMain.B3) or
-       (FB4 <> frmMain.B4) or (FB5 <> frmMain.B5) or (FB6 <> frmMain.B6) then
-    begin
-      AMudou := True;
-      FX := frmMain.X;
-      FY := frmMain.Y;
-      FZ := frmMain.Z;
-      FB1 := frmMain.B1;
-      FB2 := frmMain.B2;
-      FB3 := frmMain.B3;
-      FB4 := frmMain.B4;
-      FB5 := frmMain.B5;
-      FB6 := frmMain.B6;
-    end;
-  end;
+  FTello.SetSticks(C.Rolagem, C.Arfagem, C.Guinada, C.Subida);
+  if C.Apertou[3] then
+    FTello.TakeOff
+  else if C.Apertou[4] then
+    FTello.Land;
 end;
 
-procedure TfrmConectionTello.OnProtocolError(Sender: TObject; const AMsg: string);
-begin
-  Log('Erro: ' + AMsg);
-  SetStatus('Erro');
-end;
-
-procedure TfrmConectionTello.OnProtocolStatus(Sender: TObject; const AStatus: string);
-begin
-  Log(AStatus);
-  if AStatus = 'Conectado ao Tello.' then
-    SetStatus('Online')
-  else if AStatus = 'Tello desconectado.' then
-    SetStatus('Offline');
-end;
-
-procedure TfrmConectionTello.PegaConfiguracao;
-begin
-  if Assigned(FSetMain) then
-  begin
-    FHost := FSetMain.DroneIP;
-    FUdpPort := FSetMain.DronePortaComando;
-  end;
-
-  if Trim(FHost) = '' then
-    FHost := '192.168.10.1';
-
-  if FUdpPort <= 0 then
-    FUdpPort := 8889;
-
-  if Assigned(lbIP) then
-    lbIP.Caption := FHost;
-  if Assigned(lbUDP) then
-    lbUDP.Caption := IntToStr(FUdpPort);
-  if Assigned(lbdevicename) then
-    lbdevicename.Caption := 'DJI Ryze Tello';
-end;
-
-procedure TfrmConectionTello.InicioHandShake;
-begin
-  PegaConfiguracao;
-  DesativaConnection;
-
-  Log('Inicializando Protocolo Tello...');
-  FProtocol := TTelloProtocol.Create;
-  FProtocol.OnError := @OnProtocolError;
-  FProtocol.OnStatus := @OnProtocolStatus;
-
-  FProtocol.Connect(FHost, 0, FUdpPort);
-  AtivaJoystick;
-  
-  if Assigned(frmMain) then
-    frmMain.AtivouDrone;
-end;
-
-procedure TfrmConectionTello.sendGamepadData;
+procedure TfrmConectionTello.AtualizaPainel;
 var
-  Mudou: Boolean;
+  S: TAITelloState;
 begin
-  if Assigned(FProtocol) and FProtocol.Active then
-  begin
-    Mudou := False;
-    SyncFromMain(Mudou);
-    FProtocol.SendCommand(FX, FY, FZ, FB1, FB2, FB3, FB4, FB5, FB6);
-  end;
+  if FTello.SdkMode then
+    FLbEstado.Caption := 'conectado (modo SDK)'
+  else if FTello.Active then
+    FLbEstado.Caption := 'procurando o drone...'
+  else
+    FLbEstado.Caption := 'desconectado';
+  S := FTello.State;
+  if not S.Valid then
+    Exit;
+  FLbBateria.Caption := Format('%d%%', [S.Battery]);
+  FLbAltura.Caption := Format('%.2f m  (%d s de voo)', [S.Height, S.FlightTime]);
+  FLbAtitude.Caption := Format('arf %d°  rol %d°  rumo %d°', [S.Pitch, S.Roll, S.Yaw]);
 end;
 
-procedure TfrmConectionTello.DesativaJoystick;
+procedure TfrmConectionTello.BtDecolarClick(Sender: TObject);
 begin
-  if Assigned(timerJoystick) then
-    timerJoystick.Enabled := False;
+  FTello.TakeOff;
 end;
 
-procedure TfrmConectionTello.AtivaJoystick;
+procedure TfrmConectionTello.BtPousarClick(Sender: TObject);
 begin
-  if Assigned(timerJoystick) then
-    timerJoystick.Enabled := True;
+  FTello.Land;
 end;
 
-procedure TfrmConectionTello.DesativaConnection;
+procedure TfrmConectionTello.BtEmergenciaClick(Sender: TObject);
 begin
-  DesativaJoystick;
-  if Assigned(FProtocol) then
-  begin
-    FProtocol.Disconnect;
-    FreeAndNil(FProtocol);
-  end;
-  SetStatus('Offline');
+  // Sem confirmação: numa emergência cada segundo conta.
+  FTello.Emergency;
 end;
 
 end.

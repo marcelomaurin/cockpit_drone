@@ -52,6 +52,20 @@ type
     Porta: Integer;              // UDP
   end;
 
+  { DJI/Ryze Tello (seção [TELLO] do drone.cfg). Portas fixas do SDK. }
+  TTelloSettings = record
+    IP: string;
+    Video: Boolean;
+    FFmpeg: string;              // '' = procura ao lado do programa e no PATH
+  end;
+
+  { ESP-Drone da Espressif / OpenDrone (seção [ESPDRONE] do drone.cfg). }
+  TESPDroneSettings = record
+    IP: string;
+    Porta: Integer;              // UDP do drone (2390)
+    AnguloMaximo: Integer;       // graus de rolagem/arfagem com o manche no fim
+  end;
+
   { Configuração exclusiva do FQ777-954 (seção [FQ777] do drone.cfg). }
   TFQ777Settings = record
     IP: string;
@@ -143,6 +157,8 @@ type
     Mavlink: TMavlinkSettings;
     Rota: TRotaSettings;
     FQ777: TFQ777Settings;
+    Tello: TTelloSettings;
+    ESPDrone: TESPDroneSettings;
 
     function GetConfigFileName: string;
     constructor Create;
@@ -322,6 +338,16 @@ begin
   Rota.AcaoFinal := 0;
   Rota.DistMaxima := 500;
 
+  // DJI/Ryze Tello
+  Tello.IP := '192.168.10.1';
+  Tello.Video := True;
+  Tello.FFmpeg := '';
+
+  // ESP-Drone / OpenDrone
+  ESPDrone.IP := '192.168.43.42';
+  ESPDrone.Porta := 2390;
+  ESPDrone.AnguloMaximo := 20;
+
   // FQ777-954
   FQ777.IP := '172.16.10.1';
   FQ777.PortaTCP := 8888;
@@ -442,6 +468,16 @@ begin
     Rota.AcaoFinal := Ini.ReadInteger('ROTA', 'ACAO_FINAL', Rota.AcaoFinal);
     Rota.DistMaxima := Ini.ReadFloat('ROTA', 'DIST_MAXIMA', Rota.DistMaxima);
 
+    // DJI/Ryze Tello
+    Tello.IP := Ini.ReadString('TELLO', 'IP', Tello.IP);
+    Tello.Video := Ini.ReadBool('TELLO', 'VIDEO', Tello.Video);
+    Tello.FFmpeg := Ini.ReadString('TELLO', 'FFMPEG', Tello.FFmpeg);
+
+    // ESP-Drone / OpenDrone
+    ESPDrone.IP := Ini.ReadString('ESPDRONE', 'IP', ESPDrone.IP);
+    ESPDrone.Porta := Ini.ReadInteger('ESPDRONE', 'PORTA', ESPDrone.Porta);
+    ESPDrone.AnguloMaximo := Ini.ReadInteger('ESPDRONE', 'ANGULO_MAXIMO', ESPDrone.AnguloMaximo);
+
     // FQ777-954
     FQ777.IP := Ini.ReadString('FQ777', 'IP', FQ777.IP);
     FQ777.PortaTCP := Ini.ReadInteger('FQ777', 'PORTA_TCP', FQ777.PortaTCP);
@@ -552,6 +588,16 @@ begin
     Ini.WriteFloat('ROTA', 'VELOCIDADE', Rota.Velocidade);
     Ini.WriteInteger('ROTA', 'ACAO_FINAL', Rota.AcaoFinal);
     Ini.WriteFloat('ROTA', 'DIST_MAXIMA', Rota.DistMaxima);
+
+    // DJI/Ryze Tello
+    Ini.WriteString('TELLO', 'IP', Tello.IP);
+    Ini.WriteBool('TELLO', 'VIDEO', Tello.Video);
+    Ini.WriteString('TELLO', 'FFMPEG', Tello.FFmpeg);
+
+    // ESP-Drone / OpenDrone
+    Ini.WriteString('ESPDRONE', 'IP', ESPDrone.IP);
+    Ini.WriteInteger('ESPDRONE', 'PORTA', ESPDrone.Porta);
+    Ini.WriteInteger('ESPDRONE', 'ANGULO_MAXIMO', ESPDrone.AnguloMaximo);
 
     // FQ777-954
     Ini.WriteString('FQ777', 'IP', FQ777.IP);

@@ -28,7 +28,7 @@ interface
 
 uses
   Classes, SysUtils, Math, Forms, Controls, Graphics, StdCtrls, ExtCtrls, Grids,
-  Dialogs, flightplan, mavlinkproto, rotamavlink, protocols;
+  Dialogs, flightplan, aidronemavlink, rotamavlink, protocols;
 
 const
   ROTA_SATELITES_MIN = 6;
@@ -84,7 +84,7 @@ type
     procedure CarregaOpcoes;
     procedure LeOpcoes;
     procedure EscreveOpcoes;
-    function Protocolo: TMavlinkProtocol;
+    function Protocolo: TAIDroneMavlink;
     function EmVoo: Boolean;
     function RotaEnviadaAtual: Boolean;
     function ValidaComMensagem: Boolean;
@@ -630,15 +630,15 @@ end;
 
 procedure TfrmRotaVoo.BtPosicaoDroneClick(Sender: TObject);
 var
-  P: TMavlinkProtocol;
+  P: TAIDroneMavlink;
 begin
   P := Protocolo;
-  if (P = nil) or (not P.Telemetria.Conectado) or (not P.Telemetria.PosValida) then
+  if (P = nil) or (not P.Telemetry.Connected) or (not P.Telemetry.PositionValid) then
   begin
     Log('Posição do drone indisponível (sem conexão ou sem GPS).');
     Exit;
   end;
-  AdicionaPonto(P.Telemetria.Lat, P.Telemetria.Lon);
+  AdicionaPonto(P.Telemetry.Lat, P.Telemetry.Lon);
 end;
 
 procedure TfrmRotaVoo.BtSubirClick(Sender: TObject);
@@ -770,34 +770,34 @@ end;
 
 { Drone }
 
-function TfrmRotaVoo.Protocolo: TMavlinkProtocol;
+function TfrmRotaVoo.Protocolo: TAIDroneMavlink;
 begin
   Result := nil;
   if Assigned(frmMain) and (frmMain.frmConnection is TfrmConectionMavlink) then
-    Result := TfrmConectionMavlink(frmMain.frmConnection).Protocol;
+    Result := TfrmConectionMavlink(frmMain.frmConnection).Mavlink;
 end;
 
 function TfrmRotaVoo.EmVoo: Boolean;
 var
-  P: TMavlinkProtocol;
+  P: TAIDroneMavlink;
 begin
   P := Protocolo;
-  Result := (P <> nil) and P.Active and (P.Telemetria.Armado or P.RotaAtiva);
+  Result := (P <> nil) and P.Active and (P.Telemetry.Armed or P.RouteActive);
 end;
 
 function TfrmRotaVoo.RotaEnviadaAtual: Boolean;
 var
-  P: TMavlinkProtocol;
+  P: TAIDroneMavlink;
 begin
   P := Protocolo;
-  Result := (P <> nil) and (P.EnvioMissao = meAceita) and
+  Result := (P <> nil) and (P.MissionState = msAccepted) and
     (FAssinaturaEnviada = GlobalFlightPlan.Assinatura);
 end;
 
 function TfrmRotaVoo.DroneProntoParaRota(AParaEnvio: Boolean; out AMotivo: string): Boolean;
 var
-  P: TMavlinkProtocol;
-  T: TMavTelemetria;
+  P: TAIDroneMavlink;
+  T: TAIMavTelemetry;
 begin
   Result := False;
   P := Protocolo;
@@ -806,25 +806,25 @@ begin
     AMotivo := 'Ligue o cockpit (Start) com o protocolo MAVLink para falar com o drone.';
     Exit;
   end;
-  T := P.Telemetria;
-  if not T.Conectado then
+  T := P.Telemetry;
+  if not T.Connected then
     AMotivo := 'O drone não está respondendo (sem sinal MAVLink).'
   else if (T.Autopilot <> MAV_AUTOPILOT_ARDUPILOT) and (T.Autopilot <> MAV_AUTOPILOT_PX4) then
     AMotivo := 'Piloto automático não suportado: a rota funciona com ArduPilot ou PX4.'
-  else if not P.Multirrotor then
+  else if not P.IsMultirotor then
     AMotivo := 'A rota é feita para multirrotores; este veículo é de outro tipo.'
   else if T.GpsFix < 3 then
-    AMotivo := 'O GPS do drone ainda não tem fix 3D (' + P.TextoGps + '). Aguarde.'
-  else if T.Satelites < ROTA_SATELITES_MIN then
-    AMotivo := Format('Poucos satélites (%d; mínimo %d). Aguarde.', [T.Satelites, ROTA_SATELITES_MIN])
-  else if not T.PosValida then
+    AMotivo := 'O GPS do drone ainda não tem fix 3D (' + P.GpsText + '). Aguarde.'
+  else if T.Satellites < ROTA_SATELITES_MIN then
+    AMotivo := Format('Poucos satélites (%d; mínimo %d). Aguarde.', [T.Satellites, ROTA_SATELITES_MIN])
+  else if not T.PositionValid then
     AMotivo := 'A posição do drone ainda é desconhecida.'
   else if not GlobalFlightPlan.HomeValido then
     AMotivo := 'O ponto de partida do drone ainda é desconhecido.'
-  else if (T.BateriaPct >= 0) and (T.BateriaPct < ROTA_BATERIA_MIN) then
+  else if (T.BatteryPct >= 0) and (T.BatteryPct < ROTA_BATERIA_MIN) then
     AMotivo := Format('Bateria em %d%% (mínimo %d%% para iniciar uma rota).',
-      [T.BateriaPct, ROTA_BATERIA_MIN])
-  else if AParaEnvio and T.Armado then
+      [T.BatteryPct, ROTA_BATERIA_MIN])
+  else if AParaEnvio and T.Armed then
     AMotivo := 'O drone está armado: pouse e desarme antes de trocar a rota.'
   else
     Result := True;
@@ -832,9 +832,9 @@ end;
 
 procedure TfrmRotaVoo.BtEnviarClick(Sender: TObject);
 var
-  P: TMavlinkProtocol;
+  P: TAIDroneMavlink;
   Motivo: string;
-  M: TMavMissao;
+  M: TAIMavMission;
   I: Integer;
 begin
   LeOpcoes;
@@ -846,7 +846,7 @@ begin
   if not ValidaComMensagem then
     Exit;
   P := Protocolo;
-  M := MontaMissao(GlobalFlightPlan, P.Telemetria.Autopilot = MAV_AUTOPILOT_ARDUPILOT);
+  M := MontaMissao(GlobalFlightPlan, P.Telemetry.Autopilot = MAV_AUTOPILOT_ARDUPILOT);
   if Length(M) = 0 then
   begin
     MessageDlg('Enviar rota', 'Não foi possível montar a missão.', mtError, [mbOK], 0);
@@ -854,11 +854,11 @@ begin
   end;
   Log('Missão:');
   for I := 0 to High(M) do
-    Log(Format('  %d. %s', [I, DescreveItem(M[I])]));
+    Log(Format('  %d. %s', [I, TAIDroneMavlink.DescribeItem(M[I])]));
   GlobalFlightPlan.ResetStatus;
   FAssinaturaEnviada := GlobalFlightPlan.Assinatura;
   FUltimoItem := -99;
-  P.EnviaMissao(M);
+  P.UploadMission(M);
   FPrecisaAtualizar := True;
 end;
 
@@ -867,7 +867,7 @@ const
   ACOES: array[TAcaoFinal] of string = ('voltar ao ponto de partida e pousar',
     'pousar no último ponto', 'pairar no último ponto');
 var
-  P: TMavlinkProtocol;
+  P: TAIDroneMavlink;
   Motivo, Texto: string;
 begin
   P := Protocolo;
@@ -885,7 +885,7 @@ begin
   if not ValidaComMensagem then
     Exit;
 
-  if P.Telemetria.Armado then
+  if P.Telemetry.Armed then
     Texto := 'O drone (já armado) vai seguir a rota desde o início:'
   else
     Texto := Format('O drone vai ARMAR e DECOLAR até %s m. Depois:',
@@ -903,47 +903,47 @@ begin
   DefineModoAdicionar(False);
   GlobalFlightPlan.ResetStatus;
   FUltimoItem := -99;
-  P.IniciarMissao;
+  P.StartMission;
   FPrecisaAtualizar := True;
 end;
 
 procedure TfrmRotaVoo.BtPausarClick(Sender: TObject);
 begin
   if Protocolo <> nil then
-    Protocolo.Pausar;
+    Protocolo.PauseMission;
 end;
 
 procedure TfrmRotaVoo.BtContinuarClick(Sender: TObject);
 begin
   if Protocolo <> nil then
-    Protocolo.Continuar;
+    Protocolo.ResumeMission;
 end;
 
 procedure TfrmRotaVoo.BtVoltarClick(Sender: TObject);
 begin
   if Protocolo <> nil then
-    Protocolo.VoltarPartida;
+    Protocolo.ReturnToLaunch;
 end;
 
 procedure TfrmRotaVoo.BtPousarClick(Sender: TObject);
 begin
   if Protocolo <> nil then
-    Protocolo.Pousar;
+    Protocolo.Land;
 end;
 
 { Atualização periódica }
 
 procedure TfrmRotaVoo.AtualizaPainel;
 var
-  P: TMavlinkProtocol;
-  T: TMavTelemetria;
+  P: TAIDroneMavlink;
+  T: TAIMavTelemetry;
   Conectado, Atual, Voando: Boolean;
   I, Ativo: Integer;
 begin
   P := Protocolo;
-  Conectado := (P <> nil) and P.Active and P.Telemetria.Conectado;
+  Conectado := (P <> nil) and P.Active and P.Telemetry.Connected;
   if Conectado then
-    T := P.Telemetria
+    T := P.Telemetry
   else
     FillChar(T, SizeOf(T), 0);
   Atual := RotaEnviadaAtual;
@@ -964,25 +964,25 @@ begin
 
   if Conectado then
   begin
-    FLbGps.Caption := P.TextoGps;
-    if (T.GpsFix >= 3) and (T.Satelites >= ROTA_SATELITES_MIN) then
+    FLbGps.Caption := P.GpsText;
+    if (T.GpsFix >= 3) and (T.Satellites >= ROTA_SATELITES_MIN) then
       FLbGps.Font.Color := clGreen
     else
       FLbGps.Font.Color := clRed;
-    if T.PosValida then
+    if T.PositionValid then
       FLbPosicao.Caption := Format('%s, %s  alt %s m  %s m/s',
         [FormataNumero(T.Lat, 6), FormataNumero(T.Lon, 6),
-         FormataNumero(T.AltRelativa, 1), FormataNumero(T.VelSolo, 1)])
+         FormataNumero(T.RelativeAlt, 1), FormataNumero(T.GroundSpeed, 1)])
     else
       FLbPosicao.Caption := 'desconhecida';
-    if T.BateriaPct >= 0 then
-      FLbBateria.Caption := Format('%d%%  (%s V)', [T.BateriaPct, FormataNumero(T.BateriaV, 2)])
-    else if T.BateriaV > 0 then
-      FLbBateria.Caption := FormataNumero(T.BateriaV, 2) + ' V'
+    if T.BatteryPct >= 0 then
+      FLbBateria.Caption := Format('%d%%  (%s V)', [T.BatteryPct, FormataNumero(T.BatteryVoltage, 2)])
+    else if T.BatteryVoltage > 0 then
+      FLbBateria.Caption := FormataNumero(T.BatteryVoltage, 2) + ' V'
     else
       FLbBateria.Caption := '-';
-    FLbModo.Caption := P.TextoModo;
-    if T.Armado then
+    FLbModo.Caption := P.ModeText;
+    if T.Armed then
       FLbModo.Font.Color := clRed
     else
       FLbModo.Font.Color := clDefault;
@@ -1001,14 +1001,14 @@ begin
   if P = nil then
     FLbRota.Caption := 'não enviada'
   else
-    case P.EnvioMissao of
-      meNenhum: FLbRota.Caption := 'não enviada';
-      meEnviando: FLbRota.Caption := 'enviando ao drone...';
-      meFalhou: FLbRota.Caption := 'envio falhou (veja abaixo)';
-      meAceita:
+    case P.MissionState of
+      msNone: FLbRota.Caption := 'não enviada';
+      msUploading: FLbRota.Caption := 'enviando ao drone...';
+      msFailed: FLbRota.Caption := 'envio falhou (veja abaixo)';
+      msAccepted:
         if not Atual then
           FLbRota.Caption := 'ALTERADA depois do envio: envie de novo'
-        else if P.RotaAtiva or P.ModoMissao then
+        else if P.RouteActive or P.IsMissionMode then
         begin
           Ativo := -1;
           for I := 0 to GlobalFlightPlan.WaypointCount - 1 do
@@ -1028,13 +1028,13 @@ begin
     end;
 
   // Botões
-  FBtEnviar.Enabled := Conectado and (not T.Armado) and (P.EnvioMissao <> meEnviando) and
+  FBtEnviar.Enabled := Conectado and (not T.Armed) and (P.MissionState <> msUploading) and
     (GlobalFlightPlan.WaypointCount > 0);
-  FBtIniciar.Enabled := Conectado and Atual and (not P.RotaAtiva) and (P.Partida = mpNenhuma);
-  FBtPausar.Enabled := Conectado and T.Armado;
-  FBtContinuar.Enabled := Conectado and T.Armado and Atual and (not P.ModoMissao);
-  FBtVoltar.Enabled := Conectado and T.Armado;
-  FBtPousar.Enabled := Conectado and T.Armado;
+  FBtIniciar.Enabled := Conectado and Atual and (not P.RouteActive) and (P.StartState = ssNone);
+  FBtPausar.Enabled := Conectado and T.Armed;
+  FBtContinuar.Enabled := Conectado and T.Armed and Atual and (not P.IsMissionMode);
+  FBtVoltar.Enabled := Conectado and T.Armed;
+  FBtPousar.Enabled := Conectado and T.Armed;
   for I := 0 to High(FBtsEdicao) do
     FBtsEdicao[I].Enabled := not Voando;
   FEdDecolagem.Enabled := not Voando;
@@ -1047,8 +1047,8 @@ end;
 
 procedure TfrmRotaVoo.TimerTick(Sender: TObject);
 var
-  P: TMavlinkProtocol;
-  T: TMavTelemetria;
+  P: TAIDroneMavlink;
+  T: TAIMavTelemetry;
   Msg: string;
   HLat, HLon: Double;
   TemHome: Boolean;
@@ -1072,19 +1072,19 @@ begin
   P := Protocolo;
   if P <> nil then
   begin
-    while P.ProximoAviso(Msg) do
+    while TfrmConectionMavlink(frmMain.frmConnection).ProximoAviso(Msg) do
       Log(Msg);
-    T := P.Telemetria;
+    T := P.Telemetry;
 
     // Ponto de partida: o do drone; antes dele, a posição atual (no chão).
     TemHome := False;
-    if T.Conectado and T.HomeValido then
+    if T.Connected and T.HomeValid then
     begin
       HLat := T.HomeLat;
       HLon := T.HomeLon;
       TemHome := True;
     end
-    else if T.Conectado and T.PosValida and not T.Armado then
+    else if T.Connected and T.PositionValid and not T.Armed then
     begin
       HLat := T.Lat;
       HLon := T.Lon;
@@ -1098,11 +1098,11 @@ begin
     end;
 
     // Andamento da rota no drone
-    if RotaEnviadaAtual and (P.RotaAtiva or P.ModoMissao or T.Armado) and
-      (T.ItemAtual <> FUltimoItem) then
+    if RotaEnviadaAtual and (P.RouteActive or P.IsMissionMode or T.Armed) and
+      (T.CurrentItem <> FUltimoItem) then
     begin
-      FUltimoItem := T.ItemAtual;
-      AtualizaEstadoPontos(GlobalFlightPlan, P.Missao, T.ItemAtual);
+      FUltimoItem := T.CurrentItem;
+      AtualizaEstadoPontos(GlobalFlightPlan, P.Mission, T.CurrentItem);
       FPrecisaAtualizar := True;
     end;
   end;

@@ -61,7 +61,8 @@ implementation
 {$R *.lfm}
 
 uses
-  main, ConectionCX10W, conectionfq777, conectionardrone, conectionesp32drone;
+  main, conexaodrone, conectionfq777, conectionmavlink, conectionopendrone,
+  conectionesp32drone;
 
 { TfrmCam }
 
@@ -193,9 +194,8 @@ end;
 
 procedure TfrmCam.AtualizaDaConexao;
 var
-  Conn: TfrmConectionCX10W;
   ConnFQ: TfrmConectionFQ777;
-  ConnAR: TfrmConectionARDrone;
+  Conn: TfrmConexaoDrone;
 begin
   if not FCameraAtiva then
   begin
@@ -233,60 +233,26 @@ begin
     Exit;
   end;
 
-  if frmMain.frmConnection is TfrmConectionARDrone then
-  begin
-    // A imagem chega por MostraQuadro; aqui só o estado.
-    ConnAR := TfrmConectionARDrone(frmMain.frmConnection);
-    if not ConnAR.Protocol.VideoEnabled then
-      DefineStatus('VÍDEO DESLIGADO NA CONFIGURAÇÃO')
-    else if ConnAR.UltimaImagemDataHora > 0 then
-      DefineStatus('ONLINE  IMG: ' + FormatDateTime('hh:nn:ss', ConnAR.UltimaImagemDataHora) +
-        '  QUADROS: ' + IntToStr(ConnAR.Decoder.FramesDecoded))
-    else if ConnAR.Protocol.VideoConnected then
-      DefineStatus('RECEBENDO VÍDEO, AGUARDANDO DECODIFICADOR (ffmpeg)')
-    else
-      DefineStatus('AGUARDANDO VÍDEO DO AR.DRONE');
-    Exit;
-  end;
-
-  if frmMain.frmConnection is TfrmConectionESP32Drone then
-  begin
-    DefineStatus('O DRONE ESP32 NÃO TEM CÂMERA');
-    Exit;
-  end;
-
-  if not (frmMain.frmConnection is TfrmConectionCX10W) then
+  if not (frmMain.frmConnection is TfrmConexaoDrone) then
   begin
     DefineStatus('CONEXÃO INVÁLIDA');
     Exit;
   end;
 
-  Conn := TfrmConectionCX10W(frmMain.frmConnection);
-
-  if Assigned(Conn.Bitmap) and (Conn.Bitmap.Width > 0) and (Conn.Bitmap.Height > 0) then
-  begin
-    Image1.Picture.Bitmap.Assign(Conn.Bitmap);
-
-    if Conn.UltimaImagemDataHora > 0 then
-      DefineStatus(
-        'ONLINE  IMG: ' +
-        FormatDateTime('hh:nn:ss', Conn.UltimaImagemDataHora) +
-        '  TCP:' + IntToStr(Conn.TotalPacotesTCP) +
-        '  UDP:' + IntToStr(Conn.TotalPacotesUDP)
-      )
-    else
-      DefineStatus(
-        'ONLINE  TCP:' + IntToStr(Conn.TotalPacotesTCP) +
-        '  UDP:' + IntToStr(Conn.TotalPacotesUDP)
-      );
-  end
+  // Demais drones: a imagem chega por MostraQuadro; aqui só o estado.
+  Conn := TfrmConexaoDrone(frmMain.frmConnection);
+  if (Conn is TfrmConectionMavlink) or (Conn is TfrmConectionOpendrone) or
+     (Conn is TfrmConectionESP32Drone) then
+    DefineStatus('ESTE DRONE NÃO ENVIA VÍDEO PARA O COCKPIT')
+  else if not Conn.VideoLigado then
+    DefineStatus('VÍDEO DESLIGADO NA CONFIGURAÇÃO')
+  else if Conn.VideoChegando and (Conn.UltimaImagemDataHora > 0) then
+    DefineStatus('ONLINE  IMG: ' + FormatDateTime('hh:nn:ss', Conn.UltimaImagemDataHora) +
+      '  QUADROS: ' + IntToStr(Conn.Decoder.FramesDecoded))
+  else if Conn.VideoChegando then
+    DefineStatus('RECEBENDO VÍDEO, AGUARDANDO DECODIFICADOR (ffmpeg)')
   else
-  begin
-    DefineStatus(
-      'SEM IMAGEM  TCP:' + IntToStr(Conn.TotalPacotesTCP) +
-      '  UDP:' + IntToStr(Conn.TotalPacotesUDP)
-    );
-  end;
+    DefineStatus('AGUARDANDO VÍDEO DO DRONE');
 end;
 
 procedure TfrmCam.AtivaCamera;

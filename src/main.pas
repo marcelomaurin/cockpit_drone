@@ -9,14 +9,15 @@ uses
   StdCtrls, Arrow, Menus, acs_mixer, CADSys4, SdpoJoystick, A3nalogGauge,
   IndLed, LedNumber, AdvLed, BCGameGrid, BCSVGViewer, gpssignalplot, gpsskyplot,
   gpstarget, nmeadecode, gpsportconnected, about,
-  lNetComponents, config, cd10w, camera, map, ConectionCX10W, funcs, GPS,
+  config, camera, map, funcs, GPS,
   joystick, LCLType, uplaysound, controler, setmain, tacticalhud, flightplan,
-  conectionmavlink, conectiontello, conectionopendrone, conectionfq777,
-  conectionardrone, conectionesp32drone, mavlinkproto, rotavoo;
+  conexaodrone, ConectionCX10W, conectionmavlink, conectiontello,
+  conectionopendrone, conectionfq777, conectionardrone, conectionesp32drone,
+  aidronemavlink, protocols, rotavoo;
 
 const
   refJoy = 127;
-  versao = 0.41;
+  versao = 0.42;
 
 type
 
@@ -388,7 +389,7 @@ procedure TfrmMain.AtualizaMapaDrone;
 var
   Lat, Lon: Double;
   Col, Row: Integer;
-  Tel: TMavTelemetria;
+  Tel: TAIMavTelemetry;
 begin
   if not Assigned(frmMap) then
     Exit;
@@ -397,11 +398,10 @@ begin
   Row := Y div 16;
 
   // Drone MAVLink conectado: posição real do GPS do drone.
-  if (frmConnection is TfrmConectionMavlink) and
-    Assigned(TfrmConectionMavlink(frmConnection).Protocol) then
+  if frmConnection is TfrmConectionMavlink then
   begin
-    Tel := TfrmConectionMavlink(frmConnection).Protocol.Telemetria;
-    if Tel.Conectado and Tel.PosValida then
+    Tel := TfrmConectionMavlink(frmConnection).Mavlink.Telemetry;
+    if Tel.Connected and Tel.PositionValid then
     begin
       frmMap.AtualizaDrone(Tel.Lat, Tel.Lon, Col, Row);
       Exit;
@@ -675,101 +675,64 @@ end;
 procedure TfrmMain.AtivaDrone;
 var
   ConnFQ: TfrmConectionFQ777;
-  ConnAR: TfrmConectionARDrone;
-  ConnESP: TfrmConectionESP32Drone;
+  Conn: TfrmConexaoDrone;
   Motivo: string;
-
-  procedure FalhaAoIniciar(const ATitulo: string);
-  begin
-    MessageDlg(ATitulo, Motivo, mtWarning, [mbOK], 0);
-    if AdvStart.State = lsOn then
-      AdvStartClick(Self) // mesmo caminho do botão desligar
-    else
-      DesativaDrone;
-  end;
-
 begin
   EnsureConfig;
 
-  if frmConnection = nil then
+  if frmConnection <> nil then
   begin
-    case frmConfig.TipoAtivo of
-      0:
-        begin
-          frmConnection := TfrmConectionCX10W.Create(Self);
-          TfrmConectionCX10W(frmConnection).Show;
-          TfrmConectionCX10W(frmConnection).PegaConfiguracao;
-          TfrmConectionCX10W(frmConnection).InicioHandShake;
-        end;
-      1:
-        begin
-          frmConnection := TfrmConectionMavlink.Create(Self);
-          TfrmConectionMavlink(frmConnection).Show;
-          TfrmConectionMavlink(frmConnection).PegaConfiguracao;
-          TfrmConectionMavlink(frmConnection).InicioHandShake;
-        end;
-      2:
-        begin
-          frmConnection := TfrmConectionTello.Create(Self);
-          TfrmConectionTello(frmConnection).Show;
-          TfrmConectionTello(frmConnection).PegaConfiguracao;
-          TfrmConectionTello(frmConnection).InicioHandShake;
-        end;
-      3:
-        begin
-          frmConnection := TfrmConectionOpendrone.Create(Self);
-          TfrmConectionOpendrone(frmConnection).Show;
-          TfrmConectionOpendrone(frmConnection).PegaConfiguracao;
-          TfrmConectionOpendrone(frmConnection).InicioHandShake;
-        end;
-      4:
-        begin
-          ConnFQ := TfrmConectionFQ777.Create(Self);
-          frmConnection := ConnFQ;
-          ConnFQ.Show;
-          if not ConnFQ.Iniciar then
-          begin
-            // Sem a rede do drone não há como ligar o equipamento.
-            Motivo := ConnFQ.UltimoErro;
-            if Motivo = '' then
-              Motivo := 'FQ777-954 não encontrado.';
-            MessageDlg('FQ777-954', Motivo, mtWarning, [mbOK], 0);
-            if AdvStart.State = lsOn then
-              AdvStartClick(Self) // mesmo caminho do botão desligar
-            else
-              DesativaDrone;
-          end;
-        end;
-      5:
-        begin
-          ConnAR := TfrmConectionARDrone.Create(Self);
-          frmConnection := ConnAR;
-          ConnAR.Show;
-          if not ConnAR.Iniciar then
-          begin
-            Motivo := ConnAR.UltimoErro;
-            if Motivo = '' then
-              Motivo := 'AR.Drone não encontrado.';
-            FalhaAoIniciar('Parrot AR.Drone');
-          end;
-        end;
-      6:
-        begin
-          ConnESP := TfrmConectionESP32Drone.Create(Self);
-          frmConnection := ConnESP;
-          ConnESP.Show;
-          if not ConnESP.Iniciar then
-          begin
-            Motivo := ConnESP.UltimoErro;
-            if Motivo = '' then
-              Motivo := 'Drone ESP32 não encontrado.';
-            FalhaAoIniciar('Drone ESP32');
-          end;
-        end;
+    frmConnection.Show;
+    Exit;
+  end;
+
+  if frmConfig.TipoAtivo = PROTOCOLO_FQ777 then
+  begin
+    ConnFQ := TfrmConectionFQ777.Create(Self);
+    frmConnection := ConnFQ;
+    ConnFQ.Show;
+    if ConnFQ.Iniciar then
+    begin
+      AtivouDrone;
+      Exit;
     end;
+    // Sem a rede do drone não há como ligar o equipamento.
+    Motivo := ConnFQ.UltimoErro;
   end
   else
-    frmConnection.Show;
+  begin
+    case frmConfig.TipoAtivo of
+      PROTOCOLO_CX10W: Conn := TfrmConectionCX10W.Create(Self);
+      PROTOCOLO_MAVLINK: Conn := TfrmConectionMavlink.Create(Self);
+      PROTOCOLO_TELLO: Conn := TfrmConectionTello.Create(Self);
+      PROTOCOLO_OPENDRONE: Conn := TfrmConectionOpendrone.Create(Self);
+      PROTOCOLO_ARDRONE: Conn := TfrmConectionARDrone.Create(Self);
+      PROTOCOLO_ESP32DRONE: Conn := TfrmConectionESP32Drone.Create(Self);
+    else
+      Conn := nil;
+    end;
+    if Conn = nil then
+      Motivo := 'Selecione o drone em Configuração > Protocolo.'
+    else
+    begin
+      frmConnection := Conn;
+      Conn.Show;
+      if Conn.Iniciar then
+      begin
+        AtivouDrone;
+        Exit;
+      end;
+      Motivo := Conn.UltimoErro;
+    end;
+  end;
+
+  if Motivo = '' then
+    Motivo := NomeProtocolo(frmConfig.TipoAtivo) + ' não encontrado.';
+  MessageDlg(NomeProtocolo(frmConfig.TipoAtivo), Motivo, mtWarning, [mbOK], 0);
+  if AdvStart.State = lsOn then
+    AdvStartClick(Self) // mesmo caminho do botão desligar
+  else
+    DesativaDrone;
 end;
 
 procedure TfrmMain.DesativaDrone;

@@ -1,216 +1,114 @@
 unit conectionopendrone;
 
+{ Janela de conexão do ESP-Drone da Espressif / OpenDrone (firmware
+  Crazyflie, pacotes CRTP em UDP).
+
+  Protocolo: TAIDroneESPDrone (CHATGPT, pacote openai_drone). Configuração
+  própria na seção [ESPDRONE] do drone.cfg.
+
+  Comandos (frmMain): X/Y = rolagem/arfagem, Z (Q/E) = aceleração,
+  botões 1/2 = giro. A aceleração só é liberada depois que desce ao mínimo
+  (exigência do firmware); "Parar motores" volta a travar.
+  Ao desligar, envia aceleração zero antes de soltar a conexão. }
+
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, Menus, setmain, protocols, opendroneproto;
+  Classes, SysUtils, StdCtrls, conexaodrone, aidroneespdrone;
 
 type
+
   { TfrmConectionOpendrone }
 
-  TfrmConectionOpendrone = class(TForm)
-    Label1: TLabel;
-    Label2: TLabel;
-    Label4: TLabel;
-    lbStateConection: TLabel;
-    lbIP: TLabel;
-    lbdevicename: TLabel;
-    lbUDP: TLabel;
-    meLog: TMemo;
-    MenuItem1: TMenuItem;
-    pnTop: TPanel;
-    pnBotton: TPanel;
-    popLog: TPopupMenu;
-    timerJoystick: TTimer;
-
-    procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
-    procedure pnBottonClick(Sender: TObject);
-    procedure timerJoystickTimer(Sender: TObject);
-
+  TfrmConectionOpendrone = class(TfrmConexaoDrone)
   private
-    FProtocol: TOpendroneProtocol;
-    FX, FY, FZ: Byte;
-    FB1, FB2, FB3, FB4, FB5, FB6: Byte;
-    FHost: string;
-    FUdpPort: Integer;
-
-    procedure Log(const ATexto: string);
-    procedure SetStatus(const ATexto: string);
-    procedure SyncFromMain(var AMudou: Boolean);
-    procedure OnProtocolError(Sender: TObject; const AMsg: string);
-    procedure OnProtocolStatus(Sender: TObject; const AStatus: string);
-
+    FESP: TAIDroneESPDrone;
+    FParado: Boolean;
+    FLbEnlace: TLabel;
+    FLbAcelerador: TLabel;
+    FLbPacotes: TLabel;
+    procedure BtPararClick(Sender: TObject);
+  protected
+    function Conectar: Boolean; override;
+    procedure Desconectar; override;
+    procedure Controle(const C: TComandoManche); override;
+    procedure AtualizaPainel; override;
   public
-    procedure PegaConfiguracao;
-    procedure InicioHandShake;
-    procedure sendGamepadData;
-    procedure DesativaJoystick;
-    procedure AtivaJoystick;
-    procedure DesativaConnection;
+    constructor Create(AOwner: TComponent); override;
+    property ESPDrone: TAIDroneESPDrone read FESP;
   end;
-
-var
-  frmConectionOpendrone: TfrmConectionOpendrone;
 
 implementation
 
 uses
-  main;
+  setmain;
 
-{$R *.lfm}
-
-procedure TfrmConectionOpendrone.FormCreate(Sender: TObject);
+constructor TfrmConectionOpendrone.Create(AOwner: TComponent);
 begin
-  FProtocol := nil;
-  SetStatus('Offline');
-  Log('Carregando Conexão OpenDrone ESP32...');
+  inherited Create(AOwner);
+  Caption := 'ESP-Drone / OpenDrone';
+  FESP := TAIDroneESPDrone.Create(Self);
+  UsaDrone(FESP);
+  FLbEnlace := NovaLinha('Enlace:');
+  FLbAcelerador := NovaLinha('Aceleração:');
+  FLbPacotes := NovaLinha('Comandos:');
+  NovoBotao('PARAR MOTORES', @BtPararClick, True);
 end;
 
-procedure TfrmConectionOpendrone.FormDestroy(Sender: TObject);
+function TfrmConectionOpendrone.Conectar: Boolean;
 begin
-  DesativaConnection;
-end;
-
-procedure TfrmConectionOpendrone.pnBottonClick(Sender: TObject);
-begin
-  DesativaConnection;
-  Close;
-end;
-
-procedure TfrmConectionOpendrone.timerJoystickTimer(Sender: TObject);
-begin
-  sendGamepadData;
-end;
-
-procedure TfrmConectionOpendrone.Log(const ATexto: string);
-begin
-  if Assigned(meLog) then
+  with FSetMain.ESPDrone do
   begin
-    meLog.Lines.Add(FormatDateTime('hh:nn:ss.zzz ', Now) + ATexto);
-    if meLog.Lines.Count > 100 then
-      meLog.Lines.Delete(0);
+    if Trim(IP) <> '' then
+      FESP.Host := Trim(IP);
+    if Porta > 0 then
+      FESP.Port := Porta;
+    FESP.MaxAngle := AnguloMaximo;
   end;
+  FParado := False;
+  FESP.Connect;
+  Result := FESP.Active;
 end;
 
-procedure TfrmConectionOpendrone.SetStatus(const ATexto: string);
+procedure TfrmConectionOpendrone.Desconectar;
 begin
-  if Assigned(lbStateConection) then
-    lbStateConection.Caption := ATexto;
+  FESP.Disconnect; // aceleração zero antes de fechar
 end;
 
-procedure TfrmConectionOpendrone.SyncFromMain(var AMudou: Boolean);
+procedure TfrmConectionOpendrone.Controle(const C: TComandoManche);
 begin
-  if Assigned(frmMain) then
+  if FParado then
   begin
-    if (FX <> frmMain.X) or (FY <> frmMain.Y) or (FZ <> frmMain.Z) or
-       (FB1 <> frmMain.B1) or (FB2 <> frmMain.B2) or (FB3 <> frmMain.B3) or
-       (FB4 <> frmMain.B4) or (FB5 <> frmMain.B5) or (FB6 <> frmMain.B6) then
-    begin
-      AMudou := True;
-      FX := frmMain.X;
-      FY := frmMain.Y;
-      FZ := frmMain.Z;
-      FB1 := frmMain.B1;
-      FB2 := frmMain.B2;
-      FB3 := frmMain.B3;
-      FB4 := frmMain.B4;
-      FB5 := frmMain.B5;
-      FB6 := frmMain.B6;
-    end;
+    // Depois de "Parar motores", só volta com o acelerador no mínimo.
+    if C.Acelerador >= 0.02 then
+      Exit;
+    FParado := False;
   end;
+  FESP.SetSticks(C.Rolagem, C.Arfagem, C.Guinada, C.Acelerador);
 end;
 
-procedure TfrmConectionOpendrone.OnProtocolError(Sender: TObject; const AMsg: string);
+procedure TfrmConectionOpendrone.AtualizaPainel;
 begin
-  Log('Erro: ' + AMsg);
-  SetStatus('Erro');
+  if FESP.LinkAlive then
+    FLbEnlace.Caption := 'drone respondendo'
+  else if FESP.Active then
+    FLbEnlace.Caption := 'enviando (sem resposta)'
+  else
+    FLbEnlace.Caption := 'desconectado';
+  if FESP.ThrustUnlocked then
+    FLbAcelerador.Caption := 'liberada'
+  else
+    FLbAcelerador.Caption := 'travada: baixe ao mínimo';
+  FLbPacotes.Caption := IntToStr(FESP.PacketsSent);
 end;
 
-procedure TfrmConectionOpendrone.OnProtocolStatus(Sender: TObject; const AStatus: string);
+procedure TfrmConectionOpendrone.BtPararClick(Sender: TObject);
 begin
-  Log(AStatus);
-  if Pos('conectado na porta', AStatus) > 0 then
-    SetStatus('Online')
-  else if AStatus = 'OpenDrone desconectado.' then
-    SetStatus('Offline');
-end;
-
-procedure TfrmConectionOpendrone.PegaConfiguracao;
-begin
-  if Assigned(FSetMain) then
-  begin
-    FHost := FSetMain.DroneIP;
-    FUdpPort := FSetMain.DronePortaComando;
-  end;
-
-  if Trim(FHost) = '' then
-    FHost := '192.168.4.1';
-
-  if FUdpPort <= 0 then
-    FUdpPort := 2399;
-
-  if Assigned(lbIP) then
-    lbIP.Caption := FHost;
-  if Assigned(lbUDP) then
-    lbUDP.Caption := IntToStr(FUdpPort);
-  if Assigned(lbdevicename) then
-    lbdevicename.Caption := 'OpenDrone ESP32 (UDP)';
-end;
-
-procedure TfrmConectionOpendrone.InicioHandShake;
-begin
-  PegaConfiguracao;
-  DesativaConnection;
-
-  Log('Inicializando Protocolo OpenDrone...');
-  FProtocol := TOpendroneProtocol.Create;
-  FProtocol.OnError := @OnProtocolError;
-  FProtocol.OnStatus := @OnProtocolStatus;
-
-  FProtocol.Connect(FHost, 0, FUdpPort);
-  AtivaJoystick;
-  
-  if Assigned(frmMain) then
-    frmMain.AtivouDrone;
-end;
-
-procedure TfrmConectionOpendrone.sendGamepadData;
-var
-  Mudou: Boolean;
-begin
-  if Assigned(FProtocol) and FProtocol.Active then
-  begin
-    Mudou := False;
-    SyncFromMain(Mudou);
-    FProtocol.SendCommand(FX, FY, FZ, FB1, FB2, FB3, FB4, FB5, FB6);
-  end;
-end;
-
-procedure TfrmConectionOpendrone.DesativaJoystick;
-begin
-  if Assigned(timerJoystick) then
-    timerJoystick.Enabled := False;
-end;
-
-procedure TfrmConectionOpendrone.AtivaJoystick;
-begin
-  if Assigned(timerJoystick) then
-    timerJoystick.Enabled := True;
-end;
-
-procedure TfrmConectionOpendrone.DesativaConnection;
-begin
-  DesativaJoystick;
-  if Assigned(FProtocol) then
-  begin
-    FProtocol.Disconnect;
-    FreeAndNil(FProtocol);
-  end;
-  SetStatus('Offline');
+  FParado := True;
+  FESP.Stop;
+  Log('Motores parados: baixe a aceleração ao mínimo para liberar.');
 end;
 
 end.

@@ -28,17 +28,27 @@ Este projeto, desenvolvido em Object Pascal (Lazarus/Free Pascal), constitui uma
 - **map.pas**  
   Formulário com componente de grade para exibição de mapa ou área visual, sem lógica funcional implementada.
 
-- **conectioncx10w.pas**  
-  Gerencia a comunicação TCP/UDP com o drone CX10W. Envia pacotes mágicos para handshake e ativação de vídeo, transmite comandos do joystick em tempo real e trata erros e logs da conexão.
+- **Protocolos dos drones**  
+  Os protocolos não ficam mais no cockpit: são componentes da [Lazarus AI Suite (CHATGPT)](https://github.com/marcelomaurin/CHATGPT), pacote `openai_drone`, reaproveitáveis em outras aplicações:
+
+  | Drone | Componente | Janela do cockpit |
+  |---|---|---|
+  | Cheerson CX-10W | `TAIDroneCX10W` | `conectioncx10w.pas` |
+  | MAVLink (ArduPilot/PX4) | `TAIDroneMavlink` | `conectionmavlink.pas` |
+  | DJI/Ryze Tello | `TAIDroneTello` | `conectiontello.pas` |
+  | ESP-Drone / OpenDrone | `TAIDroneESPDrone` | `conectionopendrone.pas` |
+  | FQ777-954 | `TAIDroneFQ777` | `conectionfq777.pas` |
+  | Parrot AR.Drone 2.0 | `TAIDroneARDrone` | `conectionardrone.pas` |
+  | Drone ESP32 (firmware Cockpit) | `TAIDroneCDP` | `conectionesp32drone.pas` |
+
+- **conexaodrone.pas**  
+  Base comum das janelas de conexão: monta a janela, converte o manche do cockpit (X/Y, Q/E, botões 1 a 6), entrega o vídeo H.264 ao `TAIH264Decoder` e mostra as mensagens do componente. Cada janela de drone só configura o seu componente e repassa os comandos.
 
 - **conectionfq777.pas**  
   Conexão exclusiva do quadricóptero FQ777-954 (veja a seção abaixo).
 
-- **rotavoo.pas / rotamavlink.pas / flightplan.pas / mavlinkproto.pas**  
-  Planejamento de rota de voo (somente drones com GPS), conversão da rota em missão MAVLink, validação e arquivos `.waypoints`, e o protocolo MAVLink (ArduPilot/PX4).
-
-- **cx10w.pas / ardroneproto.pas / esp32droneproto.pas**  
-  Protocolos do Cheerson CX-10W, do Parrot AR.Drone 2.0 e do drone ESP32 (firmware Cockpit), com as janelas `conectioncx10w.pas`, `conectionardrone.pas` e `conectionesp32drone.pas`.
+- **rotavoo.pas / rotamavlink.pas / flightplan.pas**  
+  Planejamento de rota de voo (somente drones com GPS), validação, arquivos `.waypoints` e envio da missão pelo `TAIDroneMavlink`.
 
 - **funcs.pas**  
   Contém funções utilitárias, como `MAPA`, que realiza mapeamento linear de valores analógicos para o intervalo byte (0-255), fundamental para a normalização dos sinais.
@@ -50,7 +60,7 @@ Este projeto, desenvolvido em Object Pascal (Lazarus/Free Pascal), constitui uma
 3. Clone ou obtenha o código-fonte do projeto.  
 4. Abra o arquivo `src/drone.lpi` no Lazarus.  
 5. Compile e execute o projeto.  
-6. Para a câmera do FQ777-954, coloque o `ffmpeg.exe` na pasta do `drone.exe` (ou no PATH).
+6. Para a câmera (FQ777-954, CX-10W, Tello e AR.Drone), coloque o `ffmpeg.exe` na pasta do `drone.exe` (ou no PATH).
 
 ### Drone FQ777-954
 
@@ -100,7 +110,7 @@ A pasta [`firmware/esp32_drone`](firmware/esp32_drone) traz o firmware de um min
 
 Botão 3 arma (só com a aceleração no mínimo), botão 4 desarma; a janela do drone tem **CORTE DOS MOTORES** e **Calibrar**. O firmware corta os motores se perder o sinal por 500 ms (descida de 2 s) ou se o drone capotar. Leia o [README do firmware](firmware/esp32_drone/README.md) e faça o primeiro teste **sem hélices**.
 
-O protocolo **OpenDrone ESP32 (UDP)** continua disponível para placas com o firmware ESP-Drone.
+O protocolo **ESP-Drone / OpenDrone (CRTP)** continua disponível para placas com o firmware ESP-Drone da Espressif (rede do drone `192.168.43.42`, UDP 2390).
 
 ### Rota de voo (somente drones com GPS)
 
@@ -176,8 +186,8 @@ This project, developed in Object Pascal (Lazarus/Free Pascal), is an applicatio
 - **map.pas**  
   Form with grid component for map or visual area display, without functional logic implemented yet.
 
-- **conectioncx10w.pas**  
-  Manages TCP/UDP communication with CX10W drone. Sends magic packets for handshake and video activation, streams joystick commands in real-time, and handles connection errors and logging.
+- **Drone protocols**  
+  The protocols live in the [Lazarus AI Suite (CHATGPT)](https://github.com/marcelomaurin/CHATGPT) `openai_drone` package, so other applications can reuse them: `TAIDroneCX10W`, `TAIDroneMavlink`, `TAIDroneTello`, `TAIDroneESPDrone`, `TAIDroneFQ777`, `TAIDroneARDrone` and `TAIDroneCDP`. The cockpit windows (`conection*.pas`) share the base `conexaodrone.pas` and only configure their component and forward the sticks.
 
 - **conectionfq777.pas**  
   Dedicated connection for the FQ777-954 quadcopter: finds and joins the drone's Wi-Fi automatically (the drone is not started if the network is not found), proportional flight control and H.264 camera, built on the Lazarus AI Suite components `TAIDroneFQ777`, `TAIH264Decoder`, `TAIJoystick` and `TAIWifi`.
@@ -192,7 +202,7 @@ This project, developed in Object Pascal (Lazarus/Free Pascal), is an applicatio
 3. Clone or download the project source.  
 4. Open `src/drone.lpi` in Lazarus.  
 5. Compile and run the project.  
-6. For the FQ777-954 camera, place `ffmpeg.exe` next to `drone.exe` (or on the PATH).
+6. For the camera (FQ777-954, CX-10W, Tello and AR.Drone), place `ffmpeg.exe` next to `drone.exe` (or on the PATH).
 
 ### Current Features
 
@@ -250,8 +260,8 @@ Este proyecto, desarrollado en Object Pascal (Lazarus/Free Pascal), es una aplic
 - **map.pas**  
   Formulario con componente de cuadrícula para mostrar mapas o área visual, sin lógica funcional implementada.
 
-- **conectioncx10w.pas**  
-  Gestiona la comunicación TCP/UDP con el dron CX10W. Envía paquetes mágicos para handshake y activación de vídeo, transmite comandos del joystick en tiempo real y maneja errores y registro de conexión.
+- **Protocolos de los drones**  
+  Los protocolos están en el paquete `openai_drone` de la [Lazarus AI Suite (CHATGPT)](https://github.com/marcelomaurin/CHATGPT): `TAIDroneCX10W`, `TAIDroneMavlink`, `TAIDroneTello`, `TAIDroneESPDrone`, `TAIDroneFQ777`, `TAIDroneARDrone` y `TAIDroneCDP`. Las ventanas de conexión (`conection*.pas`) comparten la base `conexaodrone.pas`.
 
 - **funcs.pas**  
   Contiene funciones utilitarias como `MAPA`, que realiza mapeo lineal de valores analógicos al rango byte (0-255), fundamental para la normalización de señales.

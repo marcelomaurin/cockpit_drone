@@ -8,12 +8,10 @@ uses
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms, opengpsx, mplayercontrollaz, LazSerialPort, sdposeriallaz, laz_acs,
-  lnetvisual, main, config, cd10w, About, Camera, map, joystick, ConectionCX10W,
-  funcs, GPS, objetos, setmain, protocols, flightplan, tacticalhud,
-  cx10w, mavlinkproto, telloproto, opendroneproto,
+  main, config, About, Camera, map, joystick, funcs, GPS, objetos, setmain,
+  protocols, flightplan, tacticalhud, conexaodrone, ConectionCX10W,
   conectionmavlink, conectiontello, conectionopendrone, conectionfq777,
-  ardroneproto, conectionardrone, esp32droneproto, conectionesp32drone,
-  rotamavlink, rotavoo
+  conectionardrone, conectionesp32drone, rotamavlink, rotavoo
   { you can add units after this };
 
 {$R *.res}

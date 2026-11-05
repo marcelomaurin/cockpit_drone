@@ -1,6 +1,6 @@
 ; Instalador do Cockpit Drone — Inno Setup 6
 ; Compile no Windows, a partir da pasta install:  ISCC.exe cockpitdrone.iss
-; Saída: install\win32\win_setup_041.exe
+; Saída: install\win32\win_setup_042.exe
 ;
 ; Antes de compilar:
 ;   1. Compile o projeto src\drone.lpi no Lazarus — gera src\drone.exe.
@@ -8,7 +8,7 @@
 ;      CX-10W, FQ777-954 e AR.Drone funcionar sem instalar nada a mais.
 
 #define MyAppName "Cockpit Drone"
-#define MyAppVersion "0.41"
+#define MyAppVersion "0.42"
 #define MyAppPublisher "Maurinsoft.com.br"
 #define MyAppURL "https://maurinsoft.com.br/wp/projetos-open-source/projeto-cockpit-drone/"
 #define MyAppExeName "drone.exe"
@@ -29,7 +29,7 @@ DefaultDirName={autopf}\cockpit drone
 DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\{#MyAppExeName}
 OutputDir=win32
-OutputBaseFilename=win_setup_041
+OutputBaseFilename=win_setup_042
 SetupIconFile={#Raiz}\src\drone.ico
 Compression=lzma2
 SolidCompression=yes
