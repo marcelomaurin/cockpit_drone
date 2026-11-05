@@ -37,8 +37,19 @@ type
       var Allow: Boolean);
     procedure MapView1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure MapView1MouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure GridMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure GridMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    procedure GridMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure GridMouseWheel(Sender: TObject; Shift: TShiftState;
+      WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
 
   private
+    FMouseIni: TPoint;
+    FMousePressionado: Boolean;
     FDroneCol: Integer;
     FDroneRow: Integer;
     FDroneLat: Double;
@@ -63,6 +74,7 @@ type
     procedure AtualizaReferenciaPorObjetoZero;
     procedure AtualizaObjetosNoGrid;
     function PontoTelaParaGrid(const APt: TPoint; out ACol, ARow: Integer): Boolean;
+    procedure CliqueNoMapa(Shift: TShiftState; X, Y: Integer);
 
   public
     procedure CentralizaMapa(const ALatitude, ALongitude: Double);
@@ -82,6 +94,13 @@ var
 implementation
 
 {$R *.lfm}
+
+uses
+  rotavoo;
+
+type
+  { Acesso aos eventos de mouse protegidos do mapa (para repassá-los da grade). }
+  TMapViewAcesso = class(TMapView);
 
 const
   MAPA_INICIAL_ZOOM = 13;
@@ -248,6 +267,17 @@ begin
     MapView1.OnZoomChanging := @MapView1ZoomChanging;
     MapView1.OnDrawGpsPoint := @MapView1DrawGpsPoint;
     MapView1.OnMouseDown := @MapView1MouseDown;
+    MapView1.OnMouseUp := @MapView1MouseUp;
+  end;
+
+  // A grade fica sobre o mapa: repassa arrastar e roda do mouse ao mapa e
+  // trata os cliques (rota, geocerca).
+  if Assigned(gridMAP) then
+  begin
+    gridMAP.OnMouseDown := @GridMouseDown;
+    gridMAP.OnMouseMove := @GridMouseMove;
+    gridMAP.OnMouseUp := @GridMouseUp;
+    gridMAP.OnMouseWheel := @GridMouseWheel;
   end;
 
   AjustaGrid;
@@ -473,9 +503,36 @@ begin
       end;
     end;
 
+    // Ponto de partida e trechos de ida/volta (tracejados)
+    if GlobalFlightPlan.HomeValido then
+    begin
+      Pt2 := MapView1.LatLonToScreen(GlobalFlightPlan.HomeLat, GlobalFlightPlan.HomeLon);
+      if GlobalFlightPlan.WaypointCount > 0 then
+      begin
+        Bitmap.PenStyle := psDash;
+        W := GlobalFlightPlan.Waypoints[0];
+        Pt0 := MapView1.LatLonToScreen(W.Latitude, W.Longitude);
+        Bitmap.DrawLineAntialias(Pt2.X, Pt2.Y, Pt0.X, Pt0.Y, BGRA(0, 160, 255, 150), 2.0);
+        if GlobalFlightPlan.AcaoFinal = afVoltarPartida then
+        begin
+          W := GlobalFlightPlan.Waypoints[GlobalFlightPlan.WaypointCount - 1];
+          Pt0 := MapView1.LatLonToScreen(W.Latitude, W.Longitude);
+          Bitmap.DrawLineAntialias(Pt0.X, Pt0.Y, Pt2.X, Pt2.Y, BGRA(80, 80, 80, 170), 2.0);
+        end;
+        Bitmap.PenStyle := psSolid;
+      end;
+      Bitmap.FillRectAntialias(Pt2.X - 9, Pt2.Y - 9, Pt2.X + 9, Pt2.Y + 9, BGRA(0, 0, 0, 170));
+      Bitmap.RectangleAntialias(Pt2.X - 9, Pt2.Y - 9, Pt2.X + 9, Pt2.Y + 9, BGRA(255, 255, 255, 230), 1.5);
+      Bitmap.FontHeight := 14;
+      Bitmap.FontStyle := [fsBold];
+      Bitmap.TextOut(Pt2.X, Pt2.Y - 8, 'H', BGRA(255, 255, 255, 255), taCenter);
+    end;
+
     // Desenha Rotas e Linhas de Waypoint
     if GlobalFlightPlan.WaypointCount > 0 then
     begin
+      Bitmap.FontHeight := 13;
+      Bitmap.FontStyle := [fsBold];
       for I := 0 to GlobalFlightPlan.WaypointCount - 1 do
       begin
         W := GlobalFlightPlan.Waypoints[I];
@@ -503,6 +560,10 @@ begin
           Bitmap.EllipseAntialias(Pt0.X, Pt0.Y, 8, 8, BGRA(0, 160, 255, 255), 2.0);
           Bitmap.FillEllipseAntialias(Pt0.X, Pt0.Y, 4, 4, BGRA(0, 160, 255, 180));
         end;
+        // Número do ponto (etiqueta escura, legível sobre qualquer fundo)
+        Bitmap.FillRoundRectAntialias(Pt0.X + 8, Pt0.Y - 22, Pt0.X + 12 + Bitmap.TextSize(IntToStr(I + 1)).cx,
+          Pt0.Y - 6, 4, 4, BGRA(0, 40, 90, 210));
+        Bitmap.TextOut(Pt0.X + 10, Pt0.Y - 22, IntToStr(I + 1), BGRA(255, 255, 255, 255));
       end;
     end;
   end;
@@ -595,33 +656,91 @@ end;
 
 procedure TfrmMap.MapView1MouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
+begin
+  FMouseIni := Point(X, Y);
+  FMousePressionado := True;
+end;
+
+procedure TfrmMap.MapView1MouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  // Clique sem arrastar: trata como clique no mapa.
+  if FMousePressionado and (Button = mbLeft) and
+    (Abs(X - FMouseIni.X) <= 4) and (Abs(Y - FMouseIni.Y) <= 4) then
+    CliqueNoMapa(Shift, X, Y);
+  FMousePressionado := False;
+end;
+
+procedure TfrmMap.GridMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  FMouseIni := Point(X, Y);
+  FMousePressionado := True;
+  if Assigned(MapView1) then
+    TMapViewAcesso(MapView1).MouseDown(Button, Shift, X, Y);
+end;
+
+procedure TfrmMap.GridMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+begin
+  if Assigned(MapView1) then
+    TMapViewAcesso(MapView1).MouseMove(Shift, X, Y);
+end;
+
+procedure TfrmMap.GridMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  if Assigned(MapView1) then
+    TMapViewAcesso(MapView1).MouseUp(Button, Shift, X, Y);
+  if FMousePressionado and (Button = mbLeft) and
+    (Abs(X - FMouseIni.X) <= 4) and (Abs(Y - FMouseIni.Y) <= 4) then
+    CliqueNoMapa(Shift, X, Y);
+  FMousePressionado := False;
+end;
+
+procedure TfrmMap.GridMouseWheel(Sender: TObject; Shift: TShiftState;
+  WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+begin
+  if Assigned(MapView1) then
+    Handled := TMapViewAcesso(MapView1).DoMouseWheel(Shift, WheelDelta, MousePos);
+end;
+
+procedure TfrmMap.CliqueNoMapa(Shift: TShiftState; X, Y: Integer);
 var
   LatLon: TRealPoint;
   I: Integer;
+  Motivo: string;
 begin
   if not Assigned(MapView1) then
     Exit;
 
   LatLon := MapView1.ScreenToLatLon(Point(X, Y));
 
-  if (ssCtrl in Shift) and (Button = mbLeft) then
+  if ssAlt in Shift then
   begin
-    GlobalFlightPlan.AddWaypoint(LatLon.Lat, LatLon.Lon, 15.0, 5.0);
-    gridMAP.RenderAndDrawControl;
-    ShowMessage(Format('Waypoint adicionado em Lat: %.6f, Lon: %.6f', [LatLon.Lat, LatLon.Lon]));
-  end
-  else if (ssAlt in Shift) and (Button = mbLeft) then
-  begin
+    // Alt+clique: define o próximo canto da geocerca.
     I := 0;
     while (I < 4) and (Abs(GlobalFlightPlan.GetGeofenceCorner(I).Latitude) > 0.0001) do
       Inc(I);
-
     if I = 4 then
       I := 0;
-
     GlobalFlightPlan.SetGeofenceCorner(I, LatLon.Lat, LatLon.Lon);
     gridMAP.RenderAndDrawControl;
-    ShowMessage(Format('Vértice %d do Quadrilátero definido em Lat: %.6f, Lon: %.6f', [I + 1, LatLon.Lat, LatLon.Lon]));
+    ShowMessage(Format('Canto %d da geocerca definido em %.6f, %.6f',
+      [I + 1, LatLon.Lat, LatLon.Lon]));
+  end
+  else if (ssCtrl in Shift) or
+    (Assigned(frmRotaVoo) and frmRotaVoo.Visible and frmRotaVoo.ModoAdicionar) then
+  begin
+    // Ctrl+clique ou modo "adicionar pelo mapa": novo ponto da rota.
+    if not RotaDisponivel(Motivo) then
+    begin
+      ShowMessage(Motivo);
+      Exit;
+    end;
+    if not (Assigned(frmRotaVoo) and frmRotaVoo.Visible) then
+      AbreRotaVoo;
+    if Assigned(frmRotaVoo) then
+      frmRotaVoo.AdicionaPonto(LatLon.Lat, LatLon.Lon);
   end;
 end;
 

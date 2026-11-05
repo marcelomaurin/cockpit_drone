@@ -248,8 +248,9 @@ procedure TARDroneProtocol.SendNavTrigger;
 const
   GATILHO: array[0..3] of Byte = ($01, $00, $00, $00);
 begin
+  // Enviado da porta local 5554 para a 5554 do drone: ele responde para cá.
   if FNav.Connected then
-    FNav.Send(GATILHO[0], SizeOf(GATILHO));
+    FNav.Send(GATILHO[0], SizeOf(GATILHO), FHost + ':' + IntToStr(ARDRONE_PORT_NAVDATA));
   FUltimoGatilhoNav := GetTickCount64;
 end;
 
@@ -282,13 +283,15 @@ begin
 
   DoStatus(Format('Conectando ao AR.Drone em %s...', [FHost]));
   try
-    // Connect em UDP liga também a porta local igual à remota (como o SDK).
+    // Comandos: só envio (porta local qualquer).
     if not FAt.Connect(FHost, FUdpPort) then
     begin
       DoError('Não foi possível abrir a porta de comandos UDP ' + IntToStr(FUdpPort) + '.');
       Exit;
     end;
-    if not FNav.Connect(FHost, ARDRONE_PORT_NAVDATA) then
+    // Telemetria: escuta na porta local 5554, como o SDK oficial (o Connect do
+    // lNet não liga a porta local, e o drone envia a telemetria para a 5554).
+    if not FNav.Listen(ARDRONE_PORT_NAVDATA) then
       DoStatus('Telemetria indisponível (porta UDP 5554 ocupada?).');
   except
     on E: Exception do

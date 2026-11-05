@@ -1,5 +1,14 @@
 unit conectionmavlink;
 
+{ Janela de conexão MAVLink (ArduPilot/PX4).
+
+  Protocolo em mavlinkproto.pas. Esta janela:
+    - lê a configuração própria (seção [MAVLINK] do drone.cfg);
+    - a cada 100 ms chama Tick (sinal de vida, prazos) e repassa o manche do
+      frmMain (ignorado pelo protocolo durante a rota e nos modos autônomos);
+    - mostra GPS, modo, bateria e as mensagens do drone.
+  A rota de voo é planejada e enviada pela janela "Rota de voo" (rotavoo.pas). }
+
 {$mode objfpc}{$H+}
 
 interface
@@ -33,14 +42,12 @@ type
 
   private
     FProtocol: TMavlinkProtocol;
-    FX, FY, FZ: Byte;
-    FB1, FB2, FB3, FB4, FB5, FB6: Byte;
     FHost: string;
     FUdpPort: Integer;
+    FUltimaTela: QWord;
 
     procedure Log(const ATexto: string);
     procedure SetStatus(const ATexto: string);
-    procedure SyncFromMain(var AMudou: Boolean);
     procedure OnProtocolError(Sender: TObject; const AMsg: string);
     procedure OnProtocolStatus(Sender: TObject; const AStatus: string);
 
@@ -51,6 +58,8 @@ type
     procedure DesativaJoystick;
     procedure AtivaJoystick;
     procedure DesativaConnection;
+
+    property Protocol: TMavlinkProtocol read FProtocol;
   end;
 
 var
@@ -66,8 +75,14 @@ uses
 procedure TfrmConectionMavlink.FormCreate(Sender: TObject);
 begin
   FProtocol := nil;
+  // O .lfm não liga o OnDestroy.
+  OnDestroy := @FormDestroy;
+  if Assigned(timerJoystick) then
+  begin
+    timerJoystick.Interval := 100;
+    timerJoystick.Enabled := False;
+  end;
   SetStatus('Offline');
-  Log('Carregando Conexão MAVLink...');
 end;
 
 procedure TfrmConectionMavlink.FormDestroy(Sender: TObject);
@@ -82,17 +97,37 @@ begin
 end;
 
 procedure TfrmConectionMavlink.timerJoystickTimer(Sender: TObject);
+var
+  T: TMavTelemetria;
 begin
+  if not Assigned(FProtocol) then
+    Exit;
   sendGamepadData;
+  FProtocol.Tick;
+
+  if GetTickCount64 - FUltimaTela >= 500 then
+  begin
+    FUltimaTela := GetTickCount64;
+    T := FProtocol.Telemetria;
+    if not FProtocol.Active then
+      SetStatus('Offline')
+    else if not T.Conectado then
+      SetStatus('Aguardando o drone...')
+    else
+    begin
+      SetStatus(FProtocol.TextoModo + '  |  GPS ' + FProtocol.TextoGps);
+      if T.BateriaPct >= 0 then
+        lbdevicename.Caption := Format('MAVLink — bateria %d%% (%.2f V)', [T.BateriaPct, T.BateriaV]);
+    end;
+  end;
 end;
 
 procedure TfrmConectionMavlink.Log(const ATexto: string);
 begin
   if Assigned(meLog) then
   begin
-    meLog.Lines.Add(FormatDateTime('hh:nn:ss.zzz ', Now) + ATexto);
-    // Limit log lines
-    if meLog.Lines.Count > 100 then
+    meLog.Lines.Add(FormatDateTime('hh:nn:ss ', Now) + ATexto);
+    if meLog.Lines.Count > 300 then
       meLog.Lines.Delete(0);
   end;
 end;
@@ -101,28 +136,6 @@ procedure TfrmConectionMavlink.SetStatus(const ATexto: string);
 begin
   if Assigned(lbStateConection) then
     lbStateConection.Caption := ATexto;
-end;
-
-procedure TfrmConectionMavlink.SyncFromMain(var AMudou: Boolean);
-begin
-  if Assigned(frmMain) then
-  begin
-    if (FX <> frmMain.X) or (FY <> frmMain.Y) or (FZ <> frmMain.Z) or
-       (FB1 <> frmMain.B1) or (FB2 <> frmMain.B2) or (FB3 <> frmMain.B3) or
-       (FB4 <> frmMain.B4) or (FB5 <> frmMain.B5) or (FB6 <> frmMain.B6) then
-    begin
-      AMudou := True;
-      FX := frmMain.X;
-      FY := frmMain.Y;
-      FZ := frmMain.Z;
-      FB1 := frmMain.B1;
-      FB2 := frmMain.B2;
-      FB3 := frmMain.B3;
-      FB4 := frmMain.B4;
-      FB5 := frmMain.B5;
-      FB6 := frmMain.B6;
-    end;
-  end;
 end;
 
 procedure TfrmConectionMavlink.OnProtocolError(Sender: TObject; const AMsg: string);
@@ -134,32 +147,25 @@ end;
 procedure TfrmConectionMavlink.OnProtocolStatus(Sender: TObject; const AStatus: string);
 begin
   Log(AStatus);
-  if AStatus = 'MAVLink conectado.' then
-    SetStatus('Online')
-  else if AStatus = 'MAVLink desconectado.' then
-    SetStatus('Offline');
 end;
 
 procedure TfrmConectionMavlink.PegaConfiguracao;
 begin
+  FHost := '';
+  FUdpPort := MAV_PORTA_PADRAO;
   if Assigned(FSetMain) then
   begin
-    FHost := FSetMain.DroneIP;
-    FUdpPort := FSetMain.DronePortaVideo; // Port assigned for UDP telemetry
+    FHost := Trim(FSetMain.Mavlink.IP);
+    if FSetMain.Mavlink.Porta > 0 then
+      FUdpPort := FSetMain.Mavlink.Porta;
   end;
-
-  if Trim(FHost) = '' then
-    FHost := '192.168.1.1';
-
-  if FUdpPort <= 0 then
-    FUdpPort := 14550;
 
   if Assigned(lbIP) then
     lbIP.Caption := FHost;
   if Assigned(lbUDP) then
     lbUDP.Caption := IntToStr(FUdpPort);
   if Assigned(lbdevicename) then
-    lbdevicename.Caption := 'MAVLink Autonomous';
+    lbdevicename.Caption := 'MAVLink (ArduPilot/PX4)';
 end;
 
 procedure TfrmConectionMavlink.InicioHandShake;
@@ -167,28 +173,23 @@ begin
   PegaConfiguracao;
   DesativaConnection;
 
-  Log('Inicializando Protocolo MAVLink...');
+  Log('Iniciando MAVLink...');
   FProtocol := TMavlinkProtocol.Create;
   FProtocol.OnError := @OnProtocolError;
   FProtocol.OnStatus := @OnProtocolStatus;
 
   FProtocol.Connect(FHost, 0, FUdpPort);
   AtivaJoystick;
-  
+
   if Assigned(frmMain) then
     frmMain.AtivouDrone;
 end;
 
 procedure TfrmConectionMavlink.sendGamepadData;
-var
-  Mudou: Boolean;
 begin
-  if Assigned(FProtocol) and FProtocol.Active then
-  begin
-    Mudou := False;
-    SyncFromMain(Mudou);
-    FProtocol.SendCommand(FX, FY, FZ, FB1, FB2, FB3, FB4, FB5, FB6);
-  end;
+  if Assigned(FProtocol) and FProtocol.Active and Assigned(frmMain) then
+    FProtocol.SendCommand(frmMain.X, frmMain.Y, frmMain.Z,
+      frmMain.B1, frmMain.B2, frmMain.B3, frmMain.B4, frmMain.B5, frmMain.B6);
 end;
 
 procedure TfrmConectionMavlink.DesativaJoystick;
@@ -200,7 +201,10 @@ end;
 procedure TfrmConectionMavlink.AtivaJoystick;
 begin
   if Assigned(timerJoystick) then
+  begin
+    timerJoystick.Interval := 100;
     timerJoystick.Enabled := True;
+  end;
 end;
 
 procedure TfrmConectionMavlink.DesativaConnection;
@@ -208,6 +212,8 @@ begin
   DesativaJoystick;
   if Assigned(FProtocol) then
   begin
+    FProtocol.OnError := nil;
+    FProtocol.OnStatus := nil;
     FProtocol.Disconnect;
     FreeAndNil(FProtocol);
   end;

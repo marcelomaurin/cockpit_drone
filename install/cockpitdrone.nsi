@@ -2,13 +2,13 @@
 ; Compile a partir da pasta install:
 ;   makensis cockpitdrone.nsi
 ;   makensis -DEXE=caminho\drone.exe cockpitdrone.nsi   (outro executável)
-; Saída: install\win32\win_setup_040.exe
+; Saída: install\win32\win_setup_041.exe
 
 Unicode true
 SetCompressor /SOLID lzma
 
 !define APP_NAME      "Cockpit Drone"
-!define APP_VERSION   "0.40"
+!define APP_VERSION   "0.41"
 !define APP_PUBLISHER "Maurinsoft.com.br"
 !define APP_URL       "https://maurinsoft.com.br/wp/projetos-open-source/projeto-cockpit-drone/"
 !define APP_EXE       "drone.exe"
@@ -22,13 +22,13 @@ SetCompressor /SOLID lzma
 !include "x64.nsh"
 
 Name "${APP_NAME} ${APP_VERSION}"
-OutFile "win32\win_setup_040.exe"
+OutFile "win32\win_setup_041.exe"
 InstallDir "$PROGRAMFILES64\cockpit drone"
 InstallDirRegKey HKLM "${UNINST_KEY}" "InstallLocation"
 RequestExecutionLevel admin
 BrandingText "${APP_PUBLISHER}"
 
-VIProductVersion "0.40.0.0"
+VIProductVersion "0.41.0.0"
 VIAddVersionKey /LANG=1046 "ProductName" "${APP_NAME}"
 VIAddVersionKey /LANG=1046 "ProductVersion" "${APP_VERSION}"
 VIAddVersionKey /LANG=1046 "CompanyName" "${APP_PUBLISHER}"

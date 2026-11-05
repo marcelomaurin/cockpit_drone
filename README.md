@@ -34,6 +34,9 @@ Este projeto, desenvolvido em Object Pascal (Lazarus/Free Pascal), constitui uma
 - **conectionfq777.pas**  
   Conexão exclusiva do quadricóptero FQ777-954 (veja a seção abaixo).
 
+- **rotavoo.pas / rotamavlink.pas / flightplan.pas / mavlinkproto.pas**  
+  Planejamento de rota de voo (somente drones com GPS), conversão da rota em missão MAVLink, validação e arquivos `.waypoints`, e o protocolo MAVLink (ArduPilot/PX4).
+
 - **cx10w.pas / ardroneproto.pas / esp32droneproto.pas**  
   Protocolos do Cheerson CX-10W, do Parrot AR.Drone 2.0 e do drone ESP32 (firmware Cockpit), com as janelas `conectioncx10w.pas`, `conectionardrone.pas` e `conectionesp32drone.pas`.
 
@@ -98,6 +101,24 @@ A pasta [`firmware/esp32_drone`](firmware/esp32_drone) traz o firmware de um min
 Botão 3 arma (só com a aceleração no mínimo), botão 4 desarma; a janela do drone tem **CORTE DOS MOTORES** e **Calibrar**. O firmware corta os motores se perder o sinal por 500 ms (descida de 2 s) ou se o drone capotar. Leia o [README do firmware](firmware/esp32_drone/README.md) e faça o primeiro teste **sem hélices**.
 
 O protocolo **OpenDrone ESP32 (UDP)** continua disponível para placas com o firmware ESP-Drone.
+
+### Rota de voo (somente drones com GPS)
+
+O botão **Rota de voo** do cockpit abre o planejamento de rota. Ele só fica disponível para drones com GPS e navegação autônoma: hoje, **MAVLink (ArduPilot ou PX4)**, em multirrotores. Com outro drone selecionado (CX-10W, Tello, FQ777-954, OpenDrone, drone ESP32, AR.Drone 2.0 sem o acessório Flight Recorder), a janela não abre e explica o motivo.
+
+1. Em Configuração > Protocolo, escolha **MAVLink**. Na aba MAVLink, informe o IP do drone ou da ponte Wi-Fi e a porta UDP (padrão 14550, a mesma do Mission Planner). Clique em **Start**.
+2. Em **Rota de voo**, clique em **Adicionar pelo mapa** e clique nos pontos (ou use Ctrl+clique). Arraste para mover o mapa e use a roda do mouse para o zoom. Também é possível usar a **posição do drone** ou **abrir** um arquivo `.waypoints` do Mission Planner/QGroundControl.
+3. Ajuste na tabela a latitude, a longitude, a altitude e a velocidade de cada ponto. Nas opções, defina a altitude de decolagem, a velocidade padrão, a distância máxima do ponto de partida e o que fazer ao terminar: voltar ao ponto de partida, pousar ou pairar no último ponto.
+4. **Enviar ao drone**: a rota é validada e enviada; o drone confirma.
+5. **Iniciar rota**: depois da confirmação, o drone arma, decola e percorre os pontos. Durante o voo: **Pausar** (pairar), **Continuar**, **Voltar ao ponto de partida** e **Pousar agora**.
+
+Proteções:
+- A rota só é enviada com GPS 3D e pelo menos 6 satélites, com a posição e o ponto de partida conhecidos, bateria de pelo menos 30% (quando informada) e o drone desarmado.
+- Cada ponto precisa estar entre 2 e 120 m de altitude e entre 0,5 e 15 m/s de velocidade, dentro da geocerca (Alt+clique no mapa) e dentro da distância máxima do ponto de partida.
+- Se a rota for alterada depois de enviada, é preciso enviá-la de novo.
+- Durante a rota, o manche e o teclado não interferem.
+
+As opções ficam na seção `[ROTA]` do `drone.cfg` e a conexão MAVLink na seção `[MAVLINK]`.
 
 ### Funcionalidades Atuais
 

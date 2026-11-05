@@ -12,7 +12,8 @@ uses
   funcs, GPS, objetos, setmain, protocols, flightplan, tacticalhud,
   cx10w, mavlinkproto, telloproto, opendroneproto,
   conectionmavlink, conectiontello, conectionopendrone, conectionfq777,
-  ardroneproto, conectionardrone, esp32droneproto, conectionesp32drone
+  ardroneproto, conectionardrone, esp32droneproto, conectionesp32drone,
+  rotamavlink, rotavoo
   { you can add units after this };
 
 {$R *.res}

@@ -12,11 +12,11 @@ uses
   lNetComponents, config, cd10w, camera, map, ConectionCX10W, funcs, GPS,
   joystick, LCLType, uplaysound, controler, setmain, tacticalhud, flightplan,
   conectionmavlink, conectiontello, conectionopendrone, conectionfq777,
-  conectionardrone, conectionesp32drone;
+  conectionardrone, conectionesp32drone, mavlinkproto, rotavoo;
 
 const
   refJoy = 127;
-  versao = 0.40;
+  versao = 0.41;
 
 type
 
@@ -125,6 +125,9 @@ type
     FKeyB5: Boolean;
     FKeyB6: Boolean;
 
+    FBtRota: TButton;
+
+    procedure BtRotaClick(Sender: TObject);
     procedure EnsureAbout;
     procedure EnsureConfig;
     procedure EnsureCam;
@@ -161,6 +164,8 @@ type
     procedure AtivouDrone;
     procedure AtivaGPS;
     procedure DesativaGPS;
+    { Mostra o mapa (usado pela janela de rota de voo). }
+    procedure MostraMapa;
   end;
 
 var
@@ -359,6 +364,17 @@ begin
   AtualizaMapaDrone;
 end;
 
+procedure TfrmMain.MostraMapa;
+begin
+  AtivaMapa;
+end;
+
+procedure TfrmMain.BtRotaClick(Sender: TObject);
+begin
+  // Só abre para drones com GPS; para os demais explica o motivo.
+  AbreRotaVoo;
+end;
+
 procedure TfrmMain.DesativaMapa;
 begin
   if Assigned(frmMap) then
@@ -372,12 +388,25 @@ procedure TfrmMain.AtualizaMapaDrone;
 var
   Lat, Lon: Double;
   Col, Row: Integer;
+  Tel: TMavTelemetria;
 begin
   if not Assigned(frmMap) then
     Exit;
 
   Col := X div 16;
   Row := Y div 16;
+
+  // Drone MAVLink conectado: posição real do GPS do drone.
+  if (frmConnection is TfrmConectionMavlink) and
+    Assigned(TfrmConectionMavlink(frmConnection).Protocol) then
+  begin
+    Tel := TfrmConectionMavlink(frmConnection).Protocol.Telemetria;
+    if Tel.Conectado and Tel.PosValida then
+    begin
+      frmMap.AtualizaDrone(Tel.Lat, Tel.Lon, Col, Row);
+      Exit;
+    end;
+  end;
 
   if GlobalFlightPlan.SimulationActive then
   begin
@@ -439,6 +468,15 @@ begin
   else
     AdvJoystick.State := lsOff;
   AdvJoystick.Blink := False;
+
+  // Botão da rota de voo (somente drones com GPS), abaixo do botão Sair.
+  FBtRota := TButton.Create(Self);
+  FBtRota.Parent := btExit.Parent;
+  FBtRota.SetBounds(btExit.Left, btExit.Top + btExit.Height + 4, btExit.Width, btExit.Height);
+  FBtRota.Caption := 'Rota de voo';
+  FBtRota.Hint := 'Planejamento de rota de voo (somente drones com GPS: MAVLink)';
+  FBtRota.ShowHint := True;
+  FBtRota.OnClick := @BtRotaClick;
 
   EnsureAbout;
   if Assigned(frmAbout) then

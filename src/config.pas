@@ -343,19 +343,19 @@ begin
   begin
     Parent := tsMavlink;
     Left := 15; Top := 15;
-    Caption := 'MAVLink IP:';
+    Caption := 'IP do drone ou da ponte Wi-Fi:';
   end;
   edMavIP := TEdit.Create(Self);
   edMavIP.Name := 'edMavIP';
   edMavIP.Parent := tsMavlink;
   edMavIP.Left := 15; edMavIP.Top := 32; edMavIP.Width := 150;
-  edMavIP.Text := '192.168.1.1';
+  edMavIP.Text := '192.168.4.1';
 
   with TLabel.Create(Self) do
   begin
     Parent := tsMavlink;
     Left := 15; Top := 65;
-    Caption := 'UDP Port:';
+    Caption := 'Porta UDP em que o cockpit escuta:';
   end;
   edMavPort := TEdit.Create(Self);
   edMavPort.Name := 'edMavPort';
@@ -366,13 +366,16 @@ begin
   with TLabel.Create(Self) do
   begin
     Parent := tsMavlink;
-    Left := 15; Top := 115;
-    Caption := 'System ID:';
+    Left := 15; Top := 120;
+    Caption := 'ArduPilot ou PX4 (multirrotor com GPS). O drone (SITL, ponte' + LineEnding +
+      'Wi-Fi ou rádio) envia para esta porta; o cockpit responde a ele.' + LineEnding +
+      'Planejamento de rota: botão "Rota de voo" no cockpit.';
   end;
+  // Mantido por compatibilidade; o cockpit usa sempre o sistema 255.
   edMavSysId := TEdit.Create(Self);
   edMavSysId.Name := 'edMavSysId';
   edMavSysId.Parent := tsMavlink;
-  edMavSysId.Left := 15; edMavSysId.Top := 132; edMavSysId.Width := 80;
+  edMavSysId.Visible := False;
   edMavSysId.Text := '255';
 
   // Create tsTello
@@ -774,12 +777,11 @@ begin
   edTCPPORT.Text := IntToStr(FSetMain.CX10W.PortaTCP);
   edUDPPORT.Text := IntToStr(FSetMain.CX10W.PortaUDP);
 
+  // MAVLink: seção própria [MAVLINK].
   if Assigned(edMavIP) then
-    edMavIP.Text := FSetMain.DroneIP;
+    edMavIP.Text := FSetMain.Mavlink.IP;
   if Assigned(edMavPort) then
-    edMavPort.Text := IntToStr(FSetMain.DronePortaVideo);
-  if Assigned(edMavSysId) then
-    edMavSysId.Text := IntToStr(FSetMain.DronePortaStatus);
+    edMavPort.Text := IntToStr(FSetMain.Mavlink.Porta);
 
   if Assigned(edTelloIP) then
     edTelloIP.Text := FSetMain.DroneIP;
@@ -864,18 +866,12 @@ begin
       end;
     1:
       begin
-        if Assigned(edMavIP) then
-          FSetMain.DroneIP := edMavIP.Text;
-        if Assigned(edMavPort) then
-        begin
-          if TryStrToInt(Trim(edMavPort.Text), Val) then
-            FSetMain.DronePortaVideo := Val;
-        end;
-        if Assigned(edMavSysId) then
-        begin
-          if TryStrToInt(Trim(edMavSysId.Text), Val) then
-            FSetMain.DronePortaStatus := Val;
-        end;
+        // Seção própria [MAVLINK]: não altera a [DRONE] dos outros protocolos.
+        if Assigned(edMavIP) and (Trim(edMavIP.Text) <> '') then
+          FSetMain.Mavlink.IP := Trim(edMavIP.Text);
+        if Assigned(edMavPort) and TryStrToInt(Trim(edMavPort.Text), Val) and
+          (Val > 0) and (Val < 65536) then
+          FSetMain.Mavlink.Porta := Val;
       end;
     2:
       begin

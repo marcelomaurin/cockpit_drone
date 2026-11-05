@@ -32,6 +32,20 @@ type
     Sensibilidade: Integer;      // % do comando máximo usado pelo manche
   end;
 
+  { MAVLink — ArduPilot/PX4 (seção [MAVLINK] do drone.cfg). }
+  TMavlinkSettings = record
+    IP: string;                  // drone ou ponte Wi-Fi (até ele se identificar)
+    Porta: Integer;              // UDP em que o cockpit escuta (14550)
+  end;
+
+  { Opções da rota de voo (seção [ROTA] do drone.cfg). }
+  TRotaSettings = record
+    AltDecolagem: Double;        // m
+    Velocidade: Double;          // m/s
+    AcaoFinal: Integer;          // 0 voltar à partida, 1 pousar, 2 pairar
+    DistMaxima: Double;          // m do ponto de partida
+  end;
+
   { Drone ESP32 com o firmware Cockpit (seção [ESP32DRONE] do drone.cfg). }
   TESP32DroneSettings = record
     IP: string;
@@ -126,6 +140,8 @@ type
     CX10W: TCX10WSettings;
     ARDrone: TARDroneSettings;
     ESP32Drone: TESP32DroneSettings;
+    Mavlink: TMavlinkSettings;
+    Rota: TRotaSettings;
     FQ777: TFQ777Settings;
 
     function GetConfigFileName: string;
@@ -296,6 +312,16 @@ begin
   ESP32Drone.IP := '192.168.4.1';
   ESP32Drone.Porta := 4210;
 
+  // MAVLink
+  Mavlink.IP := '192.168.4.1';
+  Mavlink.Porta := 14550;
+
+  // Rota de voo
+  Rota.AltDecolagem := 10;
+  Rota.Velocidade := 5;
+  Rota.AcaoFinal := 0;
+  Rota.DistMaxima := 500;
+
   // FQ777-954
   FQ777.IP := '172.16.10.1';
   FQ777.PortaTCP := 8888;
@@ -406,6 +432,16 @@ begin
     ESP32Drone.IP := Ini.ReadString('ESP32DRONE', 'IP', ESP32Drone.IP);
     ESP32Drone.Porta := Ini.ReadInteger('ESP32DRONE', 'PORTA', ESP32Drone.Porta);
 
+    // MAVLink
+    Mavlink.IP := Ini.ReadString('MAVLINK', 'IP', Mavlink.IP);
+    Mavlink.Porta := Ini.ReadInteger('MAVLINK', 'PORTA', Mavlink.Porta);
+
+    // Rota de voo
+    Rota.AltDecolagem := Ini.ReadFloat('ROTA', 'ALT_DECOLAGEM', Rota.AltDecolagem);
+    Rota.Velocidade := Ini.ReadFloat('ROTA', 'VELOCIDADE', Rota.Velocidade);
+    Rota.AcaoFinal := Ini.ReadInteger('ROTA', 'ACAO_FINAL', Rota.AcaoFinal);
+    Rota.DistMaxima := Ini.ReadFloat('ROTA', 'DIST_MAXIMA', Rota.DistMaxima);
+
     // FQ777-954
     FQ777.IP := Ini.ReadString('FQ777', 'IP', FQ777.IP);
     FQ777.PortaTCP := Ini.ReadInteger('FQ777', 'PORTA_TCP', FQ777.PortaTCP);
@@ -506,6 +542,16 @@ begin
     // Drone ESP32 (firmware Cockpit)
     Ini.WriteString('ESP32DRONE', 'IP', ESP32Drone.IP);
     Ini.WriteInteger('ESP32DRONE', 'PORTA', ESP32Drone.Porta);
+
+    // MAVLink
+    Ini.WriteString('MAVLINK', 'IP', Mavlink.IP);
+    Ini.WriteInteger('MAVLINK', 'PORTA', Mavlink.Porta);
+
+    // Rota de voo
+    Ini.WriteFloat('ROTA', 'ALT_DECOLAGEM', Rota.AltDecolagem);
+    Ini.WriteFloat('ROTA', 'VELOCIDADE', Rota.Velocidade);
+    Ini.WriteInteger('ROTA', 'ACAO_FINAL', Rota.AcaoFinal);
+    Ini.WriteFloat('ROTA', 'DIST_MAXIMA', Rota.DistMaxima);
 
     // FQ777-954
     Ini.WriteString('FQ777', 'IP', FQ777.IP);
