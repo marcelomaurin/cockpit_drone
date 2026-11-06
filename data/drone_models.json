@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "notes": "Catalogo informativo. GPS e conectividade celular dependem de configuracao/variante; suporte SDK nao implica controle direto pelo cockpit.",
+  "models": [
+    {
+      "brand": "Cheerson",
+      "model": "CX-10W",
+      "protocol": "cx10w",
+      "cockpit_protocol_index": 0,
+      "gnss": "nao",
+      "cellular": "nao",
+      "control_status": "existing_protocol_unverified_hardware"
+    },
+    {
+      "brand": "FQ777",
+      "model": "954",
+      "protocol": "fq777",
+      "cockpit_protocol_index": 4,
+      "gnss": "nao",
+      "cellular": "nao",
+      "control_status": "existing_protocol_unverified_hardware"
+    },
+    {
+      "brand": "Ryze",
+      "model": "Tello",
+      "protocol": "tello_udp",
+      "cockpit_protocol_index": 2,
+      "gnss": "nao",
+      "cellular": "nao",
+      "control_status": "existing_protocol_unverified_hardware"
+    },
+    {
+      "brand": "Ryze",
+      "model": "Tello EDU",
+      "protocol": "tello_udp",
+      "cockpit_protocol_index": 2,
+      "gnss": "nao",
+      "cellular": "nao",
+      "control_status": "existing_protocol_unverified_hardware"
+    },
+    {
+      "brand": "Parrot",
+      "model": "AR.Drone 2.0",
+      "protocol": "parrot_at",
+      "cockpit_protocol_index": 5,
+      "gnss": "nao",
+      "cellular": "nao",
+      "control_status": "existing_protocol_unverified_hardware"
+    },
+    {
+      "brand": "Parrot",
+      "model": "ANAFI",
+      "protocol": "parrot_olympe",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "nao",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "Parrot",
+      "model": "ANAFI Thermal",
+      "protocol": "parrot_olympe",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "nao",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "Parrot",
+      "model": "ANAFI USA",
+      "protocol": "parrot_olympe",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "nao",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "Parrot",
+      "model": "ANAFI Ai",
+      "protocol": "parrot_olympe",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "4g",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "DJI",
+      "model": "Mini 3",
+      "protocol": "dji_mobile_sdk",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "nao",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "DJI",
+      "model": "Mini 3 Pro",
+      "protocol": "dji_mobile_sdk",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "nao",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "DJI",
+      "model": "Mini 4 Pro",
+      "protocol": "dji_mobile_sdk",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "nao",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "DJI",
+      "model": "Mavic 3 Enterprise",
+      "protocol": "dji_mobile_sdk",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "nao",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "DJI",
+      "model": "Matrice 30",
+      "protocol": "dji_mobile_sdk",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "opcional",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "DJI",
+      "model": "Matrice 350 RTK",
+      "protocol": "dji_mobile_sdk",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "opcional",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "DJI",
+      "model": "Matrice 4E",
+      "protocol": "dji_mobile_sdk",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "opcional",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "Custom",
+      "model": "ArduPilot Copter",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": 1,
+      "gnss": "configuravel",
+      "cellular": "via_modem",
+      "control_status": "existing_protocol_unverified_hardware"
+    },
+    {
+      "brand": "Custom",
+      "model": "PX4 Multicopter",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": 1,
+      "gnss": "configuravel",
+      "cellular": "via_modem",
+      "control_status": "existing_protocol_unverified_hardware"
+    },
+    {
+      "brand": "Espressif",
+      "model": "ESP-Drone",
+      "protocol": "crtp",
+      "cockpit_protocol_index": 3,
+      "gnss": "nao",
+      "cellular": "nao",
+      "control_status": "existing_protocol_unverified_hardware"
+    },
+    {
+      "brand": "Maurinsoft",
+      "model": "ESP32 Cockpit",
+      "protocol": "cdp",
+      "cockpit_protocol_index": 6,
+      "gnss": "nao",
+      "cellular": "nao",
+      "control_status": "existing_protocol_unverified_hardware"
+    }
+  ],
+  "sources": [
+    "https://developer.dji.com/mobile-sdk/",
+    "https://enterprise.dji.com/sdk",
+    "https://developer.parrot.com/docs/olympe/index.html",
+    "https://dl-cdn.ryzerobotics.com/downloads/Tello/Tello%20SDK%202.0%20User%20Guide.pdf"
+  ]
+}
