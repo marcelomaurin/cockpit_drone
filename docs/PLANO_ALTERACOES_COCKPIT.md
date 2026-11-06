@@ -30,7 +30,7 @@ Transformar o Cockpit em estação de controle multiplataforma, modular e segura
 - [ ] Compilar em Windows e Linux e registrar erros reais; corrigir falhas sem modificar comportamento de voo sem testes.
 - [ ] Criar CI com build e verificações estáticas, além de testes de parsing do catálogo e localização. **Parcial: testes estáticos de contratos e workflow GitHub Actions adicionados; build Lazarus e execução verde do workflow ainda não confirmados.**
 - [ ] Definir contrato comum de telemetria, comando, capacidades e erros; identificar diferenças entre controladores.
-- [ ] Documentar instalação, requisitos, permissões e reprodução dos testes.
+- [ ] Documentar instalação, requisitos, permissões e reprodução dos testes. **Parcial:** criado `docs/COMPILACAO_E_VALIDACAO.md` com roteiro, requisitos conhecidos e matriz de evidências; versões exatas e instalação completa ainda dependem do inventário.
 
 **Aceite:** builds reproduzíveis e relatório de testes com logs e versões.
 
@@ -179,6 +179,12 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Adicionado `.github/workflows/project-contracts.yml` para executar os testes em pushes na `master`, pull requests e manualmente.
 - **Estado:** arquivos publicados. Ainda não há evidência de execução bem-sucedida no GitHub Actions, compilação FPC/Lazarus ou testes de hardware. Testes estáticos não demonstram segurança de voo.
 - **Próximo passo:** inspecionar execução do workflow, corrigir eventuais falhas, criar ambiente de build com dependências Lazarus AI Suite e testes SITL.
+
+### Procedimento de compilação — 2026-11-06
+
+- Criado `docs/COMPILACAO_E_VALIDACAO.md`, com execução dos testes Python, preparação Lazarus/FPC, dependências, checklist e cuidados para ensaios de controle.
+- **Estado:** documentação publicada; nenhuma compilação Windows/Linux ou execução verde de CI foi confirmada nesta etapa.
+- **Próxima entrega:** inventariar projetos `.lpi` e pacotes `.lpk`, obter build real e registrar erros antes de marcar Fase 0 concluída.
 
 ## 9. Referências técnicas
 
