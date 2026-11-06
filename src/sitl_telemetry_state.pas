@@ -101,6 +101,15 @@ begin
     Candidate.SystemId := Obj.Get('system_id', 0);
     Candidate.ComponentId := Obj.Get('component_id', 0);
     Candidate.VehicleClass := Obj.Get('vehicle_class', 'unsupported');
+    if (Candidate.VehicleClass <> 'fixed_wing') and
+       (Candidate.VehicleClass <> 'multirotor') and
+       (Candidate.VehicleClass <> 'helicopter') and
+       (Candidate.VehicleClass <> 'boat') and
+       (Candidate.VehicleClass <> 'submersible') then
+    begin
+      ErrorText := 'Classe de veiculo SITL desconhecida';
+      Exit;
+    end;
     Candidate.CustomMode := Obj.Get('custom_mode', 0);
     Candidate.ArmedReported := Obj.Get('armed_reported', False);
     if (Candidate.SystemId < 1) or (Candidate.SystemId > 255) or
