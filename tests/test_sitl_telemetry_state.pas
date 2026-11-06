@@ -46,6 +46,16 @@ begin
     'numeric vehicle class must be rejected');
   Check(State.LastHeartbeatMs = 1000,
     'invalid field types must not refresh heartbeat');
+  Check(not ApplySitlEvent(
+    '{"event":"heartbeat","system_id":1,"component_id":1,' +
+    '"vehicle_class":"unsupported"}', State, 1450, Err),
+    'unsupported vehicle class must be rejected');
+  Check(not ApplySitlEvent(
+    '{"event":"heartbeat","system_id":1,"component_id":1,' +
+    '"vehicle_class":""}', State, 1460, Err),
+    'empty vehicle class must be rejected');
+  Check(State.LastHeartbeatMs = 1000,
+    'unknown classes must not refresh heartbeat');
 
   Check(not ApplySitlEvent(
     '{"event":"heartbeat","system_id":1,"component_id":1,' +
