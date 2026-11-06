@@ -422,3 +422,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `.github/workflows/lazarus-build.yml`: adicionado `python3 -m unittest discover -s tests -p 'test_sitl_*.py' -v` com `pipefail` e log `build-diagnostics/sitl-python-tests.log`.
 - Os gatilhos de `push` e `pull_request` incluem alterações no monitor Python e testes `test_sitl_*.py`, além dos arquivos Pascal/Lazarus.
 - **Estado:** alterações publicadas; sem confirmação de execução do workflow. Falhas de build ou testes devem ser verificadas nos logs antes de homologação.
+
+
+### Evitar estado residual em heartbeats SITL — 2026-11-06
+
+- `src/sitl_telemetry_state.pas`: novo heartbeat é construído a partir de estado limpo; `armed_reported` e `custom_mode` ausentes não herdam valores da mensagem anterior.
+- `tests/test_sitl_telemetry_state.pas`: regressão para verificar desarmado relatado e modo padrão quando os campos opcionais estão ausentes.
+- **Pendente:** confirmar compilação e execução na CI; testar com ArduPilot SITL real e dispositivos físicos antes de homologar.
