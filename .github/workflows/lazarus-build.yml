@@ -1,0 +1,49 @@
+name: Lazarus build diagnostic
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '**/*.pas'
+      - '**/*.lpi'
+      - '**/*.lpk'
+      - '.github/workflows/lazarus-build.yml'
+
+jobs:
+  linux-build-diagnostic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lazarus and Free Pascal
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y lazarus fpc
+      - name: Record compiler and project inventory
+        run: |
+          mkdir -p build-diagnostics
+          fpc -iV | tee build-diagnostics/fpc-version.txt
+          lazbuild --version | tee build-diagnostics/lazbuild-version.txt
+          python3 tools/inventory_lazarus.py --json > build-diagnostics/lazarus-inventory.json
+      - name: Attempt compilation of every Lazarus project
+        shell: bash
+        run: |
+          set -o pipefail
+          mapfile -d '' projects < <(find . -type f -name '*.lpi' -not -path './.git/*' -print0 | sort -z)
+          if (( ${#projects[@]} == 0 )); then
+            echo 'No .lpi found: compilation cannot proceed' | tee build-diagnostics/build.log
+            exit 1
+          fi
+          result=0
+          for project in "${projects[@]}"; do
+            echo "=== Building ${project} ===" | tee -a build-diagnostics/build.log
+            lazbuild --build-mode=Debug "${project}" 2>&1 | tee -a build-diagnostics/build.log || result=1
+          done
+          exit "$result"
+      - name: Upload diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lazarus-linux-build-diagnostics
+          path: build-diagnostics/
+          if-no-files-found: warn
