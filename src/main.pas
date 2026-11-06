@@ -5,7 +5,7 @@ unit main;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
+  Classes, SysUtils, Math, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   StdCtrls, Arrow, Menus, acs_mixer, CADSys4, SdpoJoystick, A3nalogGauge,
   IndLed, LedNumber, AdvLed, BCGameGrid, BCSVGViewer, gpssignalplot, gpsskyplot,
   gpstarget, nmeadecode, gpsportconnected, about,
