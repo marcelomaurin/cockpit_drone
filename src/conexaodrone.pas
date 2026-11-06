@@ -120,6 +120,18 @@ uses
 
 const
   REF = 127;
+  ZONA_MORTA_NORMALIZADA = 0.06;
+
+function EixoComZonaMorta(const Valor: Double): Double;
+begin
+  Result := EnsureRange(Valor, -1.0, 1.0);
+  if Abs(Result) <= ZONA_MORTA_NORMALIZADA then
+    Result := 0
+  else if Result > 0 then
+    Result := (Result - ZONA_MORTA_NORMALIZADA) / (1 - ZONA_MORTA_NORMALIZADA)
+  else
+    Result := (Result + ZONA_MORTA_NORMALIZADA) / (1 - ZONA_MORTA_NORMALIZADA);
+end;
 
 { TfrmConexaoDrone }
 
@@ -319,11 +331,12 @@ begin
     Exit;
   B[1] := frmMain.B1; B[2] := frmMain.B2; B[3] := frmMain.B3;
   B[4] := frmMain.B4; B[5] := frmMain.B5; B[6] := frmMain.B6;
-  // No frmMain X cresce para a ESQUERDA e Y para a FRENTE.
-  Result.Rolagem := EnsureRange((REF - Integer(frmMain.X)) / REF, -1, 1);
-  Result.Arfagem := EnsureRange((Integer(frmMain.Y) - REF) / REF, -1, 1);
-  Result.Acelerador := frmMain.Z / 255;
-  Result.Subida := EnsureRange((Integer(frmMain.Z) - REF) / REF, -1, 1);
+  // Normalizacao compartilhada entre MAVLink, Tello, CX-10W, CRTP, AR.Drone e CDP.
+  // A zona morta evita deriva sem perder a amplitude total do manche.
+  Result.Rolagem := EixoComZonaMorta((REF - Integer(frmMain.X)) / REF);
+  Result.Arfagem := EixoComZonaMorta((Integer(frmMain.Y) - REF) / REF);
+  Result.Acelerador := EnsureRange(frmMain.Z / 255.0, 0.0, 1.0);
+  Result.Subida := EixoComZonaMorta((Integer(frmMain.Z) - REF) / REF);
   for I := 1 to 6 do
   begin
     Result.Botao[I] := B[I] = 255;
