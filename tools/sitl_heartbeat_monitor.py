@@ -79,7 +79,10 @@ class HeartbeatSourceLock:
         return True
 
     def expire(self, now):
-        if self.last_seen is None or now - self.last_seen <= self.timeout:
+        if self.last_seen is None:
+            return False
+        # A monotonic clock rollback invalidates the previous source lease.
+        if now >= self.last_seen and now - self.last_seen <= self.timeout:
             return False
         self.last_seen = None
         self.active_source = None
