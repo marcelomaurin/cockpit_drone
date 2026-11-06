@@ -63,6 +63,10 @@ begin
   ExpireSitlTelemetry(State, 4001, 3000);
   Check(not State.Connected, 'stale heartbeat remained connected');
   Check(not State.ArmedReported, 'timeout must clear armed report');
+  Check(State.SystemId = 0, 'timeout must clear system id');
+  Check(State.ComponentId = 0, 'timeout must clear component id');
+  Check(State.CustomMode = 0, 'timeout must clear custom mode');
+  Check(State.VehicleClass = 'unknown', 'timeout must clear vehicle class');
 
   Check(ApplySitlEvent(
     '{"event":"heartbeat","system_id":2,"component_id":1,' +
@@ -75,5 +79,7 @@ begin
   Check(ApplySitlEvent('{"event":"heartbeat_timeout"}',
     State, 5001, Err), 'timeout event rejected');
   Check(not State.Connected, 'timeout event must disconnect');
+  Check(State.SystemId = 0, 'timeout event must clear source id');
+  Check(State.VehicleClass = 'unknown', 'timeout event must clear vehicle class');
   WriteLn('SITL telemetry state tests passed');
 end.
