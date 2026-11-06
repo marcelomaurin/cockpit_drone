@@ -66,8 +66,7 @@ begin
     EventName := Obj.Get('event', '');
     if EventName = 'heartbeat_timeout' then
     begin
-      State.Connected := False;
-      State.ArmedReported := False;
+      ResetSitlTelemetry(State);
       Result := True;
       Exit;
     end;
