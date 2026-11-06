@@ -512,3 +512,11 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `tests/test_sitl_monitor_runtime.py`: cobre o máximo uint32, valor acima do limite e valor negativo.
 - Monitor Python e parser Pascal agora usam o mesmo intervalo do campo MAVLink; o canal permanece somente leitura.
 - **Pendente:** execução confirmada da CI, compilação Lazarus e integração SITL/hardware.
+
+
+### Validação de autopilot e base_mode no monitor SITL — 2026-11-06
+
+- `tools/sitl_heartbeat_monitor.py`: valida `autopilot` e `base_mode` no intervalo MAVLink uint8 (0..255), além do `custom_mode` uint32 já validado.
+- `tests/test_sitl_monitor_runtime.py`: testes de fronteira para 255, 256 e -1.
+- O sinalizador `armed_reported` passa a derivar do `base_mode` previamente validado.
+- **Pendente:** confirmação da execução de testes/CI, compilação Lazarus e integração SITL/hardware.
