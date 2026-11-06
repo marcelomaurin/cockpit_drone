@@ -43,6 +43,15 @@ class SitlHeartbeatMapperTests(unittest.TestCase):
                 self.assertFalse(record["control_authorized"])
                 self.assertEqual(record["timestamp_monotonic"], 123.0)
 
+    def test_monitor_source_lock_is_present(self):
+        source = (ROOT / "tools" / "sitl_heartbeat_monitor.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('source = (record["system_id"], record["component_id"])', source)
+        self.assertIn("if source == active_source:", source)
+        self.assertIn("active_source = None", source)
+        self.assertIn("last_seen = None\n                active_source = None", source)
+
     def test_reported_armed_is_not_control_permission(self):
         record = MODULE.heartbeat_record(FakeHeartbeat(2, base_mode=128))
         self.assertTrue(record["armed_reported"])
