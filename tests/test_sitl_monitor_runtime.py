@@ -77,6 +77,14 @@ class SitlMonitorRuntimeTests(unittest.TestCase):
         message.autopilot = -1
         self.assertIsNone(MONITOR.heartbeat_record(message, now=3.0))
 
+    def test_source_lock_expires_after_clock_rollback(self):
+        lock = MONITOR.HeartbeatSourceLock(timeout=3.0)
+        self.assertTrue(lock.observe({"system_id": 1, "component_id": 1}, 100.0))
+        self.assertFalse(lock.expire(101.0))
+        self.assertTrue(lock.expire(99.0))
+        self.assertIsNone(lock.active_source)
+        self.assertTrue(lock.observe({"system_id": 2, "component_id": 1}, 99.1))
+
     def test_timeout_handoff_and_read_only_output(self):
         connection = FakeConnection()
         mavutil = types.SimpleNamespace(
