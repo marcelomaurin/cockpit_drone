@@ -110,6 +110,12 @@ begin
       ErrorText := 'Classe de veiculo SITL desconhecida';
       Exit;
     end;
+    if (Obj.Find('custom_mode') <> nil) and
+       (Pos('.', Obj.Find('custom_mode').AsJSON) > 0) then
+    begin
+      ErrorText := 'Modo MAVLink deve ser inteiro';
+      Exit;
+    end;
     Candidate.CustomMode := Obj.Get('custom_mode', 0);
     Candidate.ArmedReported := Obj.Get('armed_reported', False);
     if (Candidate.SystemId < 1) or (Candidate.SystemId > 255) or
