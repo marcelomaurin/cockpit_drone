@@ -14,3 +14,6 @@ jobs:
           python-version: '3.11'
       - name: Validate catalog and source contracts
         run: python -m unittest discover -s tests -p 'test_*.py' -v
+
+      - name: Inventory Lazarus projects and packages
+        run: python tools/inventory_lazarus.py --json
