@@ -207,6 +207,12 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Atualizado `.github/workflows/project-contracts.yml` para produzir `lazarus-inventory.json` e anexá-lo como artefato do workflow, inclusive quando etapas anteriores falharem.
 - **Estado:** alterações de código e CI publicadas; execução verde, build Lazarus e testes físicos ainda não comprovados.
 
+### Resiliência da CI e inventário parametrizável — 2026-11-06
+
+- Corrigido o workflow para executar a coleta de `lazarus-inventory.json` com `if: always()`, mesmo se os testes de contrato falharem.
+- O utilitário `tools/inventory_lazarus.py` aceita `--root CAMINHO` para inventariar checkouts externos ou diretórios de teste sem alterar o código.
+- **Estado:** alterações publicadas, mas ainda não foi possível confirmar a execução do GitHub Actions nem compilar o Cockpit. A Fase 0 permanece em andamento.
+
 ## 9. Referências técnicas
 
 - [MAVLink](https://mavlink.io/en/)
