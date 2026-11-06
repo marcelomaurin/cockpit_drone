@@ -56,7 +56,8 @@ begin
   ErrorText := '';
   Data := nil;
   try
-    Data := GetJSON(Line);
+    try
+      Data := GetJSON(Line);
     if Data.JSONType <> jtObject then
     begin
       ErrorText := 'Evento nao e objeto JSON';
@@ -99,10 +100,12 @@ begin
     Candidate.Connected := True;
     State := Candidate;
     Result := True;
-  except
-    on E: Exception do ErrorText := E.Message;
+    except
+      on E: Exception do ErrorText := E.Message;
+    end;
+  finally
+    Data.Free;
   end;
-  Data.Free;
 end;
 
 end.
