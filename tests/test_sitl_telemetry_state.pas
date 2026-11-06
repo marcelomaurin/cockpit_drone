@@ -89,14 +89,25 @@ begin
     'negative custom mode must be rejected');
   Check(not ApplySitlEvent(
     '{"event":"heartbeat","system_id":1,"component_id":1,' +
-    '"vehicle_class":"boat","custom_mode":2147483648}', State, 1720, Err),
-    'custom mode exceeding Pascal Integer must be rejected');
+    '"vehicle_class":"boat","custom_mode":4294967296}', State, 1720, Err),
+    'custom mode exceeding MAVLink uint32 must be rejected');
   Check(not ApplySitlEvent(
     '{"event":"heartbeat","system_id":1,"component_id":1,' +
     '"vehicle_class":"boat","custom_mode":1e0}', State, 1730, Err),
     'exponent-encoded custom mode must be rejected');
   Check(State.LastHeartbeatMs = 1000,
     'malformed optional fields must not refresh heartbeat');
+
+  Check(ApplySitlEvent(
+    '{"event":"heartbeat","system_id":1,"component_id":1,' +
+    '"vehicle_class":"boat","custom_mode":4294967295}', State, 1800, Err),
+    'maximum MAVLink uint32 custom mode rejected');
+  Check(State.CustomMode = High(Cardinal),
+    'maximum MAVLink custom mode was truncated');
+  Check(ApplySitlEvent(
+    '{"event":"heartbeat","system_id":1,"component_id":1,' +
+    '"vehicle_class":"boat","custom_mode":3}', State, 1000, Err),
+    'restoring baseline heartbeat failed');
 
   ExpireSitlTelemetry(State, 3999, 3000);
   Check(State.Connected, 'heartbeat expired too early');
