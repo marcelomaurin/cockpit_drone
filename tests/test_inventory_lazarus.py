@@ -18,7 +18,7 @@ class InventoryTests(unittest.TestCase):
                 '<Item Name="LCL"/><Item Name="OpenAI_Drone"/>'
                 '</RequiredPackages></ProjectOptions>'
                 '<CompilerOptions><SearchPaths><OtherUnitFiles Value="src"/></SearchPaths>'
-                '</CompilerOptions></CONFIG>', encoding="utf-8")
+                '</CompilerOptions><ProjectOptionsExtra><Item Name="NotAPackage"/></ProjectOptionsExtra></CONFIG>', encoding="utf-8")
             (root / "support.lpk").write_text(
                 '<CONFIG><Package><Files><Item><Filename Value="support.pas"/>'
                 '</Item></Files></Package></CONFIG>', encoding="utf-8")
