@@ -135,8 +135,16 @@ begin
     'missing armed_reported must not inherit old armed state');
   Check(State.CustomMode = 0,
     'missing custom_mode must not inherit old mode');
-  Check(ApplySitlEvent('{"event":"heartbeat_timeout"}',
-    State, 5001, Err), 'timeout event rejected');
+  Check(not ApplySitlEvent(
+    '{"event":"heartbeat_timeout","control_authorized":true}',
+    State, 5001, Err), 'timeout must not authorize control');
+  Check(State.Connected, 'rejected timeout must preserve state');
+  Check(not ApplySitlEvent(
+    '{"event":"heartbeat_timeout","control_authorized":"false"}',
+    State, 5001, Err), 'timeout must reject invalid authorization type');
+  Check(State.Connected, 'malformed timeout must preserve state');
+  Check(ApplySitlEvent('{"event":"heartbeat_timeout","control_authorized":false}',
+    State, 5001, Err), 'valid timeout event rejected');
   Check(not State.Connected, 'timeout event must disconnect');
   Check(State.SystemId = 0, 'timeout event must clear source id');
   Check(State.VehicleClass = 'unknown', 'timeout event must clear vehicle class');
