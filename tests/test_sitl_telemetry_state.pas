@@ -36,6 +36,17 @@ begin
     'invalid system id accepted');
   Check(State.SystemId = 1, 'invalid packet changed state');
 
+  Check(not ApplySitlEvent(
+    '{"event":"heartbeat","system_id":"1","component_id":1,' +
+    '"vehicle_class":"boat"}', State, 1300, Err),
+    'string system id must be rejected');
+  Check(not ApplySitlEvent(
+    '{"event":"heartbeat","system_id":1,"component_id":1,' +
+    '"vehicle_class":12}', State, 1400, Err),
+    'numeric vehicle class must be rejected');
+  Check(State.LastHeartbeatMs = 1000,
+    'invalid field types must not refresh heartbeat');
+
   ExpireSitlTelemetry(State, 3999, 3000);
   Check(State.Connected, 'heartbeat expired too early');
   ExpireSitlTelemetry(State, 4001, 3000);
