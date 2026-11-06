@@ -37,7 +37,7 @@ jobs:
           result=0
           for project in "${projects[@]}"; do
             echo "=== Building ${project} ===" | tee -a build-diagnostics/build.log
-            lazbuild --build-mode=Debug "${project}" 2>&1 | tee -a build-diagnostics/build.log || result=1
+            lazbuild "${project}" 2>&1 | tee -a build-diagnostics/build.log || result=1
           done
           exit "$result"
       - name: Upload diagnostic logs
