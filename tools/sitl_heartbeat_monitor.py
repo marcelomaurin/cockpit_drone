@@ -40,7 +40,10 @@ def heartbeat_record(message, now=None):
     if not (1 <= system_id <= 255 and 1 <= component_id <= 255):
         return None
     custom_mode = int(message.custom_mode)
-    if not 0 <= custom_mode <= 0xFFFFFFFF:
+    base_mode = int(message.base_mode)
+    autopilot = int(message.autopilot)
+    if not (0 <= custom_mode <= 0xFFFFFFFF and
+            0 <= base_mode <= 255 and 0 <= autopilot <= 255):
         return None
     return {
         "timestamp_monotonic": time.monotonic() if now is None else now,
@@ -48,10 +51,10 @@ def heartbeat_record(message, now=None):
         "component_id": component_id,
         "vehicle_type": vehicle_type,
         "vehicle_class": category,
-        "autopilot": int(message.autopilot),
-        "base_mode": int(message.base_mode),
+        "autopilot": autopilot,
+        "base_mode": base_mode,
         "custom_mode": custom_mode,
-        "armed_reported": bool(int(message.base_mode) & 128),
+        "armed_reported": bool(base_mode & 128),
         "control_authorized": False,
     }
 
