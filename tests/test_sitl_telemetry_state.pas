@@ -35,6 +35,20 @@ begin
     '"vehicle_class":"boat"}', State, 1200, Err),
     'invalid system id accepted');
   Check(State.SystemId = 1, 'invalid packet changed state');
+  Check(not ApplySitlEvent(
+    '{"event":"heartbeat","system_id":1.5,"component_id":1,' +
+    '"vehicle_class":"boat"}', State, 1210, Err),
+    'fractional system id must be rejected');
+  Check(not ApplySitlEvent(
+    '{"event":"heartbeat","system_id":1,"component_id":1.5,' +
+    '"vehicle_class":"boat"}', State, 1220, Err),
+    'fractional component id must be rejected');
+  Check(not ApplySitlEvent(
+    '{"event":"heartbeat","system_id":256,"component_id":1,' +
+    '"vehicle_class":"boat"}', State, 1230, Err),
+    'out-of-range system id must be rejected');
+  Check(State.LastHeartbeatMs = 1000,
+    'invalid identifiers must not refresh heartbeat');
 
   Check(not ApplySitlEvent(
     '{"event":"heartbeat","system_id":"1","component_id":1,' +
