@@ -28,7 +28,7 @@ Transformar o Cockpit em estação de controle multiplataforma, modular e segura
 
 - [ ] Inventariar `.lpi`, dependências Lazarus AI Suite, versões FPC/Lazarus e sistemas suportados.
 - [ ] Compilar em Windows e Linux e registrar erros reais; corrigir falhas sem modificar comportamento de voo sem testes.
-- [ ] Criar CI com build e verificações estáticas, além de testes de parsing do catálogo e localização.
+- [ ] Criar CI com build e verificações estáticas, além de testes de parsing do catálogo e localização. **Parcial: testes estáticos de contratos e workflow GitHub Actions adicionados; build Lazarus e execução verde do workflow ainda não confirmados.**
 - [ ] Definir contrato comum de telemetria, comando, capacidades e erros; identificar diferenças entre controladores.
 - [ ] Documentar instalação, requisitos, permissões e reprodução dos testes.
 
@@ -172,6 +172,13 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - O timer envia `SetSticks` periodicamente. Confirmar comportamento da biblioteca `TAIDroneFQ777` quando `ControlConnected=False` e a existência de watchdog no firmware.
 - Validar alternância teclado/joystick, eixo de aceleração centrado ou não, e ausência de entradas.
 - **Não considerar homologado** até revisão da biblioteca `openai_drone`, testes automatizados e ensaios em bancada.
+
+### Automação de contratos — 2026-11-06
+
+- Adicionado `tests/test_project_contracts.py` com testes estáticos para unicidade/status do catálogo, semântica de leitura do joystick, uso do resultado no formulário principal e presença dos oito códigos de idioma.
+- Adicionado `.github/workflows/project-contracts.yml` para executar os testes em pushes na `master`, pull requests e manualmente.
+- **Estado:** arquivos publicados. Ainda não há evidência de execução bem-sucedida no GitHub Actions, compilação FPC/Lazarus ou testes de hardware. Testes estáticos não demonstram segurança de voo.
+- **Próximo passo:** inspecionar execução do workflow, corrigir eventuais falhas, criar ambiente de build com dependências Lazarus AI Suite e testes SITL.
 
 ## 9. Referências técnicas
 
