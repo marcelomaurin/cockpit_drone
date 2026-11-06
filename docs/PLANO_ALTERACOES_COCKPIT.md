@@ -460,3 +460,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `src/sitl_telemetry_state.pas`: só aceita `fixed_wing`, `multirotor`, `helicopter`, `boat` e `submersible` em eventos heartbeat; classes desconhecidas e vazias não renovam o estado da telemetria.
 - `tests/test_sitl_telemetry_state.pas`: regressão para classes `unsupported` e vazia, com verificação do relógio anterior.
 - **Pendente:** confirmar execução do CI, compilação Lazarus e teste integrado SITL/hardware.
+
+
+### Validação de modo MAVLink — 2026-11-06
+
+- `src/sitl_telemetry_state.pas`: rejeita `custom_mode` fracionário em heartbeat SITL para não tratar um número decimal como modo inteiro.
+- `tests/test_sitl_telemetry_state.pas`: teste de rejeição de `custom_mode=1.5` sem renovar o relógio do último heartbeat.
+- **Pendente:** revisão de todos os limites numéricos e confirmação da execução da CI; integração com ArduPilot SITL e hardware não homologada.
