@@ -37,9 +37,9 @@ Transformar o Cockpit em estação de controle multiplataforma, modular e segura
 ### Fase 1 — Dirigibilidade e segurança (P0)
 
 - [ ] Criar `TComandoVeiculo` com eixos normalizados, timestamp, origem, validade e estado de armamento.
-- [ ] Separar leitura de joystick de sucesso de leitura: não interpretar `UpdateState=False` (sem mudança) como desconexão.
+- [x] Separar leitura de joystick de sucesso de leitura: `UpdateState=True` indica leitura bem-sucedida mesmo sem mudança; exceções retornam `False` e neutralizam o estado. **Implementado em código, ainda sem compilação/teste físico.**
 - [ ] Calibração por dispositivo: centro, mínimos/máximos, inversão, zona morta, curva e perfil persistente.
-- [ ] Corrigir neutralização do botão B5 e mapear o caminho independente do FQ777.
+- [ ] Revisar neutralização do botão B5 e mapear o caminho independente do FQ777. **B5 corrigido no caminho comum; revisão do FQ777 pendente.**
 - [ ] Watchdog de comando e vídeo/telemetria; perda de entrada aplica política específica por veículo, não uma aceleração genérica.
 - [ ] Introduzir limites, autorização explícita para armar, parada de emergência e registro de eventos.
 - [ ] Testar eixos e misturas em bancada **sem hélices/propulsores** e em simulação.
@@ -154,7 +154,16 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - [ ] Instaladores, hashes e rollback
 - [ ] Evidência de validação física somente onde houver ensaio real
 
-## 8. Referências técnicas
+## 8. Registro de execução
+
+| Data | Entrega | Arquivos | Estado | Evidência |
+|---|---|---|---|---|
+| 2026-11-06 | Leitura de joystick retorna sucesso mesmo com eixos constantes; estado neutralizado em exceção | `src/joystick.pas` | Código implementado; compilação pendente | commit `22d0ba99` |
+| 2026-11-06 | Main usa resultado real da leitura; B5 mantém X/Y centralizados | `src/main.pas` | Código implementado; simulação/hardware pendentes | commit `d2be32c6` |
+
+**Próxima execução:** inventário de dependências e build Lazarus; testes automatizados de joystick; inspeção do caminho FQ777; política de failsafe por classe de veículo.
+
+## 9. Referências técnicas
 
 - [MAVLink](https://mavlink.io/en/)
 - [ArduPilot](https://ardupilot.org/)
