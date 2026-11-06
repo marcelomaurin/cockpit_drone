@@ -64,6 +64,18 @@ class SitlMonitorRuntimeTests(unittest.TestCase):
         message.custom_mode = -1
         self.assertIsNone(MONITOR.heartbeat_record(message, now=3.0))
 
+    def test_noninteger_mavlink_fields_are_not_truncated(self):
+        message = FakeHeartbeat(1)
+        for field in ("type", "autopilot", "base_mode", "custom_mode"):
+            original = getattr(message, field)
+            setattr(message, field, 1.5)
+            with self.assertRaises(TypeError, msg=field):
+                MONITOR.heartbeat_record(message, now=1.0)
+            setattr(message, field, original)
+        message.system_id = 1.5
+        with self.assertRaises(TypeError):
+            MONITOR.heartbeat_record(message, now=1.0)
+
     def test_uint8_autopilot_and_base_mode_bounds(self):
         message = FakeHeartbeat(1)
         message.base_mode = 255
