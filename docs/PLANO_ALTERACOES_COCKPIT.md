@@ -254,3 +254,11 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - **Restrição intencional:** o corte agora começa ativado e não existe rearme pela interface; o FQ777 fica indisponível para acionamento de motores até implementação e teste de rearme explícito com condições de segurança. Não utilizar em voo real.
 - **Pendente:** implementar botão/fluxo de rearme com confirmação, acelerador mínimo, conexão estável, política para perda de joystick e testes sem hélices; verificar semântica real de `TAIDroneFQ777.ControlConnected`, compilar Lazarus e ensaiar em bancada.
 - **Estado:** código publicado, sem compilação nem validação física. A Fase 1 permanece aberta; não marcar dirigibilidade como concluída.
+
+
+### Rearme explícito FQ777 — 2026-11-06
+
+- Adicionado botão de rearme manual em `src/conectionfq777.pas`, com confirmação, conexão de controle ativa, acelerador mínimo e eixos direcionais centralizados quando joystick conectado. Comandos de corte ativos impedem rearme.
+- Com corte ativo, o timer neutraliza também rolagem, arfagem e guinada, além do acelerador; perda de conexão mantém bloqueio.
+- **Estado: implementação inicial, não homologada.** Não há prova de compilação, teste de firmware, estabilidade do enlace ou resposta dos motores. Rearme não implica autorização para voo real.
+- **Pendências de segurança:** teste de leitura inválida do joystick, confirmação da escala de acelerador em cada configuração, debouncing de conexão, prevenção de comandos de teclado durante diálogo modal, ensaio sem hélices e verificação de failsafe no firmware. Manter Fase 1 aberta até essas evidências.
