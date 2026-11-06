@@ -106,12 +106,12 @@ begin
     'maximum MAVLink custom mode was truncated');
   Check(ApplySitlEvent(
     '{"event":"heartbeat","system_id":1,"component_id":1,' +
-    '"vehicle_class":"boat","custom_mode":3}', State, 1000, Err),
+    '"vehicle_class":"boat","custom_mode":3}', State, 1900, Err),
     'restoring baseline heartbeat failed');
 
-  ExpireSitlTelemetry(State, 3999, 3000);
+  ExpireSitlTelemetry(State, 4899, 3000);
   Check(State.Connected, 'heartbeat expired too early');
-  ExpireSitlTelemetry(State, 4001, 3000);
+  ExpireSitlTelemetry(State, 4901, 3000);
   Check(not State.Connected, 'stale heartbeat remained connected');
   Check(not State.ArmedReported, 'timeout must clear armed report');
   Check(State.SystemId = 0, 'timeout must clear system id');
