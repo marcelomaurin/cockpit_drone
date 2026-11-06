@@ -54,6 +54,16 @@ class FakeConnection:
 
 
 class SitlMonitorRuntimeTests(unittest.TestCase):
+    def test_custom_mode_uint32_boundaries(self):
+        message = FakeHeartbeat(1)
+        message.custom_mode = 0xFFFFFFFF
+        record = MONITOR.heartbeat_record(message, now=1.0)
+        self.assertEqual(record["custom_mode"], 0xFFFFFFFF)
+        message.custom_mode = 0x100000000
+        self.assertIsNone(MONITOR.heartbeat_record(message, now=2.0))
+        message.custom_mode = -1
+        self.assertIsNone(MONITOR.heartbeat_record(message, now=3.0))
+
     def test_timeout_handoff_and_read_only_output(self):
         connection = FakeConnection()
         mavutil = types.SimpleNamespace(
