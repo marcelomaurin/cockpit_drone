@@ -49,31 +49,50 @@ def heartbeat_record(message, now=None):
     }
 
 
+class HeartbeatSourceLock:
+    """Keep telemetry from a single MAVLink source until it expires."""
+
+    def __init__(self, timeout):
+        self.timeout = timeout
+        self.active_source = None
+        self.last_seen = None
+
+    def observe(self, record, now):
+        if record is None:
+            return False
+        source = (record["system_id"], record["component_id"])
+        if self.active_source is None:
+            self.active_source = source
+        if source != self.active_source:
+            return False
+        self.last_seen = now
+        return True
+
+    def expire(self, now):
+        if self.last_seen is None or now - self.last_seen <= self.timeout:
+            return False
+        self.last_seen = None
+        self.active_source = None
+        return True
+
+
 def run(port, timeout):
     from pymavlink import mavutil
     # udp: listen mode, not udpout: and not any remote interface.
     connection = mavutil.mavlink_connection(
         f"udpin:127.0.0.1:{port}", source_system=255
     )
-    last_seen = None
-    active_source = None
+    source_lock = HeartbeatSourceLock(timeout)
     try:
         while True:
             msg = connection.recv_match(type="HEARTBEAT", blocking=True, timeout=0.5)
             now = time.monotonic()
             if msg is not None:
                 record = heartbeat_record(msg, now)
-                if record is not None:
-                    source = (record["system_id"], record["component_id"])
-                    if active_source is None:
-                        active_source = source
-                    if source == active_source:
-                        last_seen = now
-                        print(json.dumps({"event": "heartbeat", **record}), flush=True)
-            if last_seen is not None and now - last_seen > timeout:
+                if source_lock.observe(record, now):
+                    print(json.dumps({"event": "heartbeat", **record}), flush=True)
+            if source_lock.expire(now):
                 print(json.dumps({"event": "heartbeat_timeout", "control_authorized": False}), flush=True)
-                last_seen = None
-                active_source = None
     except KeyboardInterrupt:
         return 0
     finally:
