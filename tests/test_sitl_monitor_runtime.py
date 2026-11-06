@@ -64,6 +64,19 @@ class SitlMonitorRuntimeTests(unittest.TestCase):
         message.custom_mode = -1
         self.assertIsNone(MONITOR.heartbeat_record(message, now=3.0))
 
+    def test_uint8_autopilot_and_base_mode_bounds(self):
+        message = FakeHeartbeat(1)
+        message.base_mode = 255
+        message.autopilot = 255
+        record = MONITOR.heartbeat_record(message, now=1.0)
+        self.assertEqual(record["base_mode"], 255)
+        self.assertEqual(record["autopilot"], 255)
+        message.base_mode = 256
+        self.assertIsNone(MONITOR.heartbeat_record(message, now=2.0))
+        message.base_mode = 128
+        message.autopilot = -1
+        self.assertIsNone(MONITOR.heartbeat_record(message, now=3.0))
+
     def test_timeout_handoff_and_read_only_output(self):
         connection = FakeConnection()
         mavutil = types.SimpleNamespace(
