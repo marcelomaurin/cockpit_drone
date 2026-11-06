@@ -39,8 +39,7 @@ begin
      ((NowMs < State.LastHeartbeatMs) or
       (NowMs - State.LastHeartbeatMs > TimeoutMs)) then
   begin
-    State.Connected := False;
-    State.ArmedReported := False;
+    ResetSitlTelemetry(State);
   end;
 end;
 
