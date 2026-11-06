@@ -27,24 +27,31 @@ VEHICLE_TYPES = {
 }
 
 
+def mavlink_integer(value):
+    """Accept integer-like MAVLink fields, never booleans or coerced floats."""
+    if isinstance(value, bool):
+        raise TypeError("boolean is not a MAVLink integer field")
+    return operator.index(value)
+
+
 def heartbeat_record(message, now=None):
     """Convert a decoded pymavlink HEARTBEAT to telemetry; never authorize control."""
     if message.get_type() != "HEARTBEAT":
         return None
-    vehicle_type = operator.index(message.type)
+    vehicle_type = mavlink_integer(message.type)
     if not 0 <= vehicle_type <= 255:
         return None
     # MAV_TYPE_GCS=6 and generic/autopilot peripheral types are not vehicles.
     category = VEHICLE_TYPES.get(vehicle_type, "unsupported")
     if category == "unsupported":
         return None
-    system_id = operator.index(message.get_srcSystem())
-    component_id = operator.index(message.get_srcComponent())
+    system_id = mavlink_integer(message.get_srcSystem())
+    component_id = mavlink_integer(message.get_srcComponent())
     if not (1 <= system_id <= 255 and 1 <= component_id <= 255):
         return None
-    custom_mode = operator.index(message.custom_mode)
-    base_mode = operator.index(message.base_mode)
-    autopilot = operator.index(message.autopilot)
+    custom_mode = mavlink_integer(message.custom_mode)
+    base_mode = mavlink_integer(message.base_mode)
+    autopilot = mavlink_integer(message.autopilot)
     if not (0 <= custom_mode <= 0xFFFFFFFF and
             0 <= base_mode <= 255 and 0 <= autopilot <= 255):
         return None
