@@ -278,3 +278,9 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Cada classe possui lista de eixos permitidos, comando neutro e validação de intervalo [-1,1], valores finitos e comandos desarmados neutros.
 - **Escopo:** contrato de dados independente de protocolo; ainda não está ligado aos adaptadores MAVLink, FQ777 ou à interface. Não há controle físico novo.
 - **Pendente:** testes unitários, integração por adaptador, definição de convenções e faixas por protocolo, política de failsafe, compilação Lazarus e validação em simulador. Fase 2 permanece parcial.
+
+
+### Mapeamento MAVLink por classe — 2026-11-06
+
+- Criado `docs/MAVLINK_MAPEAMENTO_VEICULOS.md` com matriz de comandos para multirrotor, avião, helicóptero, barco e submersível, regras de segurança e checklist de implementação.
+- Estado: **documentação publicada; adaptadores MAVLink e testes SITL pendentes**. Nenhum equipamento adicional foi habilitado para controle.
