@@ -453,3 +453,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - O teste verifica sequência JSON de eventos, `control_authorized=false` e fechamento da conexão ao interromper o monitor.
 - A CI já usa descoberta `test_sitl_*.py`, que inclui o novo teste.
 - **Pendente:** confirmação de execução da CI e integração com ArduPilot SITL/hardware; nenhum comando de voo foi implementado nesta etapa.
+
+
+### Lista permitida de classes SITL — 2026-11-06
+
+- `src/sitl_telemetry_state.pas`: só aceita `fixed_wing`, `multirotor`, `helicopter`, `boat` e `submersible` em eventos heartbeat; classes desconhecidas e vazias não renovam o estado da telemetria.
+- `tests/test_sitl_telemetry_state.pas`: regressão para classes `unsupported` e vazia, com verificação do relógio anterior.
+- **Pendente:** confirmar execução do CI, compilação Lazarus e teste integrado SITL/hardware.
