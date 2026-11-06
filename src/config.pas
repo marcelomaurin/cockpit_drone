@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ComCtrls, ExtCtrls, Arrow, AdvLed, Types, SdpoJoystick, funcs, SdpoSerial,
-  fpjson, jsonparser, IniFiles
+  fpjson, jsonparser, IniFiles, cockpit_i18n
   {$IFDEF MSWINDOWS}, Windows{$ENDIF};
 
 type
@@ -900,6 +900,7 @@ end;
 procedure Tfrmconfig.FormShow(Sender: TObject);
 begin
   CarregarValoresTela;
+  AplicarIdioma(Self);
 end;
 
 procedure Tfrmconfig.CarregaIdioma;
@@ -936,7 +937,8 @@ begin
   finally
     Ini.Free;
   end;
-  ShowMessage('Idioma salvo. As traducoes da interface serao aplicadas conforme os catalogos disponiveis.');
+  AplicarIdioma(Self);
+
 end;
 
 procedure Tfrmconfig.FormClose(Sender: TObject; var CloseAction: TCloseAction);
