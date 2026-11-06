@@ -109,7 +109,8 @@ begin
   if not Assigned(FProcess) then Exit;
   if not FProcess.Running then
   begin
-    FLastError := 'Monitor SITL finalizado (verifique Python/pymavlink)';
+    if FLastError = '' then
+      FLastError := 'Monitor SITL finalizado (verifique Python/pymavlink)';
     ResetSitlTelemetry(FState);
     Exit;
   end;
