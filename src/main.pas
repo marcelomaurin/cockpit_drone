@@ -480,6 +480,13 @@ var
 begin
   if not Assigned(FSitlBridge) then Exit;
   FSitlBridge.Poll(GetTickCount64);
+  if not FSitlBridge.IsRunning then
+  begin
+    FSitlTimer.Enabled := False;
+    FSitlButton.Caption := 'Iniciar SITL';
+    FSitlStatus.Caption := 'SITL: monitor encerrado - ' + FSitlBridge.LastError;
+    Exit;
+  end;
   Tel := FSitlBridge.State;
   if Tel.Connected then
     FSitlStatus.Caption := Format('SITL: conectado | %s | sys %d / comp %d | modo %d | armado: %s',
