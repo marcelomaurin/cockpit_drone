@@ -6,6 +6,7 @@ Execucao: python tools/drone_vision.py
 Nao envia imagens para a nuvem nem controla o voo.
 """
 import os
+import sys
 import time
 from pathlib import Path
 
@@ -20,7 +21,7 @@ def config_dir():
 
 
 def main():
-    directory = config_dir()
+    directory = Path(sys.argv[1]).expanduser() if len(sys.argv) > 1 else config_dir()
     directory.mkdir(parents=True, exist_ok=True)
     frame = directory / "vision_frame.bmp"
     output = directory / "vision_result.txt"
