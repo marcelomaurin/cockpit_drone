@@ -520,3 +520,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `tests/test_sitl_monitor_runtime.py`: testes de fronteira para 255, 256 e -1.
 - O sinalizador `armed_reported` passa a derivar do `base_mode` previamente validado.
 - **Pendente:** confirmação da execução de testes/CI, compilação Lazarus e integração SITL/hardware.
+
+
+### Proteção contra retrocesso do relógio na origem SITL — 2026-11-06
+
+- `HeartbeatSourceLock.expire` encerra o bloqueio da origem anterior quando o relógio monotônico retrocede, permitindo nova origem após a emissão do evento de timeout.
+- `tests/test_sitl_monitor_runtime.py`: teste de regressão com retrocesso de 101 para 99 segundos e nova origem MAVLink.
+- **Pendente:** execução confirmada da CI, compilação Lazarus e integração SITL/hardware.
