@@ -14,8 +14,7 @@ VEHICLE_TYPES = {
     2: "multirotor",
     3: "multirotor",
     4: "helicopter",
-    6: "multirotor",
-    10: "boat",
+    10: "unsupported",  # ground rover, not a boat
     11: "boat",
     12: "submersible",
     13: "multirotor",
