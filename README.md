@@ -1,3 +1,7 @@
+## Idiomas / Languages
+
+O seletor de idioma em Configurações salva a preferência para português, inglês, espanhol, chinês simplificado, árabe, alemão, russo e hindi. **A tradução completa da interface ainda está em desenvolvimento.** Guia introdutório multilíngue: [docs/LANGUAGES.md](docs/LANGUAGES.md).
+
 # Sistema de Controle e Monitoramento de Drones
 
 ---
