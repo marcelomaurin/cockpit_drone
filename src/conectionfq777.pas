@@ -42,6 +42,7 @@ type
     FLbVideo: TLabel;
     FLbComando: TLabel;
     FLbEntrada: TLabel;
+    FBtRearmar: TButton;
     FMemo: TMemo;
 
     FBitmap: TBitmap;
@@ -70,6 +71,7 @@ type
 
     procedure TimerControle(Sender: TObject);
     procedure BtCorteClick(Sender: TObject);
+    procedure BtRearmarClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     function TeclaPressionada(AKey: Word): Boolean;
     function LeEixo(const AState: TAIJoystickState; AIndice: Integer): Double;
@@ -195,6 +197,13 @@ begin
   Bt.Font.Style := [fsBold];
   Bt.Font.Color := clRed;
   Bt.OnClick := @BtCorteClick;
+
+  FBtRearmar := TButton.Create(Self);
+  FBtRearmar.Parent := Self;
+  FBtRearmar.Align := alBottom;
+  FBtRearmar.Height := 36;
+  FBtRearmar.Caption := 'REARMAR (confirmacao obrigatoria)';
+  FBtRearmar.OnClick := @BtRearmarClick;
 
   FMemo := TMemo.Create(Self);
   FMemo.Parent := Self;
@@ -383,6 +392,50 @@ begin
   Log('Corte dos motores acionado.');
 end;
 
+procedure TfrmConectionFQ777.BtRearmarClick(Sender: TObject);
+var
+  S: TAIJoystickState;
+  AceleradorJoy: Double;
+begin
+  if not FCorte then Exit;
+  if not FDrone.ControlConnected then
+  begin
+    Log('Rearme negado: controle desconectado.');
+    Exit;
+  end;
+  S := Default(TAIJoystickState);
+  if FJoystick.Poll then
+    S := FJoystick.State;
+  with FSetMain.FQ777 do
+  begin
+    if AceleradorCentrado then
+      AceleradorJoy := (LeEixo(S, EixoAcelerador) + 1) / 2
+    else
+      AceleradorJoy := Max(0, LeEixo(S, EixoAcelerador));
+    if S.Connected and
+       ((Abs(LeEixo(S, EixoRolagem)) > 0.05) or
+        (Abs(LeEixo(S, EixoArfagem)) > 0.05) or
+        (Abs(LeEixo(S, EixoGuinada)) > 0.05)) then
+    begin
+      Log('Rearme negado: centralize os comandos direcionais.');
+      Exit;
+    end;
+  end;
+  if (AceleradorJoy >= 0.05) or (FAceleradorTeclado > 0) or
+     TeclaPressionada(VK_UP) or TeclaPressionada(VK_SPACE) or
+     (S.Connected and S.Controls[ajB]) then
+  begin
+    Log('Rearme negado: acelerador ou corte ativo.');
+    Exit;
+  end;
+  if MessageDlg('Rearmar FQ777',
+    'Confirme somente em bancada sem helices. Liberar comandos de motor?',
+    mtConfirmation, [mbYes, mbNo], 0) <> mrYes then Exit;
+  if not FDrone.ControlConnected then Exit;
+  FCorte := False;
+  Log('Rearme manual autorizado. Ainda nao homologado para voo.');
+end;
+
 procedure TfrmConectionFQ777.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   // Fechar a janela não desconecta (use o botão Start do cockpit).
@@ -500,8 +553,11 @@ begin
   Acelerador := Max(AceleradorJoy, FAceleradorTeclado);
   if FCorte then
   begin
-    // Bloqueio persistente: retorno do acelerador ao minimo nao rearma motores.
+    // Corte bloqueia todos os eixos e aceleracao.
     Acelerador := 0;
+    Rolagem := 0;
+    Arfagem := 0;
+    Guinada := 0;
   end;
 
   // Nao transmitir comandos enquanto o canal de controle estiver desconectado.
