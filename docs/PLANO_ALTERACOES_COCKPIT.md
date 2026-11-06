@@ -504,3 +504,11 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `src/sitl_telemetry_state.pas`: rejeita um heartbeat cujo `NowMs` seja inferior a `State.LastHeartbeatMs` enquanto a conexão estiver ativa, preservando o estado existente.
 - `tests/test_sitl_telemetry_state.pas`: teste com relógio em 999 ms após heartbeat de 1000 ms, verificando que origem e instante não mudam.
 - **Pendente:** confirmação da execução da CI, compilação Lazarus e testes integrados SITL/hardware.
+
+
+### Consistência de limites MAVLink no monitor Python — 2026-11-06
+
+- `tools/sitl_heartbeat_monitor.py`: descarta heartbeat com `custom_mode` fora de 0..4294967295, antes de emitir o JSON para o Lazarus.
+- `tests/test_sitl_monitor_runtime.py`: cobre o máximo uint32, valor acima do limite e valor negativo.
+- Monitor Python e parser Pascal agora usam o mesmo intervalo do campo MAVLink; o canal permanece somente leitura.
+- **Pendente:** execução confirmada da CI, compilação Lazarus e integração SITL/hardware.
