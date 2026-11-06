@@ -103,7 +103,11 @@ def run(port, timeout):
             if source_lock.expire(now):
                 print(json.dumps({"event": "heartbeat_timeout", "control_authorized": False}), flush=True)
             if msg is not None:
-                record = heartbeat_record(msg, now)
+                try:
+                    record = heartbeat_record(msg, now)
+                except (AttributeError, TypeError, ValueError, OverflowError):
+                    # A malformed decoded packet must not terminate monitoring.
+                    continue
                 if source_lock.observe(record, now):
                     print(json.dumps({"event": "heartbeat", **record}), flush=True)
     except KeyboardInterrupt:
