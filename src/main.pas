@@ -13,7 +13,7 @@ uses
   joystick, LCLType, uplaysound, controler, setmain, tacticalhud, flightplan,
   conexaodrone, ConectionCX10W, conectionmavlink, conectiontello,
   conectionopendrone, conectionfq777, conectionardrone, conectionesp32drone,
-  aidronemavlink, protocols, rotavoo;
+  aidronemavlink, protocols, rotavoo, cockpit_i18n;
 
 const
   refJoy = 127;
@@ -855,6 +855,7 @@ end;
 
 procedure TfrmMain.FormShow(Sender: TObject);
 begin
+  AplicarIdioma(Self);
   KeyPreview := True;
 
   if (AdvMap.State = lsOn) and Assigned(frmMap) then
