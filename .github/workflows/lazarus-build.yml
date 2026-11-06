@@ -5,6 +5,8 @@ on:
     branches: [master]
     paths:
       - '**/*.pas'
+      - 'tools/sitl_heartbeat_monitor.py'
+      - 'tests/test_sitl_*.py'
       - '**/*.lpi'
       - '**/*.lpk'
       - '.github/workflows/lazarus-build.yml'
@@ -12,6 +14,8 @@ on:
   pull_request:
     paths:
       - '**/*.pas'
+      - 'tools/sitl_heartbeat_monitor.py'
+      - 'tests/test_sitl_*.py'
       - '**/*.lpi'
       - '**/*.lpk'
       - '.github/workflows/lazarus-build.yml'
@@ -32,6 +36,12 @@ jobs:
           fpc -iV | tee build-diagnostics/fpc-version.txt
           lazbuild --version | tee build-diagnostics/lazbuild-version.txt
           python3 tools/inventory_lazarus.py --json > build-diagnostics/lazarus-inventory.json
+      - name: Test Python SITL heartbeat and UI contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-diagnostics
+          python3 -m unittest discover -s tests -p 'test_sitl_*.py' -v 2>&1 | tee build-diagnostics/sitl-python-tests.log
       - name: Test read-only SITL telemetry state in Pascal
         shell: bash
         run: |
