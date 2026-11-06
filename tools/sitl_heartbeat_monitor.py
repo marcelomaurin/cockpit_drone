@@ -35,10 +35,14 @@ def heartbeat_record(message, now=None):
     category = VEHICLE_TYPES.get(vehicle_type, "unsupported")
     if category == "unsupported":
         return None
+    system_id = int(message.get_srcSystem())
+    component_id = int(message.get_srcComponent())
+    if not (1 <= system_id <= 255 and 1 <= component_id <= 255):
+        return None
     return {
         "timestamp_monotonic": time.monotonic() if now is None else now,
-        "system_id": message.get_srcSystem(),
-        "component_id": message.get_srcComponent(),
+        "system_id": system_id,
+        "component_id": component_id,
         "vehicle_type": vehicle_type,
         "vehicle_class": category,
         "autopilot": int(message.autopilot),
@@ -87,12 +91,12 @@ def run(port, timeout):
         while True:
             msg = connection.recv_match(type="HEARTBEAT", blocking=True, timeout=0.5)
             now = time.monotonic()
+            if source_lock.expire(now):
+                print(json.dumps({"event": "heartbeat_timeout", "control_authorized": False}), flush=True)
             if msg is not None:
                 record = heartbeat_record(msg, now)
                 if source_lock.observe(record, now):
                     print(json.dumps({"event": "heartbeat", **record}), flush=True)
-            if source_lock.expire(now):
-                print(json.dumps({"event": "heartbeat_timeout", "control_authorized": False}), flush=True)
     except KeyboardInterrupt:
         return 0
     finally:
