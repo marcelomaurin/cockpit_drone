@@ -527,3 +527,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `HeartbeatSourceLock.expire` encerra o bloqueio da origem anterior quando o relógio monotônico retrocede, permitindo nova origem após a emissão do evento de timeout.
 - `tests/test_sitl_monitor_runtime.py`: teste de regressão com retrocesso de 101 para 99 segundos e nova origem MAVLink.
 - **Pendente:** execução confirmada da CI, compilação Lazarus e integração SITL/hardware.
+
+
+### Tolerância a heartbeat MAVLink malformado — 2026-11-06
+
+- `tools/sitl_heartbeat_monitor.py`: exceções de conversão ou atributos ausentes em heartbeat decodificado (`AttributeError`, `TypeError`, `ValueError`, `OverflowError`) são isoladas por mensagem, sem interromper o monitor.
+- `tests/test_sitl_monitor_runtime.py`: simula heartbeat com `custom_mode` inválido seguido de mensagem válida e verifica que a leitura continua e a saída permanece somente leitura.
+- **Pendente:** execução confirmada dos testes na CI e validação integrada com ArduPilot SITL/hardware.
