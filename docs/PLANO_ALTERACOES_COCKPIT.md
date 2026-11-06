@@ -270,3 +270,11 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Sem joystick conectado, a contribuição do acelerador desse dispositivo passa a ser zero, inclusive com opção de eixo centrado.
 - Commit de código: `74f31c9d`.
 - Pendente: compilação, testes de reconexão, ensaio em bancada sem hélices e homologação. Não liberado para voo.
+
+
+### Contrato comum de comandos — 2026-11-06
+
+- Criado `src/vehicle_control_contract.pas` com tipos separados para multirrotor, asa fixa, helicóptero, barco e submersível.
+- Cada classe possui lista de eixos permitidos, comando neutro e validação de intervalo [-1,1], valores finitos e comandos desarmados neutros.
+- **Escopo:** contrato de dados independente de protocolo; ainda não está ligado aos adaptadores MAVLink, FQ777 ou à interface. Não há controle físico novo.
+- **Pendente:** testes unitários, integração por adaptador, definição de convenções e faixas por protocolo, política de failsafe, compilação Lazarus e validação em simulador. Fase 2 permanece parcial.
