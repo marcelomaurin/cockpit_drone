@@ -8,12 +8,10 @@ Run from any working directory:
 import argparse
 import json
 import pathlib
-import re
 import xml.etree.ElementTree as ET
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 EXTENSIONS = {".lpi", ".lpk"}
-UNIT_PATTERN = re.compile(r"(?im)^\s*uses\s+([^;]+);")
 
 def inventory(root=ROOT):
     projects = []
@@ -25,8 +23,10 @@ def inventory(root=ROOT):
         try:
             tree = ET.parse(path)
             for element in tree.iter():
-                if element.tag == "Item" and element.get("Name"):
-                    item["packages"].append(element.get("Name"))
+                if element.tag == "RequiredPackages":
+                    for package in element.iter("Item"):
+                        if package.get("Name"):
+                            item["packages"].append(package.get("Name"))
                 if element.tag == "Filename" and element.get("Value"):
                     item["units"].append(element.get("Value"))
             item["packages"] = sorted(set(item["packages"]))
