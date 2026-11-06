@@ -474,3 +474,11 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `src/sitl_telemetry_state.pas`: `system_id` e `component_id` passam por `TryStrToInt64` sobre o literal JSON e validação 1..255 antes de atualizar a telemetria, rejeitando valores fracionários e fora da faixa.
 - `tests/test_sitl_telemetry_state.pas`: casos de IDs 1.5 e 256, garantindo que entradas inválidas não renovam heartbeat.
 - **Pendente:** confirmar execução da CI, compilação Lazarus e teste com SITL/hardware.
+
+
+### Suporte integral ao campo MAVLink custom_mode uint32 — 2026-11-06
+
+- `src/sitl_telemetry_state.pas`: `TSitlTelemetry.CustomMode` migrado de `Integer` para `Cardinal`, permitindo representar o intervalo MAVLink de 0 a 4294967295.
+- A validação continua estrita: números negativos, decimais, notação exponencial e valores acima de `High(Cardinal)` são rejeitados.
+- `tests/test_sitl_telemetry_state.pas`: casos para aceitar 4294967295 sem truncamento e rejeitar 4294967296.
+- **Estado:** commits publicados; compilação, CI e integração SITL/hardware ainda sem confirmação.
