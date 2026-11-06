@@ -83,6 +83,18 @@ begin
     '{"event":"heartbeat","system_id":1,"component_id":1,' +
     '"vehicle_class":"boat","custom_mode":1.5}', State, 1700, Err),
     'fractional custom mode must be rejected');
+  Check(not ApplySitlEvent(
+    '{"event":"heartbeat","system_id":1,"component_id":1,' +
+    '"vehicle_class":"boat","custom_mode":-1}', State, 1710, Err),
+    'negative custom mode must be rejected');
+  Check(not ApplySitlEvent(
+    '{"event":"heartbeat","system_id":1,"component_id":1,' +
+    '"vehicle_class":"boat","custom_mode":2147483648}', State, 1720, Err),
+    'custom mode exceeding Pascal Integer must be rejected');
+  Check(not ApplySitlEvent(
+    '{"event":"heartbeat","system_id":1,"component_id":1,' +
+    '"vehicle_class":"boat","custom_mode":1e0}', State, 1730, Err),
+    'exponent-encoded custom mode must be rejected');
   Check(State.LastHeartbeatMs = 1000,
     'malformed optional fields must not refresh heartbeat');
 
