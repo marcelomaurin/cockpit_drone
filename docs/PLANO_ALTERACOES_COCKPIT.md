@@ -380,3 +380,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `src/sitl_telemetry_state.pas`: eventos heartbeat com `system_id`/`component_id` não numéricos ou `vehicle_class` não textual são rejeitados sem atualizar o estado nem o relógio de heartbeat.
 - `tests/test_sitl_telemetry_state.pas`: acrescentadas verificações para tipos incorretos e preservação de `LastHeartbeatMs`.
 - **Pendente:** conferir compilação/execução real na CI; ampliar validação de campos opcionais e intervalos, testar ArduPilot SITL e homologar hardware.
+
+
+### Validação dos campos opcionais do heartbeat SITL — 2026-11-06
+
+- `custom_mode`, quando presente, deve ser numérico; `armed_reported`, quando presente, deve ser booleano. Tipos incompatíveis rejeitam o evento sem alterar o heartbeat.
+- Testes Pascal acrescentados para valores textuais indevidos nos dois campos e preservação de `LastHeartbeatMs`.
+- **Estado:** publicado na `master`, sem confirmação de compilação/execução da CI ou homologação com SITL e hardware.
