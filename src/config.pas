@@ -636,7 +636,7 @@ end;
 procedure Tfrmconfig.CarregaCatalogo;
 var
   P: string;
-  J: TJSONData;
+  J, Models: TJSONData;
   I: Integer;
   Marca: string;
 begin
@@ -644,6 +644,8 @@ begin
   P := ExtractFilePath(Application.ExeName) + 'data' + PathDelim + 'drone_models.json';
   if not FileExists(P) then
     P := ExtractFilePath(Application.ExeName) + 'drone_models.json';
+  if not FileExists(P) then
+    P := ExpandFileName(ExtractFilePath(Application.ExeName) + '..' + PathDelim + 'data' + PathDelim + 'drone_models.json');
   if not FileExists(P) then
   begin
     lblModeloStatus.Caption := 'Catalogo nao encontrado: data/drone_models.json';
@@ -659,7 +661,10 @@ begin
     end;
     try
       if J.JSONType <> jtObject then Exit;
-      FCatalogo := TJSONArray(J.FindPath('models').Clone);
+      Models := J.FindPath('models');
+      if (Models = nil) or (Models.JSONType <> jtArray) then
+        raise Exception.Create('Campo models ausente ou invalido');
+      FCatalogo := TJSONArray(Models.Clone);
     finally
       J.Free;
     end;
@@ -670,7 +675,10 @@ begin
     end;
   except
     on E: Exception do
+    begin
+      FreeAndNil(FCatalogo);
       lblModeloStatus.Caption := 'Erro no catalogo: ' + E.Message;
+    end;
   end;
 end;
 
@@ -694,7 +702,8 @@ var
   Ini: TIniFile;
   P: string;
 begin
-  if FCarregandoModelo or not Assigned(FCatalogo) then Exit;
+  if FCarregandoModelo or not Assigned(FCatalogo) or
+     (cbMarca.ItemIndex < 0) or (cbModelo.ItemIndex < 0) then Exit;
   for I := 0 to FCatalogo.Count - 1 do
   begin
     O := FCatalogo.Objects[I];
@@ -702,7 +711,17 @@ begin
        (O.Get('model', '') <> cbModelo.Text) then Continue;
     Idx := O.Get('cockpit_protocol_index', -1);
     if (Idx < 0) or (Idx >= cbProtocol.Items.Count) then
-      lblModeloStatus.Caption := 'Adaptador indisponivel. Conexao nao habilitada para este modelo.'
+    begin
+      cbProtocol.ItemIndex := -1;
+      TipoAtivo := -1;
+      if Assigned(FSetMain) then
+      begin
+        FSetMain.DroneProtocolo := -1;
+        FSetMain.SalvaContexto;
+      end;
+      AtualizaAbasProtocolo;
+      lblModeloStatus.Caption := 'SEM SUPORTE: adaptador indisponivel. Nao conectar.';
+    end
     else
     begin
       cbProtocol.ItemIndex := Idx;
