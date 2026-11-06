@@ -32,6 +32,8 @@ def heartbeat_record(message, now=None):
     if message.get_type() != "HEARTBEAT":
         return None
     vehicle_type = operator.index(message.type)
+    if not 0 <= vehicle_type <= 255:
+        return None
     # MAV_TYPE_GCS=6 and generic/autopilot peripheral types are not vehicles.
     category = VEHICLE_TYPES.get(vehicle_type, "unsupported")
     if category == "unsupported":
