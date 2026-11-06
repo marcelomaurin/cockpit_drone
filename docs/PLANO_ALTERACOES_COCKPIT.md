@@ -163,6 +163,16 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 
 **Próxima execução:** inventário de dependências e build Lazarus; testes automatizados de joystick; inspeção do caminho FQ777; política de failsafe por classe de veículo.
 
+### Revisão do FQ777-954 — 2026-11-06
+
+**Estado:** inspeção de código concluída; correções ainda não aplicadas e não validadas.
+
+- O módulo `src/conectionfq777.pas` faz polling de `TAIJoystick` e substitui por estado padrão quando a leitura falha. Verificar se a perda do joystick durante a operação exige bloqueio de aceleração e recuperação explícita.
+- A lógica `FCorte` libera automaticamente o corte quando o acelerador volta ao mínimo. Exigir avaliação de segurança e teste em bancada sem hélices antes de alterar.
+- O timer envia `SetSticks` periodicamente. Confirmar comportamento da biblioteca `TAIDroneFQ777` quando `ControlConnected=False` e a existência de watchdog no firmware.
+- Validar alternância teclado/joystick, eixo de aceleração centrado ou não, e ausência de entradas.
+- **Não considerar homologado** até revisão da biblioteca `openai_drone`, testes automatizados e ensaios em bancada.
+
 ## 9. Referências técnicas
 
 - [MAVLink](https://mavlink.io/en/)
