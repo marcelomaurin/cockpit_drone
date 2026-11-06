@@ -91,6 +91,14 @@ begin
       ErrorText := 'Tipos de campos MAVLink invalidos';
       Exit;
     end;
+    if ((Obj.Find('custom_mode') <> nil) and
+        (Obj.Find('custom_mode').JSONType <> jtNumber)) or
+       ((Obj.Find('armed_reported') <> nil) and
+        (Obj.Find('armed_reported').JSONType <> jtBoolean)) then
+    begin
+      ErrorText := 'Tipos de campos opcionais invalidos';
+      Exit;
+    end;
     Candidate := State;
     Candidate.SystemId := Obj.Get('system_id', 0);
     Candidate.ComponentId := Obj.Get('component_id', 0);
