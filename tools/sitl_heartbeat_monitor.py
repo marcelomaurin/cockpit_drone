@@ -33,6 +33,8 @@ def heartbeat_record(message, now=None):
     vehicle_type = int(message.type)
     # MAV_TYPE_GCS=6 and generic/autopilot peripheral types are not vehicles.
     category = VEHICLE_TYPES.get(vehicle_type, "unsupported")
+    if category == "unsupported":
+        return None
     return {
         "timestamp_monotonic": time.monotonic() if now is None else now,
         "system_id": message.get_srcSystem(),
