@@ -387,3 +387,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `custom_mode`, quando presente, deve ser numérico; `armed_reported`, quando presente, deve ser booleano. Tipos incompatíveis rejeitam o evento sem alterar o heartbeat.
 - Testes Pascal acrescentados para valores textuais indevidos nos dois campos e preservação de `LastHeartbeatMs`.
 - **Estado:** publicado na `master`, sem confirmação de compilação/execução da CI ou homologação com SITL e hardware.
+
+
+### Filtro de heartbeats MAVLink não veiculares — 2026-11-06
+
+- `tools/sitl_heartbeat_monitor.py`: descarta mensagens HEARTBEAT de GCS e tipos MAV_TYPE sem classificação veicular suportada, impedindo que substituam o estado exibido de veículo.
+- `tests/test_sitl_heartbeat_mapper.py`: testa rejeição de GCS/tipos não suportados, classes multirotor/helicóptero/barco/submersível e separação entre armamento relatado e autorização de controle.
+- **Limitação:** ainda não há fixação de `system_id`/`component_id` por sessão; múltiplos veículos suportados na mesma porta podem alternar a telemetria exibida. Corrigir antes de uso operacional. Testes e CI ainda sem resultado de execução confirmado.
