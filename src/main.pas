@@ -13,7 +13,8 @@ uses
   joystick, LCLType, uplaysound, controler, setmain, tacticalhud, flightplan,
   conexaodrone, ConectionCX10W, conectionmavlink, conectiontello,
   conectionopendrone, conectionfq777, conectionardrone, conectionesp32drone,
-  aidronemavlink, protocols, rotavoo, cockpit_i18n;
+  aidronemavlink, protocols, rotavoo, cockpit_i18n, sitl_telemetry_bridge,
+  sitl_telemetry_state;
 
 const
   refJoy = 127;
@@ -127,6 +128,13 @@ type
     FKeyB6: Boolean;
 
     FBtRota: TButton;
+    FSitlBridge: TSitlTelemetryBridge;
+    FSitlTimer: TTimer;
+    FSitlPanel: TPanel;
+    FSitlButton: TButton;
+    FSitlStatus: TLabel;
+    procedure SitlToggle(Sender: TObject);
+    procedure SitlTick(Sender: TObject);
 
     procedure BtRotaClick(Sender: TObject);
     procedure EnsureAbout;
@@ -434,10 +442,79 @@ begin
   frmMap.AtualizaDrone(Lat, Lon, Col, Row);
 end;
 
+procedure TfrmMain.SitlToggle(Sender: TObject);
+var
+  ScriptPath, PythonExe: string;
+begin
+  if not Assigned(FSitlBridge) then Exit;
+  if FSitlTimer.Enabled then
+  begin
+    FSitlTimer.Enabled := False;
+    FSitlBridge.Stop;
+    FSitlButton.Caption := 'Iniciar SITL';
+    FSitlStatus.Caption := 'SITL: desligado (somente leitura)';
+    Exit;
+  end;
+  ScriptPath := ExpandFileName('tools' + DirectorySeparator + 'sitl_heartbeat_monitor.py');
+  if not FileExists(ScriptPath) then
+    ScriptPath := ExpandFileName(ExtractFilePath(ParamStr(0)) +
+      'tools' + DirectorySeparator + 'sitl_heartbeat_monitor.py');
+  {$IFDEF WINDOWS}
+  PythonExe := 'python';
+  {$ELSE}
+  PythonExe := 'python3';
+  {$ENDIF}
+  if not FSitlBridge.Start(PythonExe, ScriptPath) then
+  begin
+    FSitlStatus.Caption := 'SITL: erro - ' + FSitlBridge.LastError;
+    Exit;
+  end;
+  FSitlTimer.Enabled := True;
+  FSitlButton.Caption := 'Parar SITL';
+  FSitlStatus.Caption := 'SITL: aguardando heartbeat local';
+end;
+
+procedure TfrmMain.SitlTick(Sender: TObject);
+var
+  Tel: TSitlTelemetry;
+begin
+  if not Assigned(FSitlBridge) then Exit;
+  FSitlBridge.Poll(GetTickCount64);
+  Tel := FSitlBridge.State;
+  if Tel.Connected then
+    FSitlStatus.Caption := Format('SITL: conectado | %s | sys %d / comp %d | modo %d | armado: %s',
+      [Tel.VehicleClass, Tel.SystemId, Tel.ComponentId, Tel.CustomMode,
+       BoolToStr(Tel.ArmedReported, True)])
+  else if FSitlBridge.LastError <> '' then
+    FSitlStatus.Caption := 'SITL: ' + FSitlBridge.LastError
+  else
+    FSitlStatus.Caption := 'SITL: sem heartbeat (sem controle)';
+end;
+
 procedure TfrmMain.FormCreate(Sender: TObject);
 var
   I: Integer;
 begin
+  FSitlBridge := TSitlTelemetryBridge.Create;
+  FSitlPanel := TPanel.Create(Self);
+  FSitlPanel.Parent := Self;
+  FSitlPanel.Align := alBottom;
+  FSitlPanel.Height := 34;
+  FSitlButton := TButton.Create(Self);
+  FSitlButton.Parent := FSitlPanel;
+  FSitlButton.Align := alLeft;
+  FSitlButton.Width := 120;
+  FSitlButton.Caption := 'Iniciar SITL';
+  FSitlButton.OnClick := @SitlToggle;
+  FSitlStatus := TLabel.Create(Self);
+  FSitlStatus.Parent := FSitlPanel;
+  FSitlStatus.Left := 130;
+  FSitlStatus.Top := 9;
+  FSitlStatus.Caption := 'SITL: desligado (somente leitura)';
+  FSitlTimer := TTimer.Create(Self);
+  FSitlTimer.Enabled := False;
+  FSitlTimer.Interval := 250;
+  FSitlTimer.OnTimer := @SitlTick;
   TrayIcon1.Visible := True;
   KeyPreview := True;
 
@@ -510,6 +587,8 @@ end;
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
   timerJoystick.Enabled := False;
+  FSitlTimer.Enabled := False;
+  FreeAndNil(FSitlBridge);
   SalvaConfiguracoesLocais;
 
   if Assigned(frmAbout) then
