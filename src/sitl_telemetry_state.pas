@@ -65,6 +65,13 @@ begin
     end;
     Obj := TJSONObject(Data);
     EventName := Obj.Get('event', '');
+    if ((Obj.Find('control_authorized') <> nil) and
+        ((Obj.Find('control_authorized').JSONType <> jtBoolean) or
+         Obj.Find('control_authorized').AsBoolean)) then
+    begin
+      ErrorText := 'Telemetria SITL nao pode autorizar controle';
+      Exit;
+    end;
     if EventName = 'heartbeat_timeout' then
     begin
       ResetSitlTelemetry(State);
@@ -88,13 +95,6 @@ begin
        (Obj.Find('vehicle_class').JSONType <> jtString) then
     begin
       ErrorText := 'Tipos de campos MAVLink invalidos';
-      Exit;
-    end;
-    if ((Obj.Find('control_authorized') <> nil) and
-        ((Obj.Find('control_authorized').JSONType <> jtBoolean) or
-         Obj.Find('control_authorized').AsBoolean)) then
-    begin
-      ErrorText := 'Telemetria SITL nao pode autorizar controle';
       Exit;
     end;
     if ((Obj.Find('custom_mode') <> nil) and
