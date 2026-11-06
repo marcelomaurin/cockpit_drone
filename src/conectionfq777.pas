@@ -55,6 +55,7 @@ type
     FRedeDrone: string;
     FIniciando: Boolean;
     FUltimoErro: string;
+    FJoystickAnteriorConectado: Boolean;
 
     procedure MontaTela;
     procedure Log(const ATexto: string);
@@ -349,6 +350,7 @@ begin
     end;
 
     FAceleradorTeclado := 0;
+    FJoystickAnteriorConectado := False;
     FCorte := True; // inicia bloqueado ate habilitacao explicita em revisao futura
     FUltimoTick := GetTickCount64;
     FDrone.Connect;
@@ -406,12 +408,21 @@ begin
   S := Default(TAIJoystickState);
   if FJoystick.Poll then
     S := FJoystick.State;
+  if FJoystickAnteriorConectado and not S.Connected then
+  begin
+    Log('Rearme negado: joystick desconectado.');
+    Exit;
+  end;
   with FSetMain.FQ777 do
   begin
-    if AceleradorCentrado then
-      AceleradorJoy := (LeEixo(S, EixoAcelerador) + 1) / 2
-    else
-      AceleradorJoy := Max(0, LeEixo(S, EixoAcelerador));
+    AceleradorJoy := 0;
+    if S.Connected then
+    begin
+      if AceleradorCentrado then
+        AceleradorJoy := (LeEixo(S, EixoAcelerador) + 1) / 2
+      else
+        AceleradorJoy := Max(0, LeEixo(S, EixoAcelerador));
+    end;
     if S.Connected and
        ((Abs(LeEixo(S, EixoRolagem)) > 0.05) or
         (Abs(LeEixo(S, EixoArfagem)) > 0.05) or
@@ -519,6 +530,12 @@ begin
   S := Default(TAIJoystickState);
   if FJoystick.Poll then
     S := FJoystick.State;
+  if FJoystickAnteriorConectado and not S.Connected then
+  begin
+    CorteMotores;
+    Log('Joystick perdido: corte travado ate rearme manual.');
+  end;
+  FJoystickAnteriorConectado := S.Connected;
 
   with FSetMain.FQ777 do
   begin
