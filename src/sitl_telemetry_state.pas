@@ -90,6 +90,13 @@ begin
       ErrorText := 'Tipos de campos MAVLink invalidos';
       Exit;
     end;
+    if ((Obj.Find('control_authorized') <> nil) and
+        ((Obj.Find('control_authorized').JSONType <> jtBoolean) or
+         Obj.Find('control_authorized').AsBoolean)) then
+    begin
+      ErrorText := 'Telemetria SITL nao pode autorizar controle';
+      Exit;
+    end;
     if ((Obj.Find('custom_mode') <> nil) and
         (Obj.Find('custom_mode').JSONType <> jtNumber)) or
        ((Obj.Find('armed_reported') <> nil) and
