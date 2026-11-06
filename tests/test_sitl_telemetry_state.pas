@@ -65,6 +65,10 @@ begin
     '{"event":"heartbeat","system_id":1,"component_id":1,' +
     '"vehicle_class":"boat","custom_mode":"3"}',
     State, 1600, Err), 'string custom mode must be rejected');
+  Check(not ApplySitlEvent(
+    '{"event":"heartbeat","system_id":1,"component_id":1,' +
+    '"vehicle_class":"boat","custom_mode":1.5}', State, 1700, Err),
+    'fractional custom mode must be rejected');
   Check(State.LastHeartbeatMs = 1000,
     'malformed optional fields must not refresh heartbeat');
 
