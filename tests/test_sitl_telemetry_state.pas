@@ -81,5 +81,8 @@ begin
   Check(not State.Connected, 'timeout event must disconnect');
   Check(State.SystemId = 0, 'timeout event must clear source id');
   Check(State.VehicleClass = 'unknown', 'timeout event must clear vehicle class');
+  Check(State.ComponentId = 0, 'timeout event must clear component id');
+  Check(State.CustomMode = 0, 'timeout event must clear custom mode');
+  Check(State.LastHeartbeatMs = 0, 'timeout event must clear heartbeat clock');
   WriteLn('SITL telemetry state tests passed');
 end.
