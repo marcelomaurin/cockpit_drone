@@ -50,6 +50,7 @@ var
   Obj: TJSONObject;
   EventName: string;
   Candidate: TSitlTelemetry;
+  ParsedId: Int64;
 begin
   Result := False;
   ErrorText := '';
@@ -98,8 +99,20 @@ begin
       Exit;
     end;
     ResetSitlTelemetry(Candidate);
-    Candidate.SystemId := Obj.Get('system_id', 0);
-    Candidate.ComponentId := Obj.Get('component_id', 0);
+    if not TryStrToInt64(Obj.Find('system_id').AsJSON, ParsedId) or
+       (ParsedId < 1) or (ParsedId > 255) then
+    begin
+      ErrorText := 'Identificador MAVLink de sistema invalido';
+      Exit;
+    end;
+    Candidate.SystemId := ParsedId;
+    if not TryStrToInt64(Obj.Find('component_id').AsJSON, ParsedId) or
+       (ParsedId < 1) or (ParsedId > 255) then
+    begin
+      ErrorText := 'Identificador MAVLink de componente invalido';
+      Exit;
+    end;
+    Candidate.ComponentId := ParsedId;
     Candidate.VehicleClass := Obj.Get('vehicle_class', 'unsupported');
     if (Candidate.VehicleClass <> 'fixed_wing') and
        (Candidate.VehicleClass <> 'multirotor') and
