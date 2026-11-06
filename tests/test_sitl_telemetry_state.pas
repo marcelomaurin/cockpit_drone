@@ -95,6 +95,14 @@ begin
     '{"event":"heartbeat","system_id":1,"component_id":1,' +
     '"vehicle_class":"boat","custom_mode":1e0}', State, 1730, Err),
     'exponent-encoded custom mode must be rejected');
+  Check(not ApplySitlEvent(
+    '{"event":"heartbeat","system_id":1,"component_id":1,' +
+    '"vehicle_class":"boat","control_authorized":true}', State, 1740, Err),
+    'SITL telemetry must not authorize control');
+  Check(not ApplySitlEvent(
+    '{"event":"heartbeat","system_id":1,"component_id":1,' +
+    '"vehicle_class":"boat","control_authorized":"false"}', State, 1750, Err),
+    'nonboolean control authorization must be rejected');
   Check(State.LastHeartbeatMs = 1000,
     'malformed optional fields must not refresh heartbeat');
 
