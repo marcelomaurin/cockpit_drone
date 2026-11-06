@@ -107,13 +107,8 @@ var
 begin
   ExpireSitlTelemetry(FState, NowMs, TimeoutMs);
   if not Assigned(FProcess) then Exit;
-  if not FProcess.Running then
-  begin
-    if FLastError = '' then
-      FLastError := 'Monitor SITL finalizado (verifique Python/pymavlink)';
-    ResetSitlTelemetry(FState);
-    Exit;
-  end;
+  // Read buffered output even if the child has just exited, so Python
+  // traceback messages are not lost before the UI reports the failure.
   // Bounded reads avoid blocking the UI thread on an idle subprocess.
   for I := 1 to 8 do
   begin
@@ -152,6 +147,12 @@ begin
       end;
       PosLF := Pos(#10, FBuffer);
     end;
+  end;
+  if not FProcess.Running then
+  begin
+    if FLastError = '' then
+      FLastError := 'Monitor SITL finalizado (verifique Python/pymavlink)';
+    ResetSitlTelemetry(FState);
   end;
 end;
 
