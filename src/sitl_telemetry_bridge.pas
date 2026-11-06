@@ -135,8 +135,20 @@ begin
     begin
       Line := Trim(Copy(FBuffer, 1, PosLF - 1));
       Delete(FBuffer, 1, PosLF);
-      if (Line <> '') and not ApplySitlEvent(Line, FState, NowMs, ErrorText) then
-        FLastError := ErrorText;
+      if Line <> '' then
+      begin
+        if not ApplySitlEvent(Line, FState, NowMs, ErrorText) then
+        begin
+          if (Length(Line) > 240) then
+            FLastError := Copy(Line, 1, 240) + '...'
+          else if (Line[1] <> '{') then
+            FLastError := Line
+          else
+            FLastError := ErrorText;
+        end
+        else
+          FLastError := '';
+      end;
       PosLF := Pos(#10, FBuffer);
     end;
   end;
