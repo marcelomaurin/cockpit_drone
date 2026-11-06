@@ -6,6 +6,7 @@ Only binds to 127.0.0.1. Does not send commands or arm vehicles.
 """
 import argparse
 import json
+import operator
 import time
 
 
@@ -30,18 +31,18 @@ def heartbeat_record(message, now=None):
     """Convert a decoded pymavlink HEARTBEAT to telemetry; never authorize control."""
     if message.get_type() != "HEARTBEAT":
         return None
-    vehicle_type = int(message.type)
+    vehicle_type = operator.index(message.type)
     # MAV_TYPE_GCS=6 and generic/autopilot peripheral types are not vehicles.
     category = VEHICLE_TYPES.get(vehicle_type, "unsupported")
     if category == "unsupported":
         return None
-    system_id = int(message.get_srcSystem())
-    component_id = int(message.get_srcComponent())
+    system_id = operator.index(message.get_srcSystem())
+    component_id = operator.index(message.get_srcComponent())
     if not (1 <= system_id <= 255 and 1 <= component_id <= 255):
         return None
-    custom_mode = int(message.custom_mode)
-    base_mode = int(message.base_mode)
-    autopilot = int(message.autopilot)
+    custom_mode = operator.index(message.custom_mode)
+    base_mode = operator.index(message.base_mode)
+    autopilot = operator.index(message.autopilot)
     if not (0 <= custom_mode <= 0xFFFFFFFF and
             0 <= base_mode <= 255 and 0 <= autopilot <= 255):
         return None
