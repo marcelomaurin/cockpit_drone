@@ -1,6 +1,6 @@
 {
-  "schema_version": 1,
-  "notes": "Catalogo informativo. GPS e conectividade celular dependem de configuracao/variante; suporte SDK nao implica controle direto pelo cockpit.",
+  "schema_version": 2,
+  "notes": "Catalogo de plataformas com protocolo documentado. Protocolo MAVLink existente nao garante mixagem correta de comandos para aviao, helicoptero, barco ou submarino. Perfis desses veiculos ficam bloqueados ate implementacao e teste do adaptador por classe. Wi-Fi subaquatico exige ponte de superficie/tether.",
   "models": [
     {
       "brand": "Cheerson",
@@ -181,12 +181,111 @@
       "gnss": "nao",
       "cellular": "nao",
       "control_status": "existing_protocol_unverified_hardware"
+    },
+    {
+      "brand": "ArduPilot",
+      "model": "ArduPlane Fixed Wing",
+      "vehicle_type": "airplane",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": null,
+      "gnss": "configuravel",
+      "cellular": "via_gateway",
+      "control_status": "requires_vehicle_specific_adapter",
+      "transport": "mavlink_serial_udp_tcp_or_wifi_bridge",
+      "source": "https://docs.ardupilot.org/plane/"
+    },
+    {
+      "brand": "ArduPilot",
+      "model": "ArduPlane QuadPlane VTOL",
+      "vehicle_type": "vtol",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": null,
+      "gnss": "configuravel",
+      "cellular": "via_gateway",
+      "control_status": "requires_vehicle_specific_adapter",
+      "transport": "mavlink_serial_udp_tcp_or_wifi_bridge",
+      "source": "https://docs.ardupilot.org/plane/"
+    },
+    {
+      "brand": "ArduPilot",
+      "model": "ArduCopter Traditional Helicopter",
+      "vehicle_type": "helicopter",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": null,
+      "gnss": "configuravel",
+      "cellular": "via_gateway",
+      "control_status": "requires_vehicle_specific_adapter",
+      "transport": "mavlink_serial_udp_tcp_or_wifi_bridge",
+      "source": "https://docs.ardupilot.org/copter/"
+    },
+    {
+      "brand": "ArduPilot",
+      "model": "ArduRover Boat",
+      "vehicle_type": "boat",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": null,
+      "gnss": "configuravel",
+      "cellular": "via_gateway",
+      "control_status": "requires_vehicle_specific_adapter",
+      "transport": "mavlink_serial_udp_tcp_or_wifi_bridge",
+      "source": "https://ardupilot.ardupilot.org/rover/docs/boat-configuration.html"
+    },
+    {
+      "brand": "ArduPilot",
+      "model": "ArduRover Sailboat",
+      "vehicle_type": "sailboat",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": null,
+      "gnss": "configuravel",
+      "cellular": "via_gateway",
+      "control_status": "requires_vehicle_specific_adapter",
+      "transport": "mavlink_serial_udp_tcp_or_wifi_bridge",
+      "source": "https://docs.ardupilot.org/rover/"
+    },
+    {
+      "brand": "Blue Robotics",
+      "model": "BlueBoat",
+      "vehicle_type": "boat",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": null,
+      "gnss": "configuravel",
+      "cellular": "via_gateway",
+      "control_status": "requires_vehicle_specific_adapter",
+      "transport": "mavlink_serial_udp_tcp_or_wifi_bridge",
+      "source": "https://ardupilot.org/rover/docs/common-rtf.html"
+    },
+    {
+      "brand": "ArduPilot",
+      "model": "ArduSub Vectored ROV",
+      "vehicle_type": "submarine",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": null,
+      "gnss": "nao",
+      "cellular": "via_gateway",
+      "control_status": "requires_vehicle_specific_adapter",
+      "transport": "tether_surface_wifi_bridge",
+      "source": "https://ardupilot.org/sub/"
+    },
+    {
+      "brand": "Custom",
+      "model": "OpenHD MAVLink Bridge",
+      "vehicle_type": "transport_bridge",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": null,
+      "gnss": "configuravel",
+      "cellular": "via_gateway",
+      "control_status": "requires_vehicle_specific_adapter",
+      "transport": "mavlink_serial_udp_tcp_or_wifi_bridge",
+      "source": "https://openhdfpv.org/introduction/"
     }
   ],
   "sources": [
     "https://developer.dji.com/mobile-sdk/",
     "https://enterprise.dji.com/sdk",
     "https://developer.parrot.com/docs/olympe/index.html",
-    "https://dl-cdn.ryzerobotics.com/downloads/Tello/Tello%20SDK%202.0%20User%20Guide.pdf"
+    "https://dl-cdn.ryzerobotics.com/downloads/Tello/Tello%20SDK%202.0%20User%20Guide.pdf",
+    "https://docs.ardupilot.org/ardupilot/docs/common-all-vehicle-types.html",
+    "https://ardupilot.org/rover/docs/common-rtf.html",
+    "https://openhdfpv.org/introduction/"
   ]
 }
