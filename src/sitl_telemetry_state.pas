@@ -84,6 +84,13 @@ begin
       ErrorText := 'Campos obrigatorios ausentes';
       Exit;
     end;
+    if (Obj.Find('system_id').JSONType <> jtNumber) or
+       (Obj.Find('component_id').JSONType <> jtNumber) or
+       (Obj.Find('vehicle_class').JSONType <> jtString) then
+    begin
+      ErrorText := 'Tipos de campos MAVLink invalidos';
+      Exit;
+    end;
     Candidate := State;
     Candidate.SystemId := Obj.Get('system_id', 0);
     Candidate.ComponentId := Obj.Get('component_id', 0);
