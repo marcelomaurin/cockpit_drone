@@ -359,3 +359,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Workflow `.github/workflows/lazarus-build.yml` agora também é acionado por `push` na `master` quando arquivos Pascal/Lazarus ou o próprio workflow mudarem; anteriormente só era manual/PR.
 - Ponte SITL passa a apresentar mensagens de stderr do Python (limitadas a 240 caracteres) no diagnóstico, incluindo possíveis falhas de dependência `pymavlink`.
 - **Pendente:** consultar resultado do GitHub Actions, corrigir erros de compilação identificados, testar subprocesso Windows/Linux e SITL real; nenhum teste físico homologado.
+
+
+### Teste de ciclo de vida da ponte SITL — 2026-11-06
+
+- Criado `tests/test_sitl_telemetry_bridge.pas`: verifica estado inicial desligado, rejeição de script inexistente, mensagem de erro, estado desconectado e chamadas repetidas de `Stop`.
+- Adicionado ao diagnóstico `.github/workflows/lazarus-build.yml` para compilação e execução com FPC; logs de teste preservados em `build-diagnostics/`.
+- **Pendente:** obter resultados de execução da CI, corrigir eventuais erros FPC/Lazarus, testar processo Python real com `pymavlink` e SITL, validar segurança e dispositivos reais.
