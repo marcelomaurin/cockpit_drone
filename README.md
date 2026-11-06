@@ -1,3 +1,7 @@
+## Plano de evolução / Change plan
+
+[Plano de alterações, prioridades, critérios de aceite e homologação](docs/PLANO_ALTERACOES_COCKPIT.md).
+
 ## Idiomas / Languages
 
 O seletor de idioma em Configurações salva a preferência para português, inglês, espanhol, chinês simplificado, árabe, alemão, russo e hindi. **A tradução completa da interface ainda está em desenvolvimento.** Guia introdutório multilíngue: [docs/LANGUAGES.md](docs/LANGUAGES.md).
