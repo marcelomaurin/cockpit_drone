@@ -1,6 +1,13 @@
 name: Lazarus build diagnostic
 
 on:
+  push:
+    branches: [master]
+    paths:
+      - '**/*.pas'
+      - '**/*.lpi'
+      - '**/*.lpk'
+      - '.github/workflows/lazarus-build.yml'
   workflow_dispatch:
   pull_request:
     paths:
