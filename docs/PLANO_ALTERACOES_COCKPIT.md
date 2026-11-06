@@ -415,3 +415,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `tools/sitl_heartbeat_monitor.py`: rejeita heartbeats com `system_id`/`component_id` fora de 1..255 e expira a origem anterior antes de aceitar novos heartbeats.
 - `tests/test_sitl_heartbeat_mapper.py`: testes para IDs inválidos e transição após timeout.
 - **Pendente:** execução confirmada da CI e testes integrados com ArduPilot SITL e hardware. O monitor permanece estritamente de leitura.
+
+
+### CI dos testes Python SITL — 2026-11-06
+
+- `.github/workflows/lazarus-build.yml`: adicionado `python3 -m unittest discover -s tests -p 'test_sitl_*.py' -v` com `pipefail` e log `build-diagnostics/sitl-python-tests.log`.
+- Os gatilhos de `push` e `pull_request` incluem alterações no monitor Python e testes `test_sitl_*.py`, além dos arquivos Pascal/Lazarus.
+- **Estado:** alterações publicadas; sem confirmação de execução do workflow. Falhas de build ou testes devem ser verificadas nos logs antes de homologação.
