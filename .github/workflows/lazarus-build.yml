@@ -33,7 +33,9 @@ jobs:
           lazbuild --version | tee build-diagnostics/lazbuild-version.txt
           python3 tools/inventory_lazarus.py --json > build-diagnostics/lazarus-inventory.json
       - name: Test read-only SITL telemetry state in Pascal
+        shell: bash
         run: |
+          set -euo pipefail
           mkdir -p build-diagnostics/pascal-units
           fpc -Fu./src -FUbuild-diagnostics/pascal-units -FEbuild-diagnostics tests/test_sitl_telemetry_state.pas 2>&1 | tee build-diagnostics/sitl-state-build.log
           build-diagnostics/test_sitl_telemetry_state 2>&1 | tee build-diagnostics/sitl-state-test.log
