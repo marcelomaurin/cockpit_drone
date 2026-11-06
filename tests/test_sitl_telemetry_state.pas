@@ -68,6 +68,10 @@ begin
     '{"event":"heartbeat","system_id":2,"component_id":1,' +
     '"vehicle_class":"multirotor"}', State, 5000, Err),
     'second heartbeat rejected');
+  Check(not State.ArmedReported,
+    'missing armed_reported must not inherit old armed state');
+  Check(State.CustomMode = 0,
+    'missing custom_mode must not inherit old mode');
   Check(ApplySitlEvent('{"event":"heartbeat_timeout"}',
     State, 5001, Err), 'timeout event rejected');
   Check(not State.Connected, 'timeout event must disconnect');
