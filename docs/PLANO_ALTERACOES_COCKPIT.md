@@ -26,7 +26,7 @@ Transformar o Cockpit em estação de controle multiplataforma, modular e segura
 
 ### Fase 0 — Inventário, compilação e testes de base (P0)
 
-- [ ] Inventariar `.lpi`, dependências Lazarus AI Suite, versões FPC/Lazarus e sistemas suportados. **Parcial:** script de inventário XML `.lpi`/`.lpk` criado em `tools/inventory_lazarus.py`; execução, identificação completa de dependências e versões ainda pendentes.
+- [ ] Inventariar `.lpi`, dependências Lazarus AI Suite, versões FPC/Lazarus e sistemas suportados. **Parcial:** script de inventário XML `.lpi`/`.lpk` criado em `tools/inventory_lazarus.py`, com testes unitários de fixtures e execução adicionada ao workflow; execução verde, identificação completa de dependências e versões ainda pendentes.
 - [ ] Compilar em Windows e Linux e registrar erros reais; corrigir falhas sem modificar comportamento de voo sem testes.
 - [ ] Criar CI com build e verificações estáticas, além de testes de parsing do catálogo e localização. **Parcial: testes estáticos de contratos e workflow GitHub Actions adicionados; build Lazarus e execução verde do workflow ainda não confirmados.**
 - [ ] Definir contrato comum de telemetria, comando, capacidades e erros; identificar diferenças entre controladores.
@@ -192,6 +192,13 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Execução prevista: `python tools/inventory_lazarus.py --json`. O comando sinaliza erro quando não encontra `.lpi` ou quando um XML não pode ser analisado.
 - **Estado:** script publicado, não executado em checkout completo neste ambiente; não foi possível comprovar builds ou resolver dependências de terceiros.
 - **Pendente:** executar inventário em checkout real, corrigir referências, fixar versões de FPC/Lazarus, integrar build à CI.
+
+### Testes do inventário e integração CI — 2026-11-06
+
+- Criado `tests/test_inventory_lazarus.py`: testes de XML válido, pacotes, units, ausência de `.lpi` e XML inválido usando diretórios temporários.
+- Atualizado `.github/workflows/project-contracts.yml` para executar `python tools/inventory_lazarus.py --json` após a suíte de contratos.
+- O inventário retorna código de erro se não existir projeto `.lpi` ou se houver XML inválido. **Se o projeto estiver ausente no checkout, o workflow falhará intencionalmente**; essa falha deve orientar a correção do repositório, não ser ignorada.
+- **Estado:** alterações publicadas; execução do CI e compilação Lazarus ainda não verificadas. Nenhuma etapa de homologação marcada como concluída.
 
 ## 9. Referências técnicas
 
