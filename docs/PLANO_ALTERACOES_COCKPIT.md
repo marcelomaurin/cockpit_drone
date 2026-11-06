@@ -200,6 +200,13 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - O inventário retorna código de erro se não existir projeto `.lpi` ou se houver XML inválido. **Se o projeto estiver ausente no checkout, o workflow falhará intencionalmente**; essa falha deve orientar a correção do repositório, não ser ignorada.
 - **Estado:** alterações publicadas; execução do CI e compilação Lazarus ainda não verificadas. Nenhuma etapa de homologação marcada como concluída.
 
+### Correção de inventário e artefatos CI — 2026-11-06
+
+- Corrigido `tools/inventory_lazarus.py` para coletar nomes de pacotes apenas sob `RequiredPackages`, evitando confundir outros elementos `Item` com dependências.
+- Expandido `tests/test_inventory_lazarus.py` com um `Item` que não é pacote, para impedir regressão.
+- Atualizado `.github/workflows/project-contracts.yml` para produzir `lazarus-inventory.json` e anexá-lo como artefato do workflow, inclusive quando etapas anteriores falharem.
+- **Estado:** alterações de código e CI publicadas; execução verde, build Lazarus e testes físicos ainda não comprovados.
+
 ## 9. Referências técnicas
 
 - [MAVLink](https://mavlink.io/en/)
