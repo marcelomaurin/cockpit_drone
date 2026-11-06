@@ -47,6 +47,17 @@ begin
   Check(State.LastHeartbeatMs = 1000,
     'invalid field types must not refresh heartbeat');
 
+  Check(not ApplySitlEvent(
+    '{"event":"heartbeat","system_id":1,"component_id":1,' +
+    '"vehicle_class":"boat","armed_reported":"true"}',
+    State, 1500, Err), 'string armed state must be rejected');
+  Check(not ApplySitlEvent(
+    '{"event":"heartbeat","system_id":1,"component_id":1,' +
+    '"vehicle_class":"boat","custom_mode":"3"}',
+    State, 1600, Err), 'string custom mode must be rejected');
+  Check(State.LastHeartbeatMs = 1000,
+    'malformed optional fields must not refresh heartbeat');
+
   ExpireSitlTelemetry(State, 3999, 3000);
   Check(State.Connected, 'heartbeat expired too early');
   ExpireSitlTelemetry(State, 4001, 3000);
