@@ -147,6 +147,11 @@ begin
       ErrorText := 'Identificadores MAVLink invalidos';
       Exit;
     end;
+    if State.Connected and (NowMs < State.LastHeartbeatMs) then
+    begin
+      ErrorText := 'Relogio monotônico do heartbeat retrocedeu';
+      Exit;
+    end;
     Candidate.LastHeartbeatMs := NowMs;
     Candidate.Connected := True;
     State := Candidate;
