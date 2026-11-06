@@ -429,3 +429,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `src/sitl_telemetry_state.pas`: novo heartbeat é construído a partir de estado limpo; `armed_reported` e `custom_mode` ausentes não herdam valores da mensagem anterior.
 - `tests/test_sitl_telemetry_state.pas`: regressão para verificar desarmado relatado e modo padrão quando os campos opcionais estão ausentes.
 - **Pendente:** confirmar compilação e execução na CI; testar com ArduPilot SITL real e dispositivos físicos antes de homologar.
+
+
+### Limpeza integral de estado ao perder heartbeat — 2026-11-06
+
+- `ExpireSitlTelemetry` e o evento `heartbeat_timeout` agora restauram o estado de telemetria desconectado, apagando também identificadores de origem, classe do veículo e modo de operação anteriormente recebidos.
+- `tests/test_sitl_telemetry_state.pas` inclui verificações de limpeza de IDs, classe, modo e armamento após timeout.
+- **Estado:** código e testes publicados; ainda sem confirmação de execução da CI nem homologação SITL/hardware.
