@@ -213,6 +213,13 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - O utilitário `tools/inventory_lazarus.py` aceita `--root CAMINHO` para inventariar checkouts externos ou diretórios de teste sem alterar o código.
 - **Estado:** alterações publicadas, mas ainda não foi possível confirmar a execução do GitHub Actions nem compilar o Cockpit. A Fase 0 permanece em andamento.
 
+### Diagnóstico de compilação Linux — 2026-11-06
+
+- Criado `.github/workflows/lazarus-build.yml`, acionável manualmente (`workflow_dispatch`) e em pull requests que alterem fontes Pascal, projetos Lazarus ou o próprio workflow.
+- O job Ubuntu 24.04 instala `lazarus` e `fpc`, registra versões, produz inventário de projetos e tenta compilar todos os arquivos `.lpi` encontrados.
+- Logs e inventário são preservados como artefato `lazarus-linux-build-diagnostics`, mesmo em caso de falha. Dependências externas não são instaladas automaticamente; falhas de pacotes são evidências para a próxima correção.
+- **Estado:** workflow publicado; nenhuma execução, compilação verde ou homologação de hardware confirmada. Windows permanece pendente.
+
 ## 9. Referências técnicas
 
 - [MAVLink](https://mavlink.io/en/)
