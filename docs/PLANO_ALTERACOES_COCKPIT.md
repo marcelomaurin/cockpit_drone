@@ -482,3 +482,11 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - A validação continua estrita: números negativos, decimais, notação exponencial e valores acima de `High(Cardinal)` são rejeitados.
 - `tests/test_sitl_telemetry_state.pas`: casos para aceitar 4294967295 sem truncamento e rejeitar 4294967296.
 - **Estado:** commits publicados; compilação, CI e integração SITL/hardware ainda sem confirmação.
+
+
+### Contrato somente leitura e relógio de testes — 2026-11-06
+
+- `src/sitl_telemetry_state.pas`: eventos de heartbeat com `control_authorized=true` ou valor não booleano são rejeitados; monitor SITL permanece estritamente somente leitura.
+- `tests/test_sitl_telemetry_state.pas`: regressões para autorização de controle indevida e tipo inválido, preservando o heartbeat anterior.
+- Corrigido teste de limite `custom_mode` para usar relógio simulado monotônico, com expiração em 4901 ms após heartbeat em 1900 ms.
+- **Pendente:** execução confirmada dos testes/CI, compilação Lazarus e integração com SITL real.
