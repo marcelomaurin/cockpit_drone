@@ -41,8 +41,9 @@ def inventory(root=ROOT):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--json", action="store_true", help="Machine-readable output")
+    parser.add_argument("--root", type=pathlib.Path, default=ROOT, help="Repository checkout to inspect")
     args = parser.parse_args()
-    result = inventory()
+    result = inventory(args.root.resolve())
     if args.json:
         print(json.dumps(result, indent=2, ensure_ascii=False))
     else:
