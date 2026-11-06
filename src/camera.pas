@@ -32,6 +32,12 @@ type
   private
     FCameraAtiva: Boolean;
     FGridAtiva: Boolean;
+    FVisaoAtiva: Boolean;
+    FUltimoQuadroVisao: QWord;
+    FBotaoVisao: TButton;
+    FResultadoVisao: TLabel;
+    procedure AlternaVisao(Sender: TObject);
+    procedure AtualizaResultadoVisao;
 
     procedure AjustaLayout;
     procedure AtualizaVisualEstado;
@@ -72,6 +78,19 @@ begin
 
   FCameraAtiva := False;
   FGridAtiva := True;
+  FVisaoAtiva := False;
+  FUltimoQuadroVisao := 0;
+  FBotaoVisao := TButton.Create(Self);
+  FBotaoVisao.Parent := Self;
+  FBotaoVisao.Align := alBottom;
+  FBotaoVisao.Caption := 'Iniciar reconhecimento (pessoas/poses)';
+  FBotaoVisao.OnClick := @AlternaVisao;
+  FResultadoVisao := TLabel.Create(Self);
+  FResultadoVisao.Parent := Self;
+  FResultadoVisao.Align := alBottom;
+  FResultadoVisao.AutoSize := False;
+  FResultadoVisao.Height := 34;
+  FResultadoVisao.Caption := 'Visao IA: desativada';
 
   Caption := 'Câmera';
   Label1.Caption := 'Visualização da Câmera';
@@ -157,6 +176,38 @@ end;
 procedure TfrmCam.tmAtualizaImagemTimer(Sender: TObject);
 begin
   AtualizaDaConexao;
+  AtualizaResultadoVisao;
+end;
+
+procedure TfrmCam.AlternaVisao(Sender: TObject);
+begin
+  FVisaoAtiva := not FVisaoAtiva;
+  if FVisaoAtiva then
+    FBotaoVisao.Caption := 'Parar reconhecimento'
+  else
+    FBotaoVisao.Caption := 'Iniciar reconhecimento (pessoas/poses)';
+  if not FVisaoAtiva then FResultadoVisao.Caption := 'Visao IA: desativada';
+end;
+
+procedure TfrmCam.AtualizaResultadoVisao;
+var
+  L: TStringList;
+  P: string;
+begin
+  if not FVisaoAtiva then Exit;
+  P := GetAppConfigDir(False) + 'vision_result.txt';
+  if not FileExists(P) then
+  begin
+    FResultadoVisao.Caption := 'Visao IA: aguardando analisador Python';
+    Exit;
+  end;
+  L := TStringList.Create;
+  try
+    L.LoadFromFile(P);
+    if L.Count > 0 then FResultadoVisao.Caption := Copy(L[0], 1, 150);
+  finally
+    L.Free;
+  end;
 end;
 
 procedure TfrmCam.AjustaLayout;
@@ -189,7 +240,19 @@ end;
 procedure TfrmCam.MostraQuadro(ABitmap: TBitmap);
 begin
   if FCameraAtiva and Assigned(ABitmap) and (ABitmap.Width > 0) then
+  begin
     Image1.Picture.Bitmap.Assign(ABitmap);
+    if FVisaoAtiva and (GetTickCount64 - FUltimoQuadroVisao >= 1000) then
+    begin
+      FUltimoQuadroVisao := GetTickCount64;
+      ForceDirectories(GetAppConfigDir(False));
+      try
+        Image1.Picture.Bitmap.SaveToFile(GetAppConfigDir(False) + 'vision_frame.bmp');
+      except
+        on E: Exception do FResultadoVisao.Caption := 'Erro ao salvar quadro: ' + E.Message;
+      end;
+    end;
+  end;
 end;
 
 procedure TfrmCam.AtualizaDaConexao;
