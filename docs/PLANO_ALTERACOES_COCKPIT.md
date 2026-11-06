@@ -534,3 +534,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `tools/sitl_heartbeat_monitor.py`: exceções de conversão ou atributos ausentes em heartbeat decodificado (`AttributeError`, `TypeError`, `ValueError`, `OverflowError`) são isoladas por mensagem, sem interromper o monitor.
 - `tests/test_sitl_monitor_runtime.py`: simula heartbeat com `custom_mode` inválido seguido de mensagem válida e verifica que a leitura continua e a saída permanece somente leitura.
 - **Pendente:** execução confirmada dos testes na CI e validação integrada com ArduPilot SITL/hardware.
+
+
+### Tipagem estrita dos campos MAVLink decodificados — 2026-11-06
+
+- `tools/sitl_heartbeat_monitor.py`: conversões `int()` de `type`, `system_id`, `component_id`, `autopilot`, `base_mode` e `custom_mode` substituídas por `operator.index()`, impedindo truncamento silencioso de valores fracionários ou aceitação de strings numéricas.
+- `tests/test_sitl_monitor_runtime.py`: casos de regressão para campos fracionários; a rotina `run` descarta mensagens malformadas sem interromper o monitor.
+- **Pendente:** confirmar execução dos testes/CI e integração ArduPilot SITL/hardware.
