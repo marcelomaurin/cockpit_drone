@@ -292,3 +292,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Verificações iniciais: contrato válido, classe de veículo coincidente, heartbeat e entrada recentes, modo aprovado e estado de armamento confirmado.
 - A validação só permite fluxo marcado `SimulatorOnly`; não existe serialização ou transporte MAVLink, nem controle físico habilitado.
 - **Estado: código publicado, não compilado e não integrado ao Cockpit.** Pendentes testes unitários, tratamento de timeouts com relógio monotônico, descoberta de capacidades, integração SITL e definição dos modos específicos por veículo.
+
+
+### Testes de contrato do adaptador MAVLink — 2026-11-06
+
+- Criado `tests/test_mavlink_adapter_contract.py` com verificações estáticas para contrato, classes de veículos, heartbeat, entrada, modo, armamento e bloqueio de hardware.
+- **Limitação:** testes estáticos verificam presença de guardas no código, não executam Pascal, não exercitam os ramos da validação nem demonstram interoperabilidade MAVLink/SITL.
+- **Estado:** arquivo publicado; execução da suíte, testes comportamentais Pascal, integração no CI, compilação e testes SITL pendentes.
