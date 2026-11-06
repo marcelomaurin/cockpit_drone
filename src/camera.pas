@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, BCGameGrid, LCLType;
+  ExtCtrls, BCGameGrid, LCLType, cockpit_i18n;
 
 type
 
@@ -128,6 +128,7 @@ end;
 
 procedure TfrmCam.FormShow(Sender: TObject);
 begin
+  AplicarIdioma(Self);
   if FCameraAtiva then
     tmAtualizaImagem.Enabled := True;
 
