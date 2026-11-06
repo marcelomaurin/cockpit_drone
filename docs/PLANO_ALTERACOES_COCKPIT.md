@@ -497,3 +497,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `src/sitl_telemetry_state.pas`: `control_authorized` é validado antes de distinguir `heartbeat` e `heartbeat_timeout`, evitando que eventos de expiração com autorização indevida contornem a regra de somente leitura.
 - `tests/test_sitl_telemetry_state.pas`: testes para timeout com `control_authorized=true` e tipo inválido; evento com `false` permanece aceito.
 - **Verificação:** não foi possível confirmar resultado de GitHub Actions por consulta de execuções associadas ao commit anterior (nenhuma execução retornada); ambiente local não dispõe de `fpc` nem acesso DNS ao GitHub. Compilação e testes ainda não confirmados.
+
+
+### Heartbeat com relógio retrocedido — 2026-11-06
+
+- `src/sitl_telemetry_state.pas`: rejeita um heartbeat cujo `NowMs` seja inferior a `State.LastHeartbeatMs` enquanto a conexão estiver ativa, preservando o estado existente.
+- `tests/test_sitl_telemetry_state.pas`: teste com relógio em 999 ms após heartbeat de 1000 ms, verificando que origem e instante não mudam.
+- **Pendente:** confirmação da execução da CI, compilação Lazarus e testes integrados SITL/hardware.
