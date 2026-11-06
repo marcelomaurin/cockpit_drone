@@ -373,3 +373,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Ajustada `TSitlTelemetryBridge.Poll` para consumir a saída disponível do subprocesso antes de avaliar seu encerramento, preservando mensagens de falha do Python.
 - Incluído teste estático de regressão em `tests/test_sitl_ui_wiring.py` verificando a ordem da leitura e a captura de stderr.
 - **Não validado em execução:** resultados de CI, compilação Lazarus, Python/pymavlink real, SITL e veículos físicos.
+
+
+### Tipagem de eventos de telemetria SITL — 2026-11-06
+
+- `src/sitl_telemetry_state.pas`: eventos heartbeat com `system_id`/`component_id` não numéricos ou `vehicle_class` não textual são rejeitados sem atualizar o estado nem o relógio de heartbeat.
+- `tests/test_sitl_telemetry_state.pas`: acrescentadas verificações para tipos incorretos e preservação de `LastHeartbeatMs`.
+- **Pendente:** conferir compilação/execução real na CI; ampliar validação de campos opcionais e intervalos, testar ArduPilot SITL e homologar hardware.
