@@ -366,3 +366,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Criado `tests/test_sitl_telemetry_bridge.pas`: verifica estado inicial desligado, rejeição de script inexistente, mensagem de erro, estado desconectado e chamadas repetidas de `Stop`.
 - Adicionado ao diagnóstico `.github/workflows/lazarus-build.yml` para compilação e execução com FPC; logs de teste preservados em `build-diagnostics/`.
 - **Pendente:** obter resultados de execução da CI, corrigir eventuais erros FPC/Lazarus, testar processo Python real com `pymavlink` e SITL, validar segurança e dispositivos reais.
+
+
+### Preservação de erros de saída do monitor SITL — 2026-11-06
+
+- Ajustada `TSitlTelemetryBridge.Poll` para consumir a saída disponível do subprocesso antes de avaliar seu encerramento, preservando mensagens de falha do Python.
+- Incluído teste estático de regressão em `tests/test_sitl_ui_wiring.py` verificando a ordem da leitura e a captura de stderr.
+- **Não validado em execução:** resultados de CI, compilação Lazarus, Python/pymavlink real, SITL e veículos físicos.
