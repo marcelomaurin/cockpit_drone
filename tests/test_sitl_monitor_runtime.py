@@ -85,6 +85,29 @@ class SitlMonitorRuntimeTests(unittest.TestCase):
         self.assertIsNone(lock.active_source)
         self.assertTrue(lock.observe({"system_id": 2, "component_id": 1}, 99.1))
 
+    def test_malformed_decoded_heartbeat_does_not_stop_monitor(self):
+        class MalformedHeartbeat(FakeHeartbeat):
+            custom_mode = "not-a-number"
+
+        connection = FakeConnection()
+        connection.messages = [MalformedHeartbeat(1), FakeHeartbeat(2)]
+        fake_package = types.ModuleType("pymavlink")
+        fake_package.mavutil = types.SimpleNamespace(
+            mavlink_connection=lambda *args, **kwargs: connection
+        )
+        clock = iter((10.0, 10.1))
+        output = io.StringIO()
+        with patch.dict(sys.modules, {"pymavlink": fake_package}), \
+             patch.object(MONITOR.time, "monotonic", side_effect=lambda: next(clock)), \
+             contextlib.redirect_stdout(output):
+            result = MONITOR.run(14550, 3.0)
+        self.assertEqual(result, 0)
+        self.assertTrue(connection.closed)
+        events = [json.loads(line) for line in output.getvalue().splitlines()]
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["system_id"], 2)
+        self.assertFalse(events[0]["control_authorized"])
+
     def test_timeout_handoff_and_read_only_output(self):
         connection = FakeConnection()
         mavutil = types.SimpleNamespace(
