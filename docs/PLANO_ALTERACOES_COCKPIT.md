@@ -322,3 +322,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Criado `tests/test_sitl_heartbeat_monitor.py` para classificação de barco, rover e estação de controle, e separação entre telemetria e autorização.
 - Uso previsto: `python tools/sitl_heartbeat_monitor.py --port 14550` após instalar `pymavlink` e iniciar SITL com saída UDP para loopback.
 - **Estado:** código publicado, não executado contra SITL. Não há integração do receptor ao Lazarus, autenticação de origem, testes de rede ou controle de veículos. Compilação e homologação continuam pendentes.
+
+
+### Estado interno de telemetria SITL em Pascal — 2026-11-06
+
+- Criado `src/sitl_telemetry_state.pas`: interpreta eventos JSON de heartbeat/timeout produzidos pelo monitor Python, mantém classe, IDs, modo, armamento relatado e estado de conexão.
+- Inclui expiração local com relógio monotônico fornecido pelo chamador e rejeição de JSON inválido/IDs fora da faixa.
+- **Estado:** módulo de dados publicado, sem integração ainda ao formulário Lazarus ou leitura do stdout do processo Python. Não controla veículos e não autoriza armamento. Compilação e testes pendentes.
