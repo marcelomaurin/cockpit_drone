@@ -980,7 +980,7 @@ begin
 
   JoyDisponivel := UsaJoystick and Assigned(FJoystick) and FJoystick.Active;
   if JoyDisponivel then
-    FJoystick.UpdateState;
+    JoyDisponivel := FJoystick.UpdateState;
 
   if JoyDisponivel then
   begin
@@ -1034,7 +1034,11 @@ begin
   AtualizaLedsBotoes;
 
   if B5 = 255 then
+  begin
     CentralizaComandos;
+    X0 := refJoy;
+    Y0 := refJoy;
+  end;
 
   // Comando proporcional: soltar o manche retorna ao centro imediatamente.
   // Zona morta evita deriva por pequenas oscilacoes do dispositivo.
