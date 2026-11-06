@@ -444,3 +444,12 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `src/sitl_telemetry_state.pas`: corrigido para usar `ResetSitlTelemetry(State)` tanto no timeout local quanto no evento explícito.
 - `tests/test_sitl_telemetry_state.pas`: verificações adicionais para componente, modo e relógio de heartbeat zerados.
 - **Pendente:** execução e compilação efetivas da CI, teste ArduPilot SITL e homologação física.
+
+
+### Teste de execução simulada do monitor SITL — 2026-11-06
+
+- Criado `tests/test_sitl_monitor_runtime.py` para executar o loop real de `run()` com uma conexão MAVLink simulada e relógio monotônico controlado.
+- Cenário: origem A aceita, origem B ignorada enquanto A está ativa, timeout de A, origem B aceita e renovada.
+- O teste verifica sequência JSON de eventos, `control_authorized=false` e fechamento da conexão ao interromper o monitor.
+- A CI já usa descoberta `test_sitl_*.py`, que inclui o novo teste.
+- **Pendente:** confirmação de execução da CI e integração com ArduPilot SITL/hardware; nenhum comando de voo foi implementado nesta etapa.
