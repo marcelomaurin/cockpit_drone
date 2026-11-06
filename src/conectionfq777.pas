@@ -340,7 +340,7 @@ begin
     end;
 
     FAceleradorTeclado := 0;
-    FCorte := False;
+    FCorte := True; // inicia bloqueado ate habilitacao explicita em revisao futura
     FUltimoTick := GetTickCount64;
     FDrone.Connect;
     FTimer.Enabled := True;
@@ -500,10 +500,17 @@ begin
   Acelerador := Max(AceleradorJoy, FAceleradorTeclado);
   if FCorte then
   begin
-    // Só libera depois que o acelerador voltar ao mínimo.
-    if (not BotaoCorte) and (AceleradorJoy < 0.05) and (FAceleradorTeclado = 0) then
-      FCorte := False;
+    // Bloqueio persistente: retorno do acelerador ao minimo nao rearma motores.
     Acelerador := 0;
+  end;
+
+  // Nao transmitir comandos enquanto o canal de controle estiver desconectado.
+  if not FDrone.ControlConnected then
+  begin
+    FCorte := True;
+    FAceleradorTeclado := 0;
+    FLbControle.Caption := 'desconectado - motores bloqueados';
+    Exit;
   end;
 
   FDrone.SetSticks(EnsureRange(Rolagem, -1, 1), EnsureRange(Arfagem, -1, 1),
