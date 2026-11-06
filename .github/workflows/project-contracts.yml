@@ -16,4 +16,11 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_*.py' -v
 
       - name: Inventory Lazarus projects and packages
-        run: python tools/inventory_lazarus.py --json
+        run: python tools/inventory_lazarus.py --json > lazarus-inventory.json
+      - name: Upload Lazarus inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lazarus-inventory
+          path: lazarus-inventory.json
+          if-no-files-found: warn
