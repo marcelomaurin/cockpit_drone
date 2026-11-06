@@ -548,3 +548,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `tools/sitl_heartbeat_monitor.py`: valida `vehicle_type` como inteiro uint8 (0..255) antes da classificação do veículo.
 - `tests/test_sitl_monitor_runtime.py`: casos de regressão para `vehicle_type=-1`, `256` e tipo válido `2` (multirotor).
 - **Pendente:** execução confirmada da CI e teste integrado ArduPilot SITL/hardware.
+
+
+### Rejeição de booleanos em campos numéricos MAVLink — 2026-11-06
+
+- `tools/sitl_heartbeat_monitor.py`: função `mavlink_integer` usa `operator.index` e rejeita explicitamente `bool`, evitando interpretar `True` como `1` ou `False` como `0` nos campos numéricos.
+- `tests/test_sitl_monitor_runtime.py`: regressões para `type`, `autopilot`, `base_mode`, `custom_mode` e `system_id` booleanos.
+- **Pendente:** execução confirmada da CI, compilação Lazarus e integração com ArduPilot SITL/hardware.
