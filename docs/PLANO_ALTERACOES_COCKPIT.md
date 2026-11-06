@@ -306,3 +306,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Atualizado `.github/workflows/project-contracts.yml` para executar explicitamente `test_mavlink_adapter_contract.py` antes da suíte geral (a suíte geral também inclui esse arquivo).
 - Criado `tests/test_mavlink_validation.pas`, programa de testes comportamentais para comando neutro, bloqueio de transporte físico, heartbeat/entrada obsoletos, modo inválido, classe incompatível, movimento desarmado e eixo proibido.
 - **Estado:** arquivos publicados; teste Pascal não foi compilado nem executado, e execução verde do CI não foi confirmada. O teste Pascal ainda não integra o workflow; permanece para a etapa de compilação previamente adiada.
+
+
+### Preparação ArduPilot SITL — 2026-11-06
+
+- Criado `docs/SITL_INTEGRACAO.md`: arquitetura planejada de transporte UDP em loopback, parser MAVLink v2, heartbeat, identificação de veículo, cenários de falha e critérios de aceite.
+- Criado `tests/test_sitl_contract.py`: verificações estáticas de documentação e restrição de simulação no adaptador.
+- **Estado:** especificação e testes estáticos publicados. Ainda não existe comunicação MAVLink com SITL implementada, nem compilação ou execução de testes confirmada. Integração permanece pendente.
