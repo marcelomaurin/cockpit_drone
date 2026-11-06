@@ -51,7 +51,7 @@ type
     function ConfigureDevice(const ADeviceIndex: Integer): Boolean;
     function Activate: Boolean;
     procedure Deactivate;
-    function UpdateState: Boolean;
+    function UpdateState: Boolean; // True = leitura bem-sucedida, mesmo sem mudancas
 
     property Active: Boolean read FActive write SetActive;
     property State: TJoystickState read FState;
@@ -187,19 +187,10 @@ begin
     NewState.Buttons.B5 := GetButtonValue(4);
     NewState.Buttons.B6 := GetButtonValue(5);
 
-    Result :=
-      (NewState.X <> FState.X) or
-      (NewState.Y <> FState.Y) or
-      (NewState.Z <> FState.Z) or
-      (NewState.Buttons.B1 <> FState.Buttons.B1) or
-      (NewState.Buttons.B2 <> FState.Buttons.B2) or
-      (NewState.Buttons.B3 <> FState.Buttons.B3) or
-      (NewState.Buttons.B4 <> FState.Buttons.B4) or
-      (NewState.Buttons.B5 <> FState.Buttons.B5) or
-      (NewState.Buttons.B6 <> FState.Buttons.B6);
-
     FState := NewState;
+    Result := True;
   except
+    ResetState;
     Result := False;
   end;
 end;
