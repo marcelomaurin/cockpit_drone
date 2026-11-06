@@ -401,3 +401,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Monitor Python fixa a origem de heartbeat suportada pelo par `system_id`/`component_id`; heartbeats de outras origens não renovam o timeout nem substituem a telemetria da sessão.
 - A origem é liberada após timeout, permitindo nova seleção automática. Incluído teste estático de regressão no mapper.
 - **Pendente:** testes dinâmicos de múltiplas origens, seleção explícita de veículo, resultados de CI, compilação Lazarus, validação SITL e hardware. A fixação não autoriza comandos físicos.
+
+
+### Testes dinâmicos de múltiplas origens SITL — 2026-11-06
+
+- Extraída a classe Python `HeartbeatSourceLock`, sem dependência de `pymavlink`, para testar seleção de origem MAVLink de forma isolada.
+- `tests/test_sitl_heartbeat_mapper.py` agora verifica dinamicamente bloqueio de segunda origem, renovação de heartbeat pela origem selecionada e transferência de origem após timeout.
+- **Estado:** código e testes publicados; ainda sem evidência de execução da CI, integração ArduPilot SITL ou validação física.
