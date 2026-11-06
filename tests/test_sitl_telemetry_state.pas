@@ -29,6 +29,13 @@ begin
   Check(State.VehicleClass = 'boat', 'wrong vehicle class');
   Check(State.ArmedReported, 'reported armed state missing');
   Check(State.CustomMode = 3, 'wrong custom mode');
+  Check(not ApplySitlEvent(
+    '{"event":"heartbeat","system_id":2,"component_id":1,' +
+    '"vehicle_class":"multirotor"}', State, 999, Err),
+    'older heartbeat timestamp must be rejected');
+  Check(State.SystemId = 1, 'older heartbeat changed active source');
+  Check(State.LastHeartbeatMs = 1000,
+    'older heartbeat changed last heartbeat timestamp');
 
   Check(not ApplySitlEvent(
     '{"event":"heartbeat","system_id":0,"component_id":1,' +
