@@ -229,3 +229,19 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - [Ultralytics tracking](https://docs.ultralytics.com/modes/track/)
 - [MediaPipe Pose](https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker)
 - [GNU gettext](https://www.gnu.org/software/gettext/manual/)
+
+
+### Diagnóstico de build Linux — acompanhamento de execução (2026-11-06)
+
+**Estado: aguardando execução verificável.** O workflow `.github/workflows/lazarus-build.yml` contém `workflow_dispatch` e tentativa de compilação com `lazbuild` no Ubuntu 24.04. A consulta de execuções associadas ao commit `76ddf811` não retornou execuções (a consulta do conector é limitada a execuções disparadas por pull request); isso **não comprova** que nenhuma execução manual ocorreu.
+
+**Procedimento:** abrir GitHub Actions > *Lazarus build diagnostic* > *Run workflow* na branch `master`; após o término, registrar URL/ID da execução, conclusão, versão FPC/Lazarus, primeiro erro relevante, dependências ausentes e links dos artefatos `lazarus-linux-build-diagnostics`.
+
+**Critério para atualizar tarefas:** marcar inventário executado apenas após conferir `lazarus-inventory.json`; marcar build aprovado apenas com execução concluída com sucesso e logs correspondentes; caso falhe, abrir pendências por erro de compilação e corrigir por ordem de dependência. Não registrar testes de hardware sem evidência.
+
+| Item | Estado | Evidência pendente |
+|---|---|---|
+| Workflow Linux configurado | Implementado, não validado nesta revisão | URL da execução e resultado |
+| Inventário real de dependências | Pendente | `lazarus-inventory.json` |
+| Compilação Lazarus Linux | Pendente | `build.log` e versões do compilador |
+| Compilação Windows | Pendente | Workflow e logs próprios |
