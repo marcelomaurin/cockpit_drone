@@ -313,3 +313,12 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Criado `docs/SITL_INTEGRACAO.md`: arquitetura planejada de transporte UDP em loopback, parser MAVLink v2, heartbeat, identificação de veículo, cenários de falha e critérios de aceite.
 - Criado `tests/test_sitl_contract.py`: verificações estáticas de documentação e restrição de simulação no adaptador.
 - **Estado:** especificação e testes estáticos publicados. Ainda não existe comunicação MAVLink com SITL implementada, nem compilação ou execução de testes confirmada. Integração permanece pendente.
+
+
+### Monitor MAVLink de heartbeat SITL — 2026-11-06
+
+- Criado `tools/sitl_heartbeat_monitor.py`, receptor **somente leitura** de mensagens HEARTBEAT com `pymavlink`, limitado a UDP loopback `127.0.0.1:14550` por padrão.
+- O monitor registra ID de sistema/componente, classe do veículo, estado de armamento relatado e timeout por relógio monotônico; nunca autoriza controle ou envia comandos.
+- Criado `tests/test_sitl_heartbeat_monitor.py` para classificação de barco, rover e estação de controle, e separação entre telemetria e autorização.
+- Uso previsto: `python tools/sitl_heartbeat_monitor.py --port 14550` após instalar `pymavlink` e iniciar SITL com saída UDP para loopback.
+- **Estado:** código publicado, não executado contra SITL. Não há integração do receptor ao Lazarus, autenticação de origem, testes de rede ou controle de veículos. Compilação e homologação continuam pendentes.
