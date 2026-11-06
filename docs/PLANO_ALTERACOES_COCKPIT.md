@@ -490,3 +490,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `tests/test_sitl_telemetry_state.pas`: regressões para autorização de controle indevida e tipo inválido, preservando o heartbeat anterior.
 - Corrigido teste de limite `custom_mode` para usar relógio simulado monotônico, com expiração em 4901 ms após heartbeat em 1900 ms.
 - **Pendente:** execução confirmada dos testes/CI, compilação Lazarus e integração com SITL real.
+
+
+### Validação de autorização antes de eventos SITL — 2026-11-06
+
+- `src/sitl_telemetry_state.pas`: `control_authorized` é validado antes de distinguir `heartbeat` e `heartbeat_timeout`, evitando que eventos de expiração com autorização indevida contornem a regra de somente leitura.
+- `tests/test_sitl_telemetry_state.pas`: testes para timeout com `control_authorized=true` e tipo inválido; evento com `false` permanece aceito.
+- **Verificação:** não foi possível confirmar resultado de GitHub Actions por consulta de execuções associadas ao commit anterior (nenhuma execução retornada); ambiente local não dispõe de `fpc` nem acesso DNS ao GitHub. Compilação e testes ainda não confirmados.
