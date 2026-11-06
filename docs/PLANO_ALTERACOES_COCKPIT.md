@@ -329,3 +329,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Criado `src/sitl_telemetry_state.pas`: interpreta eventos JSON de heartbeat/timeout produzidos pelo monitor Python, mantém classe, IDs, modo, armamento relatado e estado de conexão.
 - Inclui expiração local com relógio monotônico fornecido pelo chamador e rejeição de JSON inválido/IDs fora da faixa.
 - **Estado:** módulo de dados publicado, sem integração ainda ao formulário Lazarus ou leitura do stdout do processo Python. Não controla veículos e não autoriza armamento. Compilação e testes pendentes.
+
+
+### Ponte de processo Python para telemetria SITL — 2026-11-06
+
+- Criado `src/sitl_telemetry_bridge.pas`, que inicia o monitor Python com `TProcess`, lê stdout em blocos limitados, processa JSON por linha via `sitl_telemetry_state.pas`, expira heartbeat e encerra o subprocesso.
+- Integração **somente leitura**, sem canal de comando ou conexão com hardware.
+- **Pendente:** conectar o bridge ao formulário Lazarus e timer de interface, compilar, tratar stderr e saída inesperada, testar encerramento e reconexão, verificar compatibilidade entre plataformas. Não há validação em execução.
