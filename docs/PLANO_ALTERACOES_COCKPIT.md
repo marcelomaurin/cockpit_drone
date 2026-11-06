@@ -26,7 +26,7 @@ Transformar o Cockpit em estação de controle multiplataforma, modular e segura
 
 ### Fase 0 — Inventário, compilação e testes de base (P0)
 
-- [ ] Inventariar `.lpi`, dependências Lazarus AI Suite, versões FPC/Lazarus e sistemas suportados.
+- [ ] Inventariar `.lpi`, dependências Lazarus AI Suite, versões FPC/Lazarus e sistemas suportados. **Parcial:** script de inventário XML `.lpi`/`.lpk` criado em `tools/inventory_lazarus.py`; execução, identificação completa de dependências e versões ainda pendentes.
 - [ ] Compilar em Windows e Linux e registrar erros reais; corrigir falhas sem modificar comportamento de voo sem testes.
 - [ ] Criar CI com build e verificações estáticas, além de testes de parsing do catálogo e localização. **Parcial: testes estáticos de contratos e workflow GitHub Actions adicionados; build Lazarus e execução verde do workflow ainda não confirmados.**
 - [ ] Definir contrato comum de telemetria, comando, capacidades e erros; identificar diferenças entre controladores.
@@ -185,6 +185,13 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Criado `docs/COMPILACAO_E_VALIDACAO.md`, com execução dos testes Python, preparação Lazarus/FPC, dependências, checklist e cuidados para ensaios de controle.
 - **Estado:** documentação publicada; nenhuma compilação Windows/Linux ou execução verde de CI foi confirmada nesta etapa.
 - **Próxima entrega:** inventariar projetos `.lpi` e pacotes `.lpk`, obter build real e registrar erros antes de marcar Fase 0 concluída.
+
+### Inventário automatizado — 2026-11-06
+
+- Criado `tools/inventory_lazarus.py`: percorre projetos `.lpi` e pacotes `.lpk`, lê referências XML, conta units Pascal e oferece saída `--json`.
+- Execução prevista: `python tools/inventory_lazarus.py --json`. O comando sinaliza erro quando não encontra `.lpi` ou quando um XML não pode ser analisado.
+- **Estado:** script publicado, não executado em checkout completo neste ambiente; não foi possível comprovar builds ou resolver dependências de terceiros.
+- **Pendente:** executar inventário em checkout real, corrigir referências, fixar versões de FPC/Lazarus, integrar build à CI.
 
 ## 9. Referências técnicas
 
