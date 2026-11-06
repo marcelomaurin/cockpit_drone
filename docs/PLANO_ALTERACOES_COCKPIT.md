@@ -467,3 +467,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `src/sitl_telemetry_state.pas`: rejeita `custom_mode` fracionário em heartbeat SITL para não tratar um número decimal como modo inteiro.
 - `tests/test_sitl_telemetry_state.pas`: teste de rejeição de `custom_mode=1.5` sem renovar o relógio do último heartbeat.
 - **Pendente:** revisão de todos os limites numéricos e confirmação da execução da CI; integração com ArduPilot SITL e hardware não homologada.
+
+
+### Parsing estrito dos identificadores MAVLink — 2026-11-06
+
+- `src/sitl_telemetry_state.pas`: `system_id` e `component_id` passam por `TryStrToInt64` sobre o literal JSON e validação 1..255 antes de atualizar a telemetria, rejeitando valores fracionários e fora da faixa.
+- `tests/test_sitl_telemetry_state.pas`: casos de IDs 1.5 e 256, garantindo que entradas inválidas não renovam heartbeat.
+- **Pendente:** confirmar execução da CI, compilação Lazarus e teste com SITL/hardware.
