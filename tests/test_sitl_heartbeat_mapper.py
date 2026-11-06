@@ -12,20 +12,22 @@ SPEC.loader.exec_module(MODULE)
 
 
 class FakeHeartbeat:
-    def __init__(self, vehicle_type, base_mode=0):
+    def __init__(self, vehicle_type, base_mode=0, system_id=1, component_id=1):
         self.type = vehicle_type
         self.base_mode = base_mode
         self.autopilot = 3
         self.custom_mode = 4
+        self.system_id = system_id
+        self.component_id = component_id
 
     def get_type(self):
         return "HEARTBEAT"
 
     def get_srcSystem(self):
-        return 1
+        return self.system_id
 
     def get_srcComponent(self):
-        return 1
+        return self.component_id
 
 
 class SitlHeartbeatMapperTests(unittest.TestCase):
@@ -33,6 +35,21 @@ class SitlHeartbeatMapperTests(unittest.TestCase):
         for vehicle_type in (0, 6, 10, 99):
             with self.subTest(vehicle_type=vehicle_type):
                 self.assertIsNone(MODULE.heartbeat_record(FakeHeartbeat(vehicle_type)))
+
+    def test_invalid_mavlink_source_ids_are_ignored(self):
+        for system_id, component_id in ((0, 1), (1, 0), (256, 1), (1, 256)):
+            with self.subTest(system_id=system_id, component_id=component_id):
+                msg = FakeHeartbeat(2, system_id=system_id, component_id=component_id)
+                self.assertIsNone(MODULE.heartbeat_record(msg))
+
+    def test_expiration_before_new_source_acceptance(self):
+        lock = MODULE.HeartbeatSourceLock(timeout=3.0)
+        first = {"system_id": 1, "component_id": 1}
+        other = {"system_id": 2, "component_id": 1}
+        self.assertTrue(lock.observe(first, now=10.0))
+        self.assertTrue(lock.expire(now=13.1))
+        self.assertTrue(lock.observe(other, now=13.1))
+        self.assertEqual(lock.active_source, (2, 1))
 
     def test_supported_vehicle_classes(self):
         for vehicle_type, expected in ((2, "multirotor"), (4, "helicopter"),
