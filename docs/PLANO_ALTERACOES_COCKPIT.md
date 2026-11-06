@@ -345,3 +345,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Criado `tests/test_sitl_ui_wiring.py` com verificações estáticas de inicialização opt-in, encerramento, leitura e restrição a telemetria.
 - **Estado:** código publicado na `master`, sem compilação Lazarus, teste do subprocesso ou execução ArduPilot SITL comprovados. Não marcar integração validada nem liberar controle físico.
 - **Próximos itens:** verificar compatibilidade FPC/Lazarus, tratar stderr e encerramento do subprocesso sem travar UI, testar fluxo real e compatibilidade Windows/Linux, validar tradução e posicionamento do painel nos oito idiomas.
+
+
+### Teste Pascal de telemetria na CI Linux — 2026-11-06
+
+- Adicionado `tests/test_sitl_telemetry_state.pas`, com verificações de JSON inválido, heartbeat, identificadores, estado de armamento relatado, timeout e recuperação de conexão.
+- Atualizado `.github/workflows/lazarus-build.yml` para compilar e executar esse teste com FPC no job Linux e armazenar os logs de compilação e execução em `build-diagnostics/`.
+- **Estado:** alterações publicadas na `master`; ainda não há resultado de execução do workflow nem compilação Lazarus confirmada. A integração SITL e a segurança de voo não estão homologadas.
