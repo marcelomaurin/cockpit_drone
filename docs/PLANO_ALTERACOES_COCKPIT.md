@@ -245,3 +245,12 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 | Inventário real de dependências | Pendente | `lazarus-inventory.json` |
 | Compilação Lazarus Linux | Pendente | `build.log` e versões do compilador |
 | Compilação Windows | Pendente | Workflow e logs próprios |
+
+
+### Segurança FQ777 — bloqueio conservador (2026-11-06)
+
+- Alterado `src/conectionfq777.pas`: o corte de motores não é mais liberado automaticamente quando o acelerador retorna ao mínimo.
+- Enquanto `ControlConnected=False`, o timer não chama `SetSticks`, mantém corte travado e zera a aceleração de teclado.
+- **Restrição intencional:** o corte agora começa ativado e não existe rearme pela interface; o FQ777 fica indisponível para acionamento de motores até implementação e teste de rearme explícito com condições de segurança. Não utilizar em voo real.
+- **Pendente:** implementar botão/fluxo de rearme com confirmação, acelerador mínimo, conexão estável, política para perda de joystick e testes sem hélices; verificar semântica real de `TAIDroneFQ777.ControlConnected`, compilar Lazarus e ensaiar em bancada.
+- **Estado:** código publicado, sem compilação nem validação física. A Fase 1 permanece aberta; não marcar dirigibilidade como concluída.
