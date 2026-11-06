@@ -97,7 +97,7 @@ procedure TSitlTelemetryBridge.Poll(NowMs: QWord; TimeoutMs: QWord);
 var
   Data: array[0..2047] of Byte;
   Count, I, PosLF: Integer;
-  Line, ErrorText: string;
+  Line, ErrorText, Chunk: string;
 begin
   ExpireSitlTelemetry(FState, NowMs, TimeoutMs);
   if not Assigned(FProcess) then Exit;
@@ -115,7 +115,8 @@ begin
     if Count > SizeOf(Data) then Count := SizeOf(Data);
     Count := FProcess.Output.Read(Data, Count);
     if Count <= 0 then Break;
-    FBuffer := FBuffer + TEncoding.UTF8.GetString(Data, 0, Count);
+    SetString(Chunk, PChar(@Data[0]), Count);
+    FBuffer := FBuffer + Chunk;
     if Length(FBuffer) > 65536 then
     begin
       FLastError := 'Linha de telemetria excedeu limite';
