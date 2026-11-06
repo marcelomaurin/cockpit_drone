@@ -284,3 +284,11 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 
 - Criado `docs/MAVLINK_MAPEAMENTO_VEICULOS.md` com matriz de comandos para multirrotor, avião, helicóptero, barco e submersível, regras de segurança e checklist de implementação.
 - Estado: **documentação publicada; adaptadores MAVLink e testes SITL pendentes**. Nenhum equipamento adicional foi habilitado para controle.
+
+
+### Validação de adaptador MAVLink — 2026-11-06
+
+- Criado `src/mavlink_vehicle_adapter.pas` com `TMavlinkAdapterState` e `ValidateMavlinkDispatch`.
+- Verificações iniciais: contrato válido, classe de veículo coincidente, heartbeat e entrada recentes, modo aprovado e estado de armamento confirmado.
+- A validação só permite fluxo marcado `SimulatorOnly`; não existe serialização ou transporte MAVLink, nem controle físico habilitado.
+- **Estado: código publicado, não compilado e não integrado ao Cockpit.** Pendentes testes unitários, tratamento de timeouts com relógio monotônico, descoberta de capacidades, integração SITL e definição dos modos específicos por veículo.
