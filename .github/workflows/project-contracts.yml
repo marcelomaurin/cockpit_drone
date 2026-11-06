@@ -16,6 +16,7 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_*.py' -v
 
       - name: Inventory Lazarus projects and packages
+        if: always()
         run: python tools/inventory_lazarus.py --json > lazarus-inventory.json
       - name: Upload Lazarus inventory
         if: always()
