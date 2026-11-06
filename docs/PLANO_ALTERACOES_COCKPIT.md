@@ -541,3 +541,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `tools/sitl_heartbeat_monitor.py`: conversões `int()` de `type`, `system_id`, `component_id`, `autopilot`, `base_mode` e `custom_mode` substituídas por `operator.index()`, impedindo truncamento silencioso de valores fracionários ou aceitação de strings numéricas.
 - `tests/test_sitl_monitor_runtime.py`: casos de regressão para campos fracionários; a rotina `run` descarta mensagens malformadas sem interromper o monitor.
 - **Pendente:** confirmar execução dos testes/CI e integração ArduPilot SITL/hardware.
+
+
+### Limites de vehicle_type MAVLink — 2026-11-06
+
+- `tools/sitl_heartbeat_monitor.py`: valida `vehicle_type` como inteiro uint8 (0..255) antes da classificação do veículo.
+- `tests/test_sitl_monitor_runtime.py`: casos de regressão para `vehicle_type=-1`, `256` e tipo válido `2` (multirotor).
+- **Pendente:** execução confirmada da CI e teste integrado ArduPilot SITL/hardware.
