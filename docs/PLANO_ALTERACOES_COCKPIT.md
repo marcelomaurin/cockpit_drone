@@ -336,3 +336,12 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Criado `src/sitl_telemetry_bridge.pas`, que inicia o monitor Python com `TProcess`, lê stdout em blocos limitados, processa JSON por linha via `sitl_telemetry_state.pas`, expira heartbeat e encerra o subprocesso.
 - Integração **somente leitura**, sem canal de comando ou conexão com hardware.
 - **Pendente:** conectar o bridge ao formulário Lazarus e timer de interface, compilar, tratar stderr e saída inesperada, testar encerramento e reconexão, verificar compatibilidade entre plataformas. Não há validação em execução.
+
+
+### Painel de telemetria SITL na interface principal — 2026-11-06
+
+- Integrado `src/sitl_telemetry_bridge.pas` ao `src/main.pas` com painel inferior, botão de ativação/desativação explícita e timer de 250 ms para leitura de eventos.
+- O painel apresenta conexão, classe de veículo, sistema/componente, modo numérico e estado de armamento **relatado**. O monitor não controla nem autoriza o veículo.
+- Criado `tests/test_sitl_ui_wiring.py` com verificações estáticas de inicialização opt-in, encerramento, leitura e restrição a telemetria.
+- **Estado:** código publicado na `master`, sem compilação Lazarus, teste do subprocesso ou execução ArduPilot SITL comprovados. Não marcar integração validada nem liberar controle físico.
+- **Próximos itens:** verificar compatibilidade FPC/Lazarus, tratar stderr e encerramento do subprocesso sem travar UI, testar fluxo real e compatibilidade Windows/Linux, validar tradução e posicionamento do painel nos oito idiomas.
