@@ -24,6 +24,7 @@ type
     function Start(const PythonExecutable, ScriptPath: string; Port: Word = 14550): Boolean;
     procedure Stop;
     procedure Poll(NowMs: QWord; TimeoutMs: QWord = 3000);
+    function IsRunning: Boolean;
     property State: TSitlTelemetry read FState;
     property LastError: string read FLastError;
   end;
@@ -61,7 +62,7 @@ begin
     FProcess.Parameters.Add(ScriptPath);
     FProcess.Parameters.Add('--port');
     FProcess.Parameters.Add(IntToStr(Port));
-    FProcess.Options := [poUsePipes, poNoConsole];
+    FProcess.Options := [poUsePipes, poNoConsole, poStderrToOut];
     FProcess.Execute;
     Result := FProcess.Running;
     if not Result then
@@ -76,6 +77,11 @@ begin
       Stop;
     end;
   end;
+end;
+
+function TSitlTelemetryBridge.IsRunning: Boolean;
+begin
+  Result := Assigned(FProcess) and FProcess.Running;
 end;
 
 procedure TSitlTelemetryBridge.Stop;
@@ -103,7 +109,7 @@ begin
   if not Assigned(FProcess) then Exit;
   if not FProcess.Running then
   begin
-    FLastError := 'Monitor SITL finalizado';
+    FLastError := 'Monitor SITL finalizado (verifique Python/pymavlink)';
     ResetSitlTelemetry(FState);
     Exit;
   end;
