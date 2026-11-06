@@ -7,7 +7,7 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, opengpsx, mplayercontrollaz, LazSerialPort, sdposeriallaz, laz_acs,
+  Forms, opengpsx, LazSerialPort, sdposeriallaz,
   main, config, About, Camera, map, joystick, funcs, GPS, objetos, setmain,
   protocols, flightplan, tacticalhud, conexaodrone, ConectionCX10W,
   conectionmavlink, conectiontello, conectionopendrone, conectionfq777,

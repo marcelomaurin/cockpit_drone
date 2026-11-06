@@ -62,7 +62,7 @@ begin
     FProcess.Parameters.Add(ScriptPath);
     FProcess.Parameters.Add('--port');
     FProcess.Parameters.Add(IntToStr(Port));
-    FProcess.Options := [poUsePipes, poNoConsole, poStderrToOut];
+    FProcess.Options := [poUsePipes, poNoConsole, poStderrToOutPut];
     FProcess.Execute;
     Result := FProcess.Running;
     if not Result then

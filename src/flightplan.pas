@@ -170,6 +170,7 @@ end;
 function LeNumero(const ATexto: string; out AValor: Double): Boolean;
 begin
   Result := TryStrToFloat(StringReplace(Trim(ATexto), ',', '.', [rfReplaceAll]), AValor, FmtPonto);
+  if Result then Result := not IsNan(AValor) and not IsInfinite(AValor);
 end;
 
 function FormataNumero(AValor: Double; ACasas: Integer): string;
@@ -549,6 +550,33 @@ var
 begin
   AErros.Clear;
   AAvisos.Clear;
+
+  // Reject non-finite values before comparisons, distances and time estimates.
+  if IsNan(FMinAltitude) or IsInfinite(FMinAltitude) or
+     IsNan(FMaxAltitude) or IsInfinite(FMaxAltitude) or
+     IsNan(FAltDecolagem) or IsInfinite(FAltDecolagem) or
+     IsNan(FVelPadrao) or IsInfinite(FVelPadrao) or
+     IsNan(FDistMaxima) or IsInfinite(FDistMaxima) or (FDistMaxima <= 0) or
+     (FMinAltitude > FMaxAltitude) then
+    AErros.Add('Limites da rota invalidos ou nao finitos.');
+  if FHomeValido and (IsNan(FHomeLat) or IsInfinite(FHomeLat) or
+     IsNan(FHomeLon) or IsInfinite(FHomeLon)) then
+    AErros.Add('Coordenadas do ponto de partida nao finitas.');
+  if FGeofenceActive then
+    for I := 0 to High(FGeofence) do
+      if IsNan(FGeofence[I].Latitude) or IsInfinite(FGeofence[I].Latitude) or
+         IsNan(FGeofence[I].Longitude) or IsInfinite(FGeofence[I].Longitude) then
+        AErros.Add('Coordenadas da geocerca nao finitas.');
+  for I := 0 to FWaypoints.Count - 1 do
+  begin
+    W := GetWaypoint(I);
+    if IsNan(W.Latitude) or IsInfinite(W.Latitude) or
+       IsNan(W.Longitude) or IsInfinite(W.Longitude) or
+       IsNan(W.Altitude) or IsInfinite(W.Altitude) or
+       IsNan(W.Speed) or IsInfinite(W.Speed) then
+      AErros.Add(Format('Ponto %d: valores nao finitos.', [I + 1]));
+  end;
+  if AErros.Count > 0 then Exit(False);
 
   AltMin := Max(FMinAltitude, ROTA_ALT_MIN_ABSOLUTA);
   AltMax := Min(FMaxAltitude, ROTA_ALT_MAX_ABSOLUTA);

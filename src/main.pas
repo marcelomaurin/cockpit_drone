@@ -6,15 +6,15 @@ interface
 
 uses
   Classes, SysUtils, Math, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, Arrow, Menus, acs_mixer, CADSys4, SdpoJoystick, A3nalogGauge,
+  StdCtrls, Arrow, Menus, CADSys4, SdpoJoystick, A3nalogGauge,
   IndLed, LedNumber, AdvLed, BCGameGrid, BCSVGViewer, gpssignalplot, gpsskyplot,
   gpstarget, nmeadecode, gpsportconnected, about,
   config, camera, map, funcs, GPS,
-  joystick, LCLType, uplaysound, controler, setmain, tacticalhud, flightplan,
+  joystick, LCLType, controler, setmain, tacticalhud, flightplan,
   conexaodrone, ConectionCX10W, conectionmavlink, conectiontello,
   conectionopendrone, conectionfq777, conectionardrone, conectionesp32drone,
   aidronemavlink, protocols, rotavoo, cockpit_i18n, sitl_telemetry_bridge,
-  sitl_telemetry_state;
+  sitl_telemetry_state, cockpit_runtime_paths;
 
 const
   refJoy = 127;
@@ -27,7 +27,6 @@ type
   TfrmMain = class(TForm)
 // ... (trimmed fields)
     A3nalogGauge1: TA3nalogGauge;
-    AcsMixer1: TAcsMixer;
     AdvCamera: TAdvLed;
     AdvJoyB2: TAdvLed;
     AdvJoyB3: TAdvLed;
@@ -68,7 +67,6 @@ type
     MenuItem3: TMenuItem;
     NMEADecode1: TNMEADecode;
     Panel1: TPanel;
-    playsound1: Tplaysound;
     pnBaterry: TPanel;
     pnScreens: TPanel;
     pnNAV: TPanel;
@@ -455,15 +453,8 @@ begin
     FSitlStatus.Caption := 'SITL: desligado (somente leitura)';
     Exit;
   end;
-  ScriptPath := ExpandFileName('tools' + DirectorySeparator + 'sitl_heartbeat_monitor.py');
-  if not FileExists(ScriptPath) then
-    ScriptPath := ExpandFileName(ExtractFilePath(ParamStr(0)) +
-      'tools' + DirectorySeparator + 'sitl_heartbeat_monitor.py');
-  {$IFDEF WINDOWS}
-  PythonExe := 'python';
-  {$ELSE}
-  PythonExe := 'python3';
-  {$ENDIF}
+  ScriptPath := ResolveCockpitToolPath('sitl_heartbeat_monitor.py', ParamStr(0));
+  PythonExe := CockpitPythonExecutable;
   if not FSitlBridge.Start(PythonExe, ScriptPath) then
   begin
     FSitlStatus.Caption := 'SITL: erro - ' + FSitlBridge.LastError;
