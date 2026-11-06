@@ -436,3 +436,11 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `ExpireSitlTelemetry` e o evento `heartbeat_timeout` agora restauram o estado de telemetria desconectado, apagando também identificadores de origem, classe do veículo e modo de operação anteriormente recebidos.
 - `tests/test_sitl_telemetry_state.pas` inclui verificações de limpeza de IDs, classe, modo e armamento após timeout.
 - **Estado:** código e testes publicados; ainda sem confirmação de execução da CI nem homologação SITL/hardware.
+
+
+### Correção de divergência entre timeouts — 2026-11-06
+
+- Revisão encontrou que o evento explícito `heartbeat_timeout` ainda limpava apenas `Connected` e `ArmedReported`, apesar da intenção anterior de limpar todo o estado.
+- `src/sitl_telemetry_state.pas`: corrigido para usar `ResetSitlTelemetry(State)` tanto no timeout local quanto no evento explícito.
+- `tests/test_sitl_telemetry_state.pas`: verificações adicionais para componente, modo e relógio de heartbeat zerados.
+- **Pendente:** execução e compilação efetivas da CI, teste ArduPilot SITL e homologação física.
