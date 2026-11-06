@@ -99,7 +99,7 @@ begin
       ErrorText := 'Tipos de campos opcionais invalidos';
       Exit;
     end;
-    Candidate := State;
+    ResetSitlTelemetry(Candidate);
     Candidate.SystemId := Obj.Get('system_id', 0);
     Candidate.ComponentId := Obj.Get('component_id', 0);
     Candidate.VehicleClass := Obj.Get('vehicle_class', 'unsupported');
