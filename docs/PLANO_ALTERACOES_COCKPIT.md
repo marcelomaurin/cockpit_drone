@@ -262,3 +262,11 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Com corte ativo, o timer neutraliza também rolagem, arfagem e guinada, além do acelerador; perda de conexão mantém bloqueio.
 - **Estado: implementação inicial, não homologada.** Não há prova de compilação, teste de firmware, estabilidade do enlace ou resposta dos motores. Rearme não implica autorização para voo real.
 - **Pendências de segurança:** teste de leitura inválida do joystick, confirmação da escala de acelerador em cada configuração, debouncing de conexão, prevenção de comandos de teclado durante diálogo modal, ensaio sem hélices e verificação de failsafe no firmware. Manter Fase 1 aberta até essas evidências.
+
+
+### Revisão de entrada FQ777 — 2026-11-06
+
+- Alteração no código: perda de joystick anteriormente conectado passa a manter o corte até rearme manual.
+- Sem joystick conectado, a contribuição do acelerador desse dispositivo passa a ser zero, inclusive com opção de eixo centrado.
+- Commit de código: `74f31c9d`.
+- Pendente: compilação, testes de reconexão, ensaio em bancada sem hélices e homologação. Não liberado para voo.
