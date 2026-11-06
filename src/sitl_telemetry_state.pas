@@ -15,7 +15,7 @@ type
     VehicleClass: string;
     SystemId: Integer;
     ComponentId: Integer;
-    CustomMode: Integer;
+    CustomMode: Cardinal;
     ArmedReported: Boolean;
     LastHeartbeatMs: QWord;
   end;
@@ -126,7 +126,7 @@ begin
     if Obj.Find('custom_mode') <> nil then
     begin
       if not TryStrToInt64(Obj.Find('custom_mode').AsJSON, ParsedId) or
-         (ParsedId < 0) or (ParsedId > High(Integer)) then
+         (ParsedId < 0) or (ParsedId > High(Cardinal)) then
       begin
         ErrorText := 'Modo MAVLink invalido ou fora da faixa suportada';
         Exit;
