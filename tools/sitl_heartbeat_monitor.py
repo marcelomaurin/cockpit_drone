@@ -56,6 +56,7 @@ def run(port, timeout):
         f"udpin:127.0.0.1:{port}", source_system=255
     )
     last_seen = None
+    active_source = None
     try:
         while True:
             msg = connection.recv_match(type="HEARTBEAT", blocking=True, timeout=0.5)
@@ -63,11 +64,16 @@ def run(port, timeout):
             if msg is not None:
                 record = heartbeat_record(msg, now)
                 if record is not None:
-                    last_seen = now
-                    print(json.dumps({"event": "heartbeat", **record}), flush=True)
+                    source = (record["system_id"], record["component_id"])
+                    if active_source is None:
+                        active_source = source
+                    if source == active_source:
+                        last_seen = now
+                        print(json.dumps({"event": "heartbeat", **record}), flush=True)
             if last_seen is not None and now - last_seen > timeout:
                 print(json.dumps({"event": "heartbeat_timeout", "control_authorized": False}), flush=True)
                 last_seen = None
+                active_source = None
     except KeyboardInterrupt:
         return 0
     finally:
