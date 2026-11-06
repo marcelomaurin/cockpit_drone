@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ComCtrls, ExtCtrls, Arrow, AdvLed, Types, SdpoJoystick, funcs, SdpoSerial
+  ComCtrls, ExtCtrls, Arrow, AdvLed, Types, SdpoJoystick, funcs, SdpoSerial,
+  fpjson, jsonparser, IniFiles
   {$IFDEF MSWINDOWS}, Windows{$ENDIF};
 
 type
@@ -94,10 +95,19 @@ type
     procedure CriaAbaOpendrone;
     procedure CriaAbaARDrone;
     procedure CriaAbaESP32Drone;
+    procedure CarregaCatalogo;
+    procedure MarcaAlterada(Sender: TObject);
+    procedure ModeloAlterado(Sender: TObject);
+    procedure SelecionaModeloSalvo;
 
   public
     TipoAtivo: Integer;
     cbProtocol: TComboBox;
+    cbMarca: TComboBox;
+    cbModelo: TComboBox;
+    lblModeloStatus: TLabel;
+    FCatalogo: TJSONArray;
+    FCarregandoModelo: Boolean;
 
     // Dynamic tabs and edits
     tsMavlink: TTabSheet;
@@ -325,6 +335,24 @@ begin
     cbProtocol.ItemIndex := 0;
 
   cbProtocol.OnChange := @cbProtocolChange;
+
+  cbMarca := TComboBox.Create(Self);
+  cbMarca.Parent := tsEquipamento;
+  cbMarca.SetBounds(cbProtocol.Left, cbProtocol.Top + 38, cbProtocol.Width, 24);
+  cbMarca.Style := csDropDownList;
+  cbMarca.OnChange := @MarcaAlterada;
+  cbModelo := TComboBox.Create(Self);
+  cbModelo.Parent := tsEquipamento;
+  cbModelo.SetBounds(cbProtocol.Left, cbProtocol.Top + 70, cbProtocol.Width, 24);
+  cbModelo.Style := csDropDownList;
+  cbModelo.OnChange := @ModeloAlterado;
+  lblModeloStatus := TLabel.Create(Self);
+  lblModeloStatus.Parent := tsEquipamento;
+  lblModeloStatus.SetBounds(cbProtocol.Left, cbProtocol.Top + 101, cbProtocol.Width + 140, 40);
+  lblModeloStatus.AutoSize := False;
+  lblModeloStatus.WordWrap := True;
+  CarregaCatalogo;
+  SelecionaModeloSalvo;
 
   with TLabel.Create(Self) do
   begin
@@ -603,6 +631,118 @@ begin
     Left := 15; Top := 82;
     Caption := 'Botão 3 arma (aceleração no mínimo), botão 4 desarma.';
   end;
+end;
+
+procedure Tfrmconfig.CarregaCatalogo;
+var
+  P: string;
+  J: TJSONData;
+  I: Integer;
+  Marca: string;
+begin
+  FCatalogo := nil;
+  P := ExtractFilePath(Application.ExeName) + 'data' + PathDelim + 'drone_models.json';
+  if not FileExists(P) then
+    P := ExtractFilePath(Application.ExeName) + 'drone_models.json';
+  if not FileExists(P) then
+  begin
+    lblModeloStatus.Caption := 'Catalogo nao encontrado: data/drone_models.json';
+    Exit;
+  end;
+  try
+    with TStringList.Create do
+    try
+      LoadFromFile(P);
+      J := GetJSON(Text);
+    finally
+      Free;
+    end;
+    try
+      if J.JSONType <> jtObject then Exit;
+      FCatalogo := TJSONArray(J.FindPath('models').Clone);
+    finally
+      J.Free;
+    end;
+    for I := 0 to FCatalogo.Count - 1 do
+    begin
+      Marca := FCatalogo.Objects[I].Get('brand', '');
+      if cbMarca.Items.IndexOf(Marca) < 0 then cbMarca.Items.Add(Marca);
+    end;
+  except
+    on E: Exception do
+      lblModeloStatus.Caption := 'Erro no catalogo: ' + E.Message;
+  end;
+end;
+
+procedure Tfrmconfig.MarcaAlterada(Sender: TObject);
+var
+  I: Integer;
+begin
+  cbModelo.Items.Clear;
+  if not Assigned(FCatalogo) or (cbMarca.ItemIndex < 0) then Exit;
+  for I := 0 to FCatalogo.Count - 1 do
+    if FCatalogo.Objects[I].Get('brand', '') = cbMarca.Text then
+      cbModelo.Items.Add(FCatalogo.Objects[I].Get('model', ''));
+  cbModelo.ItemIndex := -1;
+  lblModeloStatus.Caption := 'Selecione o modelo.';
+end;
+
+procedure Tfrmconfig.ModeloAlterado(Sender: TObject);
+var
+  I, Idx: Integer;
+  O: TJSONObject;
+  Ini: TIniFile;
+  P: string;
+begin
+  if FCarregandoModelo or not Assigned(FCatalogo) then Exit;
+  for I := 0 to FCatalogo.Count - 1 do
+  begin
+    O := FCatalogo.Objects[I];
+    if (O.Get('brand', '') <> cbMarca.Text) or
+       (O.Get('model', '') <> cbModelo.Text) then Continue;
+    Idx := O.Get('cockpit_protocol_index', -1);
+    if (Idx < 0) or (Idx >= cbProtocol.Items.Count) then
+      lblModeloStatus.Caption := 'Adaptador indisponivel. Conexao nao habilitada para este modelo.'
+    else
+    begin
+      cbProtocol.ItemIndex := Idx;
+      cbProtocolChange(cbProtocol);
+      lblModeloStatus.Caption := 'Protocolo selecionado: ' + cbProtocol.Text +
+        '. Verifique compatibilidade do equipamento antes de conectar.';
+    end;
+    P := ExtractFilePath(Application.ExeName) + 'drone_model.ini';
+    Ini := TIniFile.Create(P);
+    try
+      Ini.WriteString('MODEL', 'BRAND', cbMarca.Text);
+      Ini.WriteString('MODEL', 'NAME', cbModelo.Text);
+    finally
+      Ini.Free;
+    end;
+    Break;
+  end;
+end;
+
+procedure Tfrmconfig.SelecionaModeloSalvo;
+var
+  Ini: TIniFile;
+  Marca, Modelo: string;
+begin
+  Ini := TIniFile.Create(ExtractFilePath(Application.ExeName) + 'drone_model.ini');
+  try
+    Marca := Ini.ReadString('MODEL', 'BRAND', '');
+    Modelo := Ini.ReadString('MODEL', 'NAME', '');
+  finally
+    Ini.Free;
+  end;
+  FCarregandoModelo := True;
+  try
+    cbMarca.ItemIndex := cbMarca.Items.IndexOf(Marca);
+    MarcaAlterada(nil);
+    cbModelo.ItemIndex := cbModelo.Items.IndexOf(Modelo);
+  finally
+    FCarregandoModelo := False;
+  end;
+  if cbModelo.ItemIndex >= 0 then ModeloAlterado(nil);
 end;
 
 procedure Tfrmconfig.cbProtocolChange(Sender: TObject);
