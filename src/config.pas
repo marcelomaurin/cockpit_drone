@@ -99,12 +99,16 @@ type
     procedure MarcaAlterada(Sender: TObject);
     procedure ModeloAlterado(Sender: TObject);
     procedure SelecionaModeloSalvo;
+    procedure IdiomaAlterado(Sender: TObject);
+    procedure CarregaIdioma;
 
   public
     TipoAtivo: Integer;
     cbProtocol: TComboBox;
     cbMarca: TComboBox;
     cbModelo: TComboBox;
+    cbIdioma: TComboBox;
+    lblIdioma: TLabel;
     lblModeloStatus: TLabel;
     FCatalogo: TJSONArray;
     FCarregandoModelo: Boolean;
@@ -308,6 +312,25 @@ begin
   TipoAtivo := 0;
   LimpaLeitura;
   CarregaPortasSeriais;
+
+  lblIdioma := TLabel.Create(Self);
+  lblIdioma.Parent := pnNAV;
+  lblIdioma.Caption := 'Idioma / Language';
+  lblIdioma.Align := alTop;
+  cbIdioma := TComboBox.Create(Self);
+  cbIdioma.Parent := pnNAV;
+  cbIdioma.Align := alTop;
+  cbIdioma.Style := csDropDownList;
+  cbIdioma.Items.Add('Português (Brasil)');
+  cbIdioma.Items.Add('English');
+  cbIdioma.Items.Add('Español');
+  cbIdioma.Items.Add('中文 (简体)');
+  cbIdioma.Items.Add('العربية');
+  cbIdioma.Items.Add('Deutsch');
+  cbIdioma.Items.Add('Русский');
+  cbIdioma.Items.Add('हिन्दी');
+  CarregaIdioma;
+  cbIdioma.OnChange := @IdiomaAlterado;
 
   OnShow := @FormShow;
   OnClose := @FormClose;
@@ -877,6 +900,43 @@ end;
 procedure Tfrmconfig.FormShow(Sender: TObject);
 begin
   CarregarValoresTela;
+end;
+
+procedure Tfrmconfig.CarregaIdioma;
+var
+  Ini: TIniFile;
+  Codigo: string;
+  I: Integer;
+const
+  Codigos: array[0..7] of string = ('pt-BR', 'en', 'es', 'zh-CN', 'ar', 'de', 'ru', 'hi');
+begin
+  Ini := TIniFile.Create(GetAppConfigDir(False) + 'cockpit_ui.ini');
+  try
+    Codigo := Ini.ReadString('interface', 'language', 'pt-BR');
+  finally
+    Ini.Free;
+  end;
+  cbIdioma.ItemIndex := 0;
+  for I := 0 to High(Codigos) do
+    if SameText(Codigo, Codigos[I]) then cbIdioma.ItemIndex := I;
+end;
+
+procedure Tfrmconfig.IdiomaAlterado(Sender: TObject);
+var
+  Ini: TIniFile;
+const
+  Codigos: array[0..7] of string = ('pt-BR', 'en', 'es', 'zh-CN', 'ar', 'de', 'ru', 'hi');
+begin
+  if cbIdioma.ItemIndex < 0 then Exit;
+  ForceDirectories(GetAppConfigDir(False));
+  Ini := TIniFile.Create(GetAppConfigDir(False) + 'cockpit_ui.ini');
+  try
+    Ini.WriteString('interface', 'language', Codigos[cbIdioma.ItemIndex]);
+    Ini.UpdateFile;
+  finally
+    Ini.Free;
+  end;
+  ShowMessage('Idioma salvo. As traducoes da interface serao aplicadas conforme os catalogos disponiveis.');
 end;
 
 procedure Tfrmconfig.FormClose(Sender: TObject; var CloseAction: TCloseAction);
