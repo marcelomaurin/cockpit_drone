@@ -299,3 +299,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Criado `tests/test_mavlink_adapter_contract.py` com verificações estáticas para contrato, classes de veículos, heartbeat, entrada, modo, armamento e bloqueio de hardware.
 - **Limitação:** testes estáticos verificam presença de guardas no código, não executam Pascal, não exercitam os ramos da validação nem demonstram interoperabilidade MAVLink/SITL.
 - **Estado:** arquivo publicado; execução da suíte, testes comportamentais Pascal, integração no CI, compilação e testes SITL pendentes.
+
+
+### CI e testes comportamentais MAVLink — 2026-11-06
+
+- Atualizado `.github/workflows/project-contracts.yml` para executar explicitamente `test_mavlink_adapter_contract.py` antes da suíte geral (a suíte geral também inclui esse arquivo).
+- Criado `tests/test_mavlink_validation.pas`, programa de testes comportamentais para comando neutro, bloqueio de transporte físico, heartbeat/entrada obsoletos, modo inválido, classe incompatível, movimento desarmado e eixo proibido.
+- **Estado:** arquivos publicados; teste Pascal não foi compilado nem executado, e execução verde do CI não foi confirmada. O teste Pascal ainda não integra o workflow; permanece para a etapa de compilação previamente adiada.
