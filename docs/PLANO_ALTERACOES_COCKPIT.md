@@ -394,3 +394,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - `tools/sitl_heartbeat_monitor.py`: descarta mensagens HEARTBEAT de GCS e tipos MAV_TYPE sem classificação veicular suportada, impedindo que substituam o estado exibido de veículo.
 - `tests/test_sitl_heartbeat_mapper.py`: testa rejeição de GCS/tipos não suportados, classes multirotor/helicóptero/barco/submersível e separação entre armamento relatado e autorização de controle.
 - **Limitação:** ainda não há fixação de `system_id`/`component_id` por sessão; múltiplos veículos suportados na mesma porta podem alternar a telemetria exibida. Corrigir antes de uso operacional. Testes e CI ainda sem resultado de execução confirmado.
+
+
+### Fixação de origem MAVLink na sessão SITL — 2026-11-06
+
+- Monitor Python fixa a origem de heartbeat suportada pelo par `system_id`/`component_id`; heartbeats de outras origens não renovam o timeout nem substituem a telemetria da sessão.
+- A origem é liberada após timeout, permitindo nova seleção automática. Incluído teste estático de regressão no mapper.
+- **Pendente:** testes dinâmicos de múltiplas origens, seleção explícita de veículo, resultados de CI, compilação Lazarus, validação SITL e hardware. A fixação não autoriza comandos físicos.
