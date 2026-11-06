@@ -43,14 +43,27 @@ class SitlHeartbeatMapperTests(unittest.TestCase):
                 self.assertFalse(record["control_authorized"])
                 self.assertEqual(record["timestamp_monotonic"], 123.0)
 
-    def test_monitor_source_lock_is_present(self):
-        source = (ROOT / "tools" / "sitl_heartbeat_monitor.py").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn('source = (record["system_id"], record["component_id"])', source)
-        self.assertIn("if source == active_source:", source)
-        self.assertIn("active_source = None", source)
-        self.assertIn("last_seen = None\n                active_source = None", source)
+    def test_two_sources_do_not_mix_before_timeout(self):
+        lock = MODULE.HeartbeatSourceLock(timeout=3.0)
+        first = {"system_id": 1, "component_id": 1}
+        other = {"system_id": 2, "component_id": 1}
+        self.assertTrue(lock.observe(first, now=10.0))
+        self.assertFalse(lock.observe(other, now=11.0))
+        self.assertEqual(lock.active_source, (1, 1))
+        self.assertEqual(lock.last_seen, 10.0)
+        self.assertFalse(lock.expire(now=13.0))
+        self.assertTrue(lock.expire(now=13.1))
+        self.assertIsNone(lock.active_source)
+        self.assertTrue(lock.observe(other, now=13.2))
+        self.assertEqual(lock.active_source, (2, 1))
+
+    def test_selected_source_refreshes_timeout(self):
+        lock = MODULE.HeartbeatSourceLock(timeout=3.0)
+        first = {"system_id": 1, "component_id": 1}
+        self.assertTrue(lock.observe(first, now=10.0))
+        self.assertTrue(lock.observe(first, now=12.0))
+        self.assertFalse(lock.expire(now=14.9))
+        self.assertTrue(lock.expire(now=15.1))
 
     def test_reported_armed_is_not_control_permission(self):
         record = MODULE.heartbeat_record(FakeHeartbeat(2, base_mode=128))
