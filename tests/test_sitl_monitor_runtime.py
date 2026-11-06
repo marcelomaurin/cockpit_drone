@@ -86,6 +86,18 @@ class SitlMonitorRuntimeTests(unittest.TestCase):
         with self.assertRaises(TypeError):
             MONITOR.heartbeat_record(message, now=1.0)
 
+    def test_boolean_fields_are_not_treated_as_mavlink_integers(self):
+        message = FakeHeartbeat(1)
+        for field in ("type", "autopilot", "base_mode", "custom_mode"):
+            original = getattr(message, field)
+            setattr(message, field, True)
+            with self.assertRaises(TypeError, msg=field):
+                MONITOR.heartbeat_record(message, now=1.0)
+            setattr(message, field, original)
+        message.system_id = True
+        with self.assertRaises(TypeError):
+            MONITOR.heartbeat_record(message, now=1.0)
+
     def test_uint8_autopilot_and_base_mode_bounds(self):
         message = FakeHeartbeat(1)
         message.base_mode = 255
