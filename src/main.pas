@@ -971,15 +971,17 @@ end;
 procedure TfrmMain.timerJoystickTimer(Sender: TObject);
 var
   X0, Y0, Z0: Double;
+  JoyDisponivel: Boolean;
 begin
   X0 := refJoy;
   Y0 := refJoy;
   Z0 := Z;
 
-  if UsaJoystick and Assigned(FJoystick) then
+  JoyDisponivel := UsaJoystick and Assigned(FJoystick) and FJoystick.Active;
+  if JoyDisponivel then
     FJoystick.UpdateState;
 
-  if UsaJoystick and Assigned(FJoystick) and FJoystick.Active then
+  if JoyDisponivel then
   begin
     X0 := FJoystick.State.X;
     Y0 := FJoystick.State.Y;
@@ -994,6 +996,8 @@ begin
   end
   else
   begin
+    // Falha/desconexao do joystick: neutro para direcao e acelerador minimo.
+    if UsaJoystick then Z0 := 0;
     B1 := 0;
     B2 := 0;
     B3 := 0;
@@ -1023,7 +1027,7 @@ begin
       Inc(Z);
   end
   else
-    Z := Byte(Round(Z0)) and $FF;
+    Z := Byte(EnsureRange(Round(Z0), 0, 255));
 
   AplicaTecladoNosBotoes;
   AtualizaLedsBotoes;
@@ -1031,57 +1035,20 @@ begin
   if B5 = 255 then
     CentralizaComandos;
 
-  if (Y0 < 120) then
-  begin
-    ArrowUp.ArrowColor := clRed;
-    if Y < 255 then Inc(Y);
-    if Y < refJoy then Y := refJoy;
-  end
-  else
-  begin
-    ArrowUp.ArrowColor := clBlack;
-    if (Round(Y0) = refJoy) and (Y > refJoy) and (B6 = 0) then
-      Dec(Y);
-  end;
-
-  if (Y0 > 140) then
-  begin
-    ArrowDown.ArrowColor := clRed;
-    if Y > 0 then Dec(Y);
-    if Y > refJoy then Y := refJoy;
-  end
-  else
-  begin
-    ArrowDown.ArrowColor := clBlack;
-    if (Round(Y0) = refJoy) and (Y < refJoy) and (B6 = 0) then
-      Inc(Y);
-  end;
-
-  if (X0 < 120) then
-  begin
-    ArrowLeft.ArrowColor := clRed;
-    if X < 255 then Inc(X);
-    if X < refJoy then X := refJoy;
-  end
-  else
-  begin
-    ArrowLeft.ArrowColor := clBlack;
-    if (Round(X0) = refJoy) and (X > refJoy) and (B6 = 0) then
-      Dec(X);
-  end;
-
-  if (X0 > 140) then
-  begin
-    ArrowRigth.ArrowColor := clRed;
-    if X > 0 then Dec(X);
-    if X > refJoy then X := refJoy;
-  end
-  else
-  begin
-    ArrowRigth.ArrowColor := clBlack;
-    if (Round(X0) = refJoy) and (X < refJoy) and (B6 = 0) then
-      Inc(X);
-  end;
+  // Comando proporcional: soltar o manche retorna ao centro imediatamente.
+  // Zona morta evita deriva por pequenas oscilacoes do dispositivo.
+  if Abs(Round(X0) - refJoy) <= 12 then X0 := refJoy;
+  if Abs(Round(Y0) - refJoy) <= 12 then Y0 := refJoy;
+  X := Byte(EnsureRange(Round(X0), 0, 255));
+  Y := Byte(EnsureRange(Round(Y0), 0, 255));
+  ArrowUp.ArrowColor := clBlack;
+  ArrowDown.ArrowColor := clBlack;
+  ArrowLeft.ArrowColor := clBlack;
+  ArrowRigth.ArrowColor := clBlack;
+  if Y > refJoy then ArrowUp.ArrowColor := clRed;
+  if Y < refJoy then ArrowDown.ArrowColor := clRed;
+  if X > refJoy then ArrowLeft.ArrowColor := clRed;
+  if X < refJoy then ArrowRigth.ArrowColor := clRed;
 
   if Assigned(FControler) then
     FControler.Atualiza(X, Y, Z, B1, B2, B3, B4, B5, B6);
