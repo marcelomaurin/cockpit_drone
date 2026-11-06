@@ -352,3 +352,10 @@ A migração deve ser incremental, mantendo as units atuais até que os testes c
 - Adicionado `tests/test_sitl_telemetry_state.pas`, com verificações de JSON inválido, heartbeat, identificadores, estado de armamento relatado, timeout e recuperação de conexão.
 - Atualizado `.github/workflows/lazarus-build.yml` para compilar e executar esse teste com FPC no job Linux e armazenar os logs de compilação e execução em `build-diagnostics/`.
 - **Estado:** alterações publicadas na `master`; ainda não há resultado de execução do workflow nem compilação Lazarus confirmada. A integração SITL e a segurança de voo não estão homologadas.
+
+
+### Diagnóstico automático e erros do monitor — 2026-11-06
+
+- Workflow `.github/workflows/lazarus-build.yml` agora também é acionado por `push` na `master` quando arquivos Pascal/Lazarus ou o próprio workflow mudarem; anteriormente só era manual/PR.
+- Ponte SITL passa a apresentar mensagens de stderr do Python (limitadas a 240 caracteres) no diagnóstico, incluindo possíveis falhas de dependência `pymavlink`.
+- **Pendente:** consultar resultado do GitHub Actions, corrigir erros de compilação identificados, testar subprocesso Windows/Linux e SITL real; nenhum teste físico homologado.
