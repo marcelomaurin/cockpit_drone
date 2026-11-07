@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Virtual MAVLink v1 drone endpoint. Simulation only; no physical I/O.
+"""Virtual MAVLink v1/v2 drone endpoint. Simulation only; no physical I/O.
 UDP 14550 receives GCS messages; telemetry is sent to the last GCS peer.
 UDP 14560 accepts local JSON state updates from the simulator.
 """
@@ -38,6 +38,7 @@ class Endpoint:
         self.peer = None
         self.system_id = system_id
         self.sequence = 0
+        self.protocol_version = 2
         self.armed = False
         self.start = time.monotonic()
         self.state = dict(lat=0., lon=0., altitude_m=0., heading_deg=0.,
@@ -46,9 +47,14 @@ class Endpoint:
     def send(self, msgid, payload):
         if self.peer is None:
             return
-        header = bytes((len(payload), self.sequence, self.system_id, 1, msgid))
+        if self.protocol_version == 2:
+            header = bytes((len(payload), 0, 0, self.sequence, self.system_id, 1)) + msgid.to_bytes(3, "little")
+            magic = b"\xfd"
+        else:
+            header = bytes((len(payload), self.sequence, self.system_id, 1, msgid))
+            magic = b"\xfe"
         checksum = crc_x25(header + payload + bytes((CRC_EXTRA[msgid],)))
-        self.sock.sendto(b"\xfe" + header + payload + struct.pack("<H", checksum), self.peer)
+        self.sock.sendto(magic + header + payload + struct.pack("<H", checksum), self.peer)
         self.sequence = (self.sequence + 1) & 255
 
     def heartbeat(self):
@@ -78,22 +84,40 @@ class Endpoint:
                                      ('127.0.0.1', self.physics_port))
 
     def receive(self, data, address):
-        # Validate complete MAVLink v1 frame before acting on commands.
-        if len(data) < 8 or data[0] != 0xFE:
+        # MAVLink 2 header: magic, length, incompat, compat, sequence,
+        # system, component, 24-bit message id. Signed frames are rejected
+        # because no signing key has been configured for this local simulator.
+        if len(data) < 8:
             return
-        length = data[1]
-        if len(data) != length + 8:
+        if data[0] == 0xFD:
+            if len(data) < 12 or data[2] != 0:
+                return
+            length = data[1]
+            if len(data) != length + 12:
+                return
+            msgid = int.from_bytes(data[7:10], 'little')
+            header_end = 10
+            version = 2
+        elif data[0] == 0xFE:
+            length = data[1]
+            if len(data) != length + 8:
+                return
+            msgid = data[5]
+            header_end = 6
+            version = 1
+        else:
             return
-        msgid = data[5]
         if msgid not in CRC_EXTRA:
             return
-        expected = crc_x25(data[1:6 + length] + bytes((CRC_EXTRA[msgid],)))
-        if struct.unpack_from("<H", data, 6 + length)[0] != expected:
+        expected = crc_x25(data[1:header_end + length] + bytes((CRC_EXTRA[msgid],)))
+        if struct.unpack_from("<H", data, header_end + length)[0] != expected:
             return
+        self.protocol_version = version
+        payload = data[header_end:header_end + length]
         self.peer = address
         if msgid == 76 and length >= 33:
-            params = struct.unpack_from("<7f", data, 6)
-            command, target_system, target_component, confirmation = struct.unpack_from("<HBBB", data, 34)
+            params = struct.unpack_from("<7f", payload, 0)
+            command, target_system, target_component, confirmation = struct.unpack_from("<HBBB", payload, 28)
             if target_system not in (0, self.system_id) or target_component not in (0, 1):
                 return
             result = 3  # MAV_RESULT_UNSUPPORTED by default
@@ -110,8 +134,8 @@ class Endpoint:
             self.send(77, struct.pack("<HB", command, result))
         elif msgid == 70 and length >= 18:
             # RC_CHANNELS_OVERRIDE: eight uint16 channels + target system/component.
-            channels = struct.unpack_from('<8H', data, 6)
-            target_system, target_component = struct.unpack_from('<BB', data, 22)
+            channels = struct.unpack_from('<8H', payload, 0)
+            target_system, target_component = struct.unpack_from('<BB', payload, 16)
             if target_system not in (0, self.system_id) or target_component not in (0, 1):
                 return
             if not self.armed:
