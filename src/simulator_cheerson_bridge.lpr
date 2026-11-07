@@ -3,7 +3,7 @@ program simulator_cheerson_bridge;
 {$mode objfpc}{$H+}
 
 uses
-  SysUtils, Sockets, BaseUnix, fpjson, jsonparser,
+  SysUtils, Sockets, BaseUnix, Unix, fpjson, jsonparser,
   simulator_vehicle_core, simulator_protocol_bridge;
 
 var
@@ -17,6 +17,8 @@ var
   Obj: TJSONObject;
   Command, StateJSON: string;
   LastTick, NowTick, Dt: Double;
+  ReadSet: TFDSet;
+  WaitTime: TTimeVal;
 
 function TimeSeconds: Double;
 begin
@@ -53,8 +55,6 @@ begin
     begin
       // Nonblocking receive with select, keeping physics running at ~50 Hz.
       // Socket remains local-only and never sends commands to hardware.
-      var ReadSet: TFDSet;
-      var WaitTime: TTimeVal;
       fpFD_ZERO(ReadSet);
       fpFD_SET(RX, ReadSet);
       WaitTime.tv_sec := 0;
