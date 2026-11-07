@@ -34,7 +34,7 @@ class HeartbeatTests(unittest.TestCase):
     def test_ground_rover_is_not_boat(self):
         msg = FakeHeartbeat()
         msg.type = 10
-        self.assertEqual(heartbeat_record(msg, 0)["vehicle_class"], "unsupported")
+        self.assertIsNone(heartbeat_record(msg, 0))
 
     def test_gcs_is_not_multirotor(self):
         msg = FakeHeartbeat()
