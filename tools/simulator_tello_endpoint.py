@@ -27,6 +27,7 @@ class TelloSimulator:
                           speed_mps=0.0, heading_deg=0.0,
                           roll_deg=0.0, pitch_deg=0.0)
         self.start = time.monotonic()
+        self.last_rc = 0.0
 
     def command(self, data, peer):
         cmd = data.decode("ascii", errors="ignore").strip().lower()
@@ -42,13 +43,15 @@ class TelloSimulator:
             self.flying = True
             self.controls['climb'] = 0.6
             self.send_controls()
-            self.state["altitude_m"] = max(0.5, self.state["altitude_m"])
+            if self.physics_port is None:
+                self.state["altitude_m"] = max(0.5, self.state["altitude_m"])
             return "ok"
         if cmd == "land":
             self.flying = False
             self.controls.update(throttle=0., turn=0., climb=-0.6, roll=0., pitch=0.)
             self.send_controls()
-            self.state["altitude_m"] = 0.0
+            if self.physics_port is None:
+                self.state["altitude_m"] = 0.0
             return "ok"
         if cmd == "emergency":
             self.flying = False
@@ -86,9 +89,11 @@ class TelloSimulator:
                                      turn=values[3] / 100., climb=values[2] / 100.,
                                      roll=values[0] / 100., pitch=values[1] / 100.)
                 self.send_controls()
-                self.state["speed_mps"] = max(abs(values[0]), abs(values[1])) / 100 * 8
-                self.state["heading_deg"] = (self.state["heading_deg"] + values[3] * 0.02) % 360
-                self.state["altitude_m"] = max(0, self.state["altitude_m"] + values[2] * 0.001)
+                self.last_rc = time.monotonic()
+                if self.physics_port is None:
+                    self.state["speed_mps"] = max(abs(values[0]), abs(values[1])) / 100 * 8
+                    self.state["heading_deg"] = (self.state["heading_deg"] + values[3] * 0.02) % 360
+                    self.state["altitude_m"] = max(0, self.state["altitude_m"] + values[2] * 0.001)
             return None  # Tello RC does not ACK
         return "error"
 
@@ -130,6 +135,10 @@ class TelloSimulator:
         next_state = 0.0
         while True:
             now = time.monotonic()
+            if self.physics_port is not None and self.last_rc and now - self.last_rc > 0.5:
+                self.controls.update(throttle=0., turn=0., climb=0., roll=0., pitch=0.)
+                self.send_controls()
+                self.last_rc = 0.
             if now >= next_state:
                 self.broadcast_state()
                 next_state = now + 0.1
