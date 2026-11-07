@@ -49,6 +49,8 @@ begin
             EventsData := Sim.Events(LastEventID);
             try
               WriteLn('Multiplayer events: ', EventsData.AsJSON);
+              if EventsData.JSONType = jtObject then
+                LastEventID := TJSONObject(EventsData).Get('next_after', LastEventID);
             finally
               EventsData.Free;
             end;
