@@ -328,7 +328,7 @@ begin
 
   Gb := NovoGrupo('Mundo compartilhado', 190);
   Rotulo(Gb, 'Servidor:');
-  FEdUrl := Edita(Gb, 80, 225, 'https://maurinsoft.com.br/cockpit/');
+  FEdUrl := Edita(Gb, 80, 225, 'https://maurinsoft.com.br/cockpit/api.php');
   Inc(Y, 28);
   Rotulo(Gb, 'Apelido:');
   FEdApelido := Edita(Gb, 80, 120, 'piloto');
@@ -481,6 +481,8 @@ begin
   end;
   FEdOSM.Text := FIni.ReadString('mapa', 'servidor_osm', FEdOSM.Text);
   FEdUrl.Text := FIni.ReadString('mundo', 'url', FEdUrl.Text);
+  if (Trim(FEdUrl.Text) = 'https://maurinsoft.com.br/cockpit/') or (Trim(FEdUrl.Text) = 'https://maurinsoft.com.br/cockpit') then
+    FEdUrl.Text := 'https://maurinsoft.com.br/cockpit/api.php';
   FEdApelido.Text := FIni.ReadString('mundo', 'apelido', FEdApelido.Text);
   FEdLat.Text := FIni.ReadString('voo', 'lat', FEdLat.Text);
   FEdLon.Text := FIni.ReadString('voo', 'lon', FEdLon.Text);

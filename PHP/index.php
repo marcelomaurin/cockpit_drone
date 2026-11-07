@@ -33,6 +33,19 @@ if ($isHome && in_array($method, ['GET', 'HEAD'], true)) {
     exit;
 }
 
+// Se for requisição ao endpoint de mundo compartilhado do simulador (api.php ou POST com ação no corpo)
+if ($route === 'api.php' || $route === 'api') {
+    require __DIR__ . '/api.php';
+    exit;
+}
+if ($method === 'POST' && ($isHome || $route === 'index.php')) {
+    $rawPeek = file_get_contents('php://input', false, null, 0, 512);
+    if ($rawPeek && str_contains($rawPeek, '"acao"')) {
+        require __DIR__ . '/api.php';
+        exit;
+    }
+}
+
 try {
     $configFile = __DIR__ . '/config.php';
     if (!is_file($configFile)) reply(503, [

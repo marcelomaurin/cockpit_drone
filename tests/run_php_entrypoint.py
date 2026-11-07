@@ -17,7 +17,7 @@ def main():
     php=str(Path(sys.argv[1]).resolve())
     with tempfile.TemporaryDirectory(prefix='cockpit-entrypoint-') as directory:
         root=Path(directory)
-        for name in ('index.php','storage.php','schema.sql','config_sample.php','home.html'):
+        for name in ('index.php','api.php','storage.php','schema.sql','config_sample.php','home.html'):
             shutil.copyfile(ROOT/'PHP'/name,root/name)
         with socket.socket() as s:
             s.bind(('127.0.0.1',0)); port=s.getsockname()[1]
@@ -47,6 +47,47 @@ def main():
                 assert status==200 and data['status']=='ok'
                 status,data=request('/unknown')
                 assert status==404 and data['error']=='unknown_endpoint'
+
+                # Testes do protocolo do simulador (api.php)
+                status,data=request('/api.php')
+                assert status==200 and data.get('ok') is True and data.get('versao')==1 and 'raio_m' in data, (status,data)
+
+                def post_json(path, payload, token=None):
+                    body = json.dumps(payload).encode('utf-8')
+                    headers = {'Content-Type': 'application/json'}
+                    if token:
+                        headers['Authorization'] = f'Bearer {token}'
+                    req = urllib.request.Request(f'http://127.0.0.1:{port}' + path, data=body, headers=headers)
+                    try:
+                        resp = urllib.request.urlopen(req, timeout=3)
+                    except urllib.error.HTTPError as e:
+                        resp = e
+                    with resp:
+                        content = resp.read().decode('utf-8')
+                        return resp.status, json.loads(content) if 'application/json' in resp.headers.get('Content-Type','') else content
+
+                # Entrar via api.php
+                st_entrar, resp_entrar = post_json('/api.php', {'versao': 1, 'acao': 'entrar', 'apelido': 'Piloto1', 'modelo': 'tello', 'posicao': {'lat': -21.17, 'lon': -47.82, 'alt': 5.0}})
+                assert st_entrar == 200 and resp_entrar.get('ok') is True, (st_entrar, resp_entrar)
+                tok = resp_entrar['token']
+                id1 = resp_entrar['id']
+                assert len(tok) == 64 and len(id1) == 16
+
+                # Atualizar via api.php
+                st_upd, resp_upd = post_json('/api.php', {'versao': 1, 'acao': 'atualizar', 'posicao': {'lat': -21.17, 'lon': -47.82, 'alt': 12.0}, 'rumo': 90, 'velocidade': 4.0, 'estado': 'voando', 'ultimo_evento': 0}, token=tok)
+                assert st_upd == 200 and resp_upd.get('ok') is True and 'vizinhos' in resp_upd and 'eventos' in resp_upd, (st_upd, resp_upd)
+
+                # Evento via api.php
+                st_ev, resp_ev = post_json('/api.php', {'versao': 1, 'acao': 'evento', 'tipo': 'mensagem', 'conteudo': 'O mundo compartilhado funciona!'}, token=tok)
+                assert st_ev == 200 and resp_ev.get('ok') is True, (st_ev, resp_ev)
+
+                # Entrar via fallback /index.php com acao
+                st_fb, resp_fb = post_json('/index.php', {'versao': 1, 'acao': 'entrar', 'apelido': 'Piloto2', 'modelo': 'cx10w'})
+                assert st_fb == 200 and resp_fb.get('ok') is True and 'token' in resp_fb, (st_fb, resp_fb)
+
+                # Sair via api.php
+                st_sair, resp_sair = post_json('/api.php', {'versao': 1, 'acao': 'sair'}, token=tok)
+                assert st_sair == 200 and resp_sair.get('ok') is True, (st_sair, resp_sair)
                 (root/'config.php').write_text('<?php return false;')
                 status,data=request('/health')
                 assert status==500 and data=={'error':'server_error'},(status,data)

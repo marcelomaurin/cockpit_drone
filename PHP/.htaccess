@@ -6,3 +6,4 @@ RewriteEngine On
 RewriteRule ^vendor(?:/|$) - [F,L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(connect|telemetry|nearby|events|disconnect|heartbeat|health)/?$ index.php [L,QSA]
+RewriteRule ^api/?$ api.php [L,QSA]

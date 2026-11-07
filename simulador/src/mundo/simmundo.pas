@@ -87,8 +87,17 @@ implementation
 { TClienteMundo }
 
 constructor TClienteMundo.Create(const AUrl, AApelido, AModelo: string; ALeEstado: TLeEstado);
+var
+  U: string;
 begin
-  FUrl := Trim(AUrl);
+  U := Trim(AUrl);
+  if (U <> '') and (Pos('.php', LowerCase(U)) = 0) then
+  begin
+    if U[Length(U)] <> '/' then
+      U := U + '/';
+    U := U + 'api.php';
+  end;
+  FUrl := U;
   FApelido := Trim(AApelido);
   FModelo := AModelo;
   FLeEstado := ALeEstado;
