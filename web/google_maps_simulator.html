@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cockpit Drone — Google Maps</title>
+<style>html,body,#map{height:100%;margin:0}#notice{position:absolute;z-index:1;top:12px;left:12px;background:white;padding:12px;font:14px sans-serif;max-width:320px;box-shadow:0 2px 8px #555}</style></head>
+<body><div id="map"></div><div id="notice" role="status">Carregando Google Maps…</div>
+<script>
+'use strict';
+const params=new URLSearchParams(location.search);
+const lat=Number(params.get('lat')||0), lon=Number(params.get('lon')||0);
+const zoom=Math.max(1,Math.min(21,Number(params.get('zoom')||15)));
+const key=params.get('key')||'';
+const notice=document.getElementById('notice');
+if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180){
+ notice.textContent='Coordenadas GPS inválidas.';
+}else if(!key){
+ notice.textContent='Configure a chave da Google Maps JavaScript API (restrita por origem HTTP) para usar esta visualização.';
+}else{
+ window.initCockpitMap=function(){
+   const position={lat:lat,lng:lon};
+   const map=new google.maps.Map(document.getElementById('map'),{center:position,zoom:zoom,mapTypeId:'hybrid',streetViewControl:false});
+   new google.maps.Marker({map:map,position:position,title:'Drone simulado'});
+   notice.textContent='Google Maps — posição GPS simulada; não é vídeo de câmera.';
+ };
+ window.gm_authFailure=function(){notice.textContent='Falha de autenticação na Google Maps API. Confira chave, faturamento e restrições.'};
+ const script=document.createElement('script');
+ script.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(key)+'&callback=initCockpitMap';
+ script.async=true;script.onerror=function(){notice.textContent='Não foi possível carregar a Google Maps API.'};
+ document.head.appendChild(script);
+}
+</script></body></html>
