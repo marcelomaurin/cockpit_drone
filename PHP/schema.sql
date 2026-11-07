@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS drone_sessions (
+ token_hash CHAR(64) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,
+ payload JSON NOT NULL,
+ expires_at BIGINT UNSIGNED NOT NULL,
+ INDEX idx_expires (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS drone_events (
+ id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+ sender_hash CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ payload JSON NOT NULL,
+ created_at BIGINT UNSIGNED NOT NULL,
+ INDEX idx_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
