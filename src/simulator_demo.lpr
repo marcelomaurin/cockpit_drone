@@ -3,7 +3,7 @@ program simulator_demo;
 {$mode objfpc}{$H+}
 
 uses
-  SysUtils, simulator_vehicle_core, simulator_runtime, simulator_protocol_bridge;
+  SysUtils, fpjson, simulator_vehicle_core, simulator_runtime, simulator_protocol_bridge;
 
 var
   Sim: TSimulatorRuntime;
@@ -11,11 +11,14 @@ var
   I: Integer;
   URL: string;
   Bridge: TSimulatorProtocolBridge;
+  Participants, EventsData: TJSONData;
+  LastEventID: Int64;
 begin
   URL := '';
   if ParamCount > 0 then URL := ParamStr(1);
   Sim := TSimulatorRuntime.Create(vkMultirotor, URL, -21.17, -47.81, 600);
   Bridge := TSimulatorProtocolBridge.Create(Sim.Vehicle);
+  LastEventID := 0;
   try
     // Demo controls pass through the same normalized bridge as protocol adapters.
     Bridge.ApplyCommand('{"throttle":0.5,"turn":0.05,"climb":0.1,"brake":0,"roll":0,"pitch":0}');
@@ -35,6 +38,23 @@ begin
       Sim.SyncTelemetry(0.1);
       if (I mod 10) = 0 then
       begin
+        if Sim.Online then
+          try
+            Participants := Sim.Nearby;
+            try
+              WriteLn('Nearby participants: ', Participants.AsJSON);
+            finally
+              Participants.Free;
+            end;
+            EventsData := Sim.Events(LastEventID);
+            try
+              WriteLn('Multiplayer events: ', EventsData.AsJSON);
+            finally
+              EventsData.Free;
+            end;
+          except
+            on E: Exception do WriteLn('Multiplayer read unavailable: ', E.Message);
+          end;
         State := Sim.Vehicle.State;
         WriteLn(Format('t=%.1f lat=%.6f lon=%.6f alt=%.1f speed=%.1f battery=%.2f online=%s',
           [State.SimTimeS, State.Latitude, State.Longitude,
