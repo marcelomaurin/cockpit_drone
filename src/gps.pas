@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, ComCtrls, gpstarget, gpsskyplot, gpssignalplot, gpsportconnected,
+  StdCtrls, ComCtrls, Math, gpstarget, gpsskyplot, gpssignalplot, gpsportconnected,
   nmeadecode, LazSerial, AdvLed, SdpoSerial, config;
 
 type
@@ -46,6 +46,7 @@ type
   private
     FBuffer: string;
 
+    // GPS Central (Base / Estação Terrena - Serial NMEA)
     FLatitude: Double;
     FLongitude: Double;
     FAltitude: Double;
@@ -66,18 +67,49 @@ type
     FTemPosicao: Boolean;
     FTemAltitude: Boolean;
 
+    // GPS Drone (Telemetria em Voo)
+    FDroneLat: Double;
+    FDroneLon: Double;
+    FDroneAlt: Double;
+    FDroneVel: Double;
+    FDroneCurso: Double;
+    FDroneSatelites: Integer;
+    FDroneFix: Integer;
+    FDroneTemPosicao: Boolean;
+    FDistanciaDroneCentral: Double;
+    FAzimuteDroneCentral: Double;
+
+    // Controles dinâmicos de interface para os 2 GPS
+    FGbCentral: TGroupBox;
+    FGbDrone: TGroupBox;
+    FPnRelativo: TPanel;
+    FLblCentralPos: TLabel;
+    FLblCentralAlt: TLabel;
+    FLblCentralSat: TLabel;
+    FLblCentralHora: TLabel;
+    FLblDronePos: TLabel;
+    FLblDroneAlt: TLabel;
+    FLblDroneVel: TLabel;
+    FLblDroneSat: TLabel;
+
     procedure Log(const AMsg: string);
     procedure EnsureConfig;
     procedure ConfiguraSerial;
     procedure AbrirGPS;
     procedure FecharGPS;
     procedure ProcessaBufferNMEA;
+    procedure CriaControlesLocalizacao;
+    procedure RecalculaDistancia;
+    procedure AtualizaUI;
     function SafeStrToFloat(const S: string; out V: Double): Boolean;
     function SafeStrToInt(const S: string; out V: Integer): Boolean;
 
   public
     procedure Atualiza;
+    procedure AtualizaTelemetriaDrone(const ALat, ALon, AAlt, AVel, ACurso: Double;
+      ASatelites, AFix: Integer; AValido: Boolean);
 
+    // GPS Central
     property Latitude: Double read FLatitude;
     property Longitude: Double read FLongitude;
     property Altitude: Double read FAltitude;
@@ -94,6 +126,24 @@ type
     property HoraUTC: string read FHoraUTC;
     property TemPosicao: Boolean read FTemPosicao;
     property TemAltitude: Boolean read FTemAltitude;
+
+    // Aliases explícitos
+    property CentralLat: Double read FLatitude;
+    property CentralLon: Double read FLongitude;
+    property CentralAlt: Double read FAltitude;
+    property CentralTemPosicao: Boolean read FTemPosicao;
+
+    // GPS Drone (Telemetria)
+    property DroneLat: Double read FDroneLat;
+    property DroneLon: Double read FDroneLon;
+    property DroneAlt: Double read FDroneAlt;
+    property DroneVelocidade: Double read FDroneVel;
+    property DroneCurso: Double read FDroneCurso;
+    property DroneSatelites: Integer read FDroneSatelites;
+    property DroneFix: Integer read FDroneFix;
+    property DroneTemPosicao: Boolean read FDroneTemPosicao;
+    property DistanciaDroneCentral: Double read FDistanciaDroneCentral;
+    property AzimuteDroneCentral: Double read FAzimuteDroneCentral;
   end;
 
 var
@@ -374,10 +424,211 @@ begin
     FAltitude := dAlt;
     FTemAltitude := True;
   end;
+
+  AtualizaUI;
+end;
+
+procedure TfrmGPS.CriaControlesLocalizacao;
+begin
+  if Assigned(FGbCentral) then Exit;
+
+  // Esconde labels antigos da aba de localização
+  if Assigned(Label3) then Label3.Visible := False;
+  if Assigned(Label4) then Label4.Visible := False;
+  if Assigned(Label5) then Label5.Visible := False;
+  if Assigned(lblGLLLat) then lblGLLLat.Visible := False;
+  if Assigned(lblGLLLong) then lblGLLLong.Visible := False;
+  if Assigned(lblGLLTime) then lblGLLTime.Visible := False;
+
+  // Painel da Central
+  FGbCentral := TGroupBox.Create(tslocation);
+  FGbCentral.Parent := tslocation;
+  FGbCentral.Left := 8;
+  FGbCentral.Top := 6;
+  FGbCentral.Width := 290;
+  FGbCentral.Height := 134;
+  FGbCentral.Caption := ' GPS Central (Base / Serial) ';
+  FGbCentral.Font.Style := [fsBold];
+
+  FLblCentralPos := TLabel.Create(FGbCentral);
+  FLblCentralPos.Parent := FGbCentral;
+  FLblCentralPos.Left := 10;
+  FLblCentralPos.Top := 4;
+  FLblCentralPos.Font.Style := [];
+  FLblCentralPos.Caption := 'Lat: -  Lon: -';
+
+  FLblCentralAlt := TLabel.Create(FGbCentral);
+  FLblCentralAlt.Parent := FGbCentral;
+  FLblCentralAlt.Left := 10;
+  FLblCentralAlt.Top := 26;
+  FLblCentralAlt.Font.Style := [];
+  FLblCentralAlt.Caption := 'Altitude: -';
+
+  FLblCentralSat := TLabel.Create(FGbCentral);
+  FLblCentralSat.Parent := FGbCentral;
+  FLblCentralSat.Left := 10;
+  FLblCentralSat.Top := 48;
+  FLblCentralSat.Font.Style := [];
+  FLblCentralSat.Caption := 'Satélites: 0  |  Sem fix';
+
+  FLblCentralHora := TLabel.Create(FGbCentral);
+  FLblCentralHora.Parent := FGbCentral;
+  FLblCentralHora.Left := 10;
+  FLblCentralHora.Top := 70;
+  FLblCentralHora.Font.Style := [];
+  FLblCentralHora.Caption := 'UTC: -';
+
+  // Painel do Drone
+  FGbDrone := TGroupBox.Create(tslocation);
+  FGbDrone.Parent := tslocation;
+  FGbDrone.Left := 304;
+  FGbDrone.Top := 6;
+  FGbDrone.Width := 290;
+  FGbDrone.Height := 134;
+  FGbDrone.Caption := ' GPS Drone (Telemetria em Voo) ';
+  FGbDrone.Font.Style := [fsBold];
+
+  FLblDronePos := TLabel.Create(FGbDrone);
+  FLblDronePos.Parent := FGbDrone;
+  FLblDronePos.Left := 10;
+  FLblDronePos.Top := 4;
+  FLblDronePos.Font.Style := [];
+  FLblDronePos.Caption := 'Lat: -  Lon: -';
+
+  FLblDroneAlt := TLabel.Create(FGbDrone);
+  FLblDroneAlt.Parent := FGbDrone;
+  FLblDroneAlt.Left := 10;
+  FLblDroneAlt.Top := 26;
+  FLblDroneAlt.Font.Style := [];
+  FLblDroneAlt.Caption := 'Altitude: -';
+
+  FLblDroneVel := TLabel.Create(FGbDrone);
+  FLblDroneVel.Parent := FGbDrone;
+  FLblDroneVel.Left := 10;
+  FLblDroneVel.Top := 48;
+  FLblDroneVel.Font.Style := [];
+  FLblDroneVel.Caption := 'Vel: -  |  Rumo: -';
+
+  FLblDroneSat := TLabel.Create(FGbDrone);
+  FLblDroneSat.Parent := FGbDrone;
+  FLblDroneSat.Left := 10;
+  FLblDroneSat.Top := 70;
+  FLblDroneSat.Font.Style := [];
+  FLblDroneSat.Caption := 'Satélites: -  |  Sem telemetria';
+
+  // Barra de status relativo
+  FPnRelativo := TPanel.Create(tslocation);
+  FPnRelativo.Parent := tslocation;
+  FPnRelativo.Left := 8;
+  FPnRelativo.Top := 146;
+  FPnRelativo.Width := 586;
+  FPnRelativo.Height := 34;
+  FPnRelativo.BevelOuter := bvLowered;
+  FPnRelativo.Font.Style := [fsBold];
+  FPnRelativo.Caption := 'Aguardando sincronização de GPS (Central e Drone)...';
+end;
+
+procedure TfrmGPS.RecalculaDistancia;
+var
+  dLatRad, dLonRad, lat1Rad, lat2Rad, a, c, y, x: Double;
+begin
+  if FTemPosicao and FDroneTemPosicao then
+  begin
+    dLatRad := (FDroneLat - FLatitude) * Pi / 180.0;
+    dLonRad := (FDroneLon - FLongitude) * Pi / 180.0;
+    lat1Rad := FLatitude * Pi / 180.0;
+    lat2Rad := FDroneLat * Pi / 180.0;
+    a := Sin(dLatRad / 2.0) * Sin(dLatRad / 2.0) +
+         Cos(lat1Rad) * Cos(lat2Rad) * Sin(dLonRad / 2.0) * Sin(dLonRad / 2.0);
+    if a > 1.0 then a := 1.0;
+    c := 2.0 * ArcTan2(Sqrt(a), Sqrt(Max(0.0, 1.0 - a)));
+    FDistanciaDroneCentral := 6371000.0 * c;
+
+    y := Sin(dLonRad) * Cos(lat2Rad);
+    x := Cos(lat1Rad) * Sin(lat2Rad) - Sin(lat1Rad) * Cos(lat2Rad) * Cos(dLonRad);
+    FAzimuteDroneCentral := ArcTan2(y, x) * 180.0 / Pi;
+    if FAzimuteDroneCentral < 0 then
+      FAzimuteDroneCentral := FAzimuteDroneCentral + 360.0;
+  end
+  else
+  begin
+    FDistanciaDroneCentral := 0;
+    FAzimuteDroneCentral := 0;
+  end;
+end;
+
+procedure TfrmGPS.AtualizaUI;
+begin
+  if not Assigned(FGbCentral) then Exit;
+
+  // 1. Central
+  if FTemPosicao then
+  begin
+    FLblCentralPos.Caption := Format('Lat: %.6f  Lon: %.6f', [FLatitude, FLongitude]);
+    if FTemAltitude then
+      FLblCentralAlt.Caption := Format('Altitude: %.1f m', [FAltitude])
+    else
+      FLblCentralAlt.Caption := 'Altitude: s/ info';
+    FLblCentralSat.Caption := Format('Satélites: %d  |  Fix: %d (%s)', [FSatelites, FFixQuality, FModoFix]);
+    FLblCentralHora.Caption := 'UTC: ' + FHoraUTC;
+  end
+  else
+  begin
+    FLblCentralPos.Caption := 'Aguardando fix NMEA na porta serial...';
+    FLblCentralAlt.Caption := 'Altitude: -';
+    FLblCentralSat.Caption := Format('Satélites: %d  |  Sem fix', [FSatelites]);
+    FLblCentralHora.Caption := 'UTC: ' + FHoraUTC;
+  end;
+
+  // 2. Drone
+  if FDroneTemPosicao then
+  begin
+    FLblDronePos.Caption := Format('Lat: %.6f  Lon: %.6f', [FDroneLat, FDroneLon]);
+    FLblDroneAlt.Caption := Format('Altitude: %.1f m', [FDroneAlt]);
+    FLblDroneVel.Caption := Format('Vel: %.1f m/s (%.0f km/h)  Rumo: %.0f°',
+      [FDroneVel, FDroneVel * 3.6, FDroneCurso]);
+    FLblDroneSat.Caption := Format('Satélites: %d  |  Fix: %d', [FDroneSatelites, FDroneFix]);
+  end
+  else
+  begin
+    FLblDronePos.Caption := 'Aguardando telemetria GPS do drone...';
+    FLblDroneAlt.Caption := 'Altitude: -';
+    FLblDroneVel.Caption := 'Velocidade: -  |  Rumo: -';
+    FLblDroneSat.Caption := 'Satélites: -  |  Sem telemetria';
+  end;
+
+  // 3. Status Relativo
+  RecalculaDistancia;
+  if FTemPosicao and FDroneTemPosicao then
+    FPnRelativo.Caption := Format('Distância Central <-> Drone: %.1f m  |  Azimute: %.0f°',
+      [FDistanciaDroneCentral, FAzimuteDroneCentral])
+  else if FDroneTemPosicao then
+    FPnRelativo.Caption := 'Drone com sinal GPS ativo. Central aguardando fix NMEA local.'
+  else if FTemPosicao then
+    FPnRelativo.Caption := 'Central com sinal GPS ativo. Drone aguardando telemetria em voo.'
+  else
+    FPnRelativo.Caption := 'Aguardando sincronização de GPS (Central e Drone)...';
+end;
+
+procedure TfrmGPS.AtualizaTelemetriaDrone(const ALat, ALon, AAlt, AVel, ACurso: Double;
+  ASatelites, AFix: Integer; AValido: Boolean);
+begin
+  FDroneLat := ALat;
+  FDroneLon := ALon;
+  FDroneAlt := AAlt;
+  FDroneVel := AVel;
+  FDroneCurso := ACurso;
+  FDroneSatelites := ASatelites;
+  FDroneFix := AFix;
+  FDroneTemPosicao := AValido and (Abs(ALat) > 0.0001) and (Abs(ALon) > 0.0001);
+
+  AtualizaUI;
 end;
 
 procedure TfrmGPS.FormCreate(Sender: TObject);
 begin
+  Caption := 'GPS - Central (Base) e Drone (Telemetria)';
+
   GPSSignalPlot1.NMEADecode := NMEADecode1;
   GPSSkyPlot1.NMEADecode := NMEADecode1;
   GPSTarget1.NMEADecode := NMEADecode1;
@@ -400,9 +651,19 @@ begin
   FTemPosicao := False;
   FTemAltitude := False;
 
-  lblGLLLat.Caption := '';
-  lblGLLLong.Caption := '';
-  lblGLLTime.Caption := '';
+  FDroneLat := 0;
+  FDroneLon := 0;
+  FDroneAlt := 0;
+  FDroneVel := 0;
+  FDroneCurso := 0;
+  FDroneSatelites := 0;
+  FDroneFix := 0;
+  FDroneTemPosicao := False;
+  FDistanciaDroneCentral := 0;
+  FAzimuteDroneCentral := 0;
+
+  CriaControlesLocalizacao;
+  AtualizaUI;
 end;
 
 procedure TfrmGPS.FormShow(Sender: TObject);

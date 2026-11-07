@@ -95,6 +95,10 @@ type
     procedure AbreGoogleMaps;
 
     property Objetos: TObjetosMapa read FObjetos;
+    property RefLat: Double read FRefLat;
+    property RefLon: Double read FRefLon;
+    property DroneLat: Double read FDroneLat;
+    property DroneLon: Double read FDroneLon;
   end;
 
 var
@@ -402,14 +406,24 @@ begin
 end;
 
 procedure TfrmMap.AtualizaStatus;
+var
+  Dist: Double;
+  TxtDist: string;
 begin
   if not Assigned(Label9) then
     Exit;
 
+  if (Abs(FRefLat) > 0.0001) and (Abs(FDroneLat) > 0.0001) then
+  begin
+    Dist := DistanciaMetros(FRefLat, FRefLon, FDroneLat, FDroneLon);
+    TxtDist := Format(' | Dist: %.1f m', [Dist]);
+  end
+  else
+    TxtDist := '';
+
   Label9.Caption :=
-    'Objetos: ' + IntToStr(FObjetos.Count) +
-    '  Ref[0]: Grid(' + IntToStr(FRefCol) + ',' + IntToStr(FRefRow) + ')' +
-    '  Drone: Grid(' + IntToStr(FDroneCol) + ',' + IntToStr(FDroneRow) + ')';
+    Format('Central: %.5f, %.5f | Drone: %.5f, %.5f%s',
+      [FRefLat, FRefLon, FDroneLat, FDroneLon, TxtDist]);
 end;
 
 procedure TfrmMap.LimpaObjetosGrid;

@@ -45,6 +45,9 @@ type
     destructor Destroy; override;
     { Próxima mensagem do drone ainda não lida pela janela de rota. }
     function ProximoAviso(out AMensagem: string): Boolean;
+    function ObterPosicaoGPS(out ALat, ALon, AAlt: Double): Boolean; override;
+    function ObterDadosGPS(out ALat, ALon, AAlt, AVel, ACurso: Double;
+      out ASat, AFix: Integer): Boolean; override;
     property Mavlink: TAIDroneMavlink read FMav;
   end;
 
@@ -164,6 +167,48 @@ end;
 procedure TfrmConectionMavlink.BtPousarClick(Sender: TObject);
 begin
   FMav.Land;
+end;
+
+function TfrmConectionMavlink.ObterPosicaoGPS(out ALat, ALon, AAlt: Double): Boolean;
+var
+  T: TAIMavTelemetry;
+begin
+  T := FMav.Telemetry;
+  Result := T.Connected and T.PositionValid;
+  if Result then
+  begin
+    ALat := T.Lat;
+    ALon := T.Lon;
+    AAlt := T.RelativeAlt;
+  end
+  else
+  begin
+    ALat := 0; ALon := 0; AAlt := 0;
+  end;
+end;
+
+function TfrmConectionMavlink.ObterDadosGPS(out ALat, ALon, AAlt, AVel, ACurso: Double;
+  out ASat, AFix: Integer): Boolean;
+var
+  T: TAIMavTelemetry;
+begin
+  T := FMav.Telemetry;
+  Result := T.Connected and T.PositionValid;
+  if Result then
+  begin
+    ALat := T.Lat;
+    ALon := T.Lon;
+    AAlt := T.RelativeAlt;
+    AVel := T.GroundSpeed;
+    ACurso := T.Heading;
+    ASat := T.Satellites;
+    AFix := T.GpsFix;
+  end
+  else
+  begin
+    ALat := 0; ALon := 0; AAlt := 0; AVel := 0; ACurso := 0;
+    ASat := 0; AFix := 0;
+  end;
 end;
 
 end.

@@ -122,6 +122,10 @@ type
     function LeComando: TComandoManche; virtual;
     { True se há vídeo chegando (para a janela da câmera). }
     function VideoChegando: Boolean;
+    { Telemetria de posição do GPS do Drone (se suportado pelo protocolo) }
+    function ObterPosicaoGPS(out ALat, ALon, AAlt: Double): Boolean; virtual;
+    function ObterDadosGPS(out ALat, ALon, AAlt, AVel, ACurso: Double;
+      out ASat, AFix: Integer): Boolean; virtual;
 
     property Drone: TAIDroneBase read FDrone;
     property Decoder: TAIH264Decoder read FDecoder;
@@ -384,6 +388,22 @@ end;
 function TfrmConexaoDrone.VideoChegando: Boolean;
 begin
   Result := FVideoLigado and Assigned(FDrone) and FDrone.VideoStreaming;
+end;
+
+function TfrmConexaoDrone.ObterPosicaoGPS(out ALat, ALon, AAlt: Double): Boolean;
+var
+  V, C: Double;
+  S, F: Integer;
+begin
+  Result := ObterDadosGPS(ALat, ALon, AAlt, V, C, S, F);
+end;
+
+function TfrmConexaoDrone.ObterDadosGPS(out ALat, ALon, AAlt, AVel, ACurso: Double;
+  out ASat, AFix: Integer): Boolean;
+begin
+  ALat := 0; ALon := 0; AAlt := 0; AVel := 0; ACurso := 0;
+  ASat := 0; AFix := 0;
+  Result := False;
 end;
 
 procedure TfrmConexaoDrone.AtualizaComandoManche(const ACmd: TComandoManche);

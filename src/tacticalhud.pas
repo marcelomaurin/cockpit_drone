@@ -193,15 +193,24 @@ begin
   end
   else
   begin
-    // Check if real GPS position is available
-    if Assigned(frmGPS) and frmGPS.TemPosicao then
+    // Check if real GPS position from drone telemetry is available
+    if Assigned(frmGPS) and frmGPS.DroneTemPosicao then
     begin
-      DLat := frmGPS.Latitude;
-      DLon := frmGPS.Longitude;
-      DAlt := frmGPS.Altitude;
-      DSpeed := frmGPS.Velocidade;
-      lblStatus.Caption := 'TELEMETRIA GPS EM TEMPO REAL ATIVA';
+      DLat := frmGPS.DroneLat;
+      DLon := frmGPS.DroneLon;
+      DAlt := frmGPS.DroneAlt;
+      DSpeed := frmGPS.DroneVelocidade;
+      lblStatus.Caption := 'TELEMETRIA GPS DO DRONE EM TEMPO REAL ATIVA';
       lblStatus.Font.Color := $0039FF14; // Tactical Green
+    end
+    else if Assigned(frmGPS) and frmGPS.CentralTemPosicao then
+    begin
+      DLat := frmGPS.CentralLat;
+      DLon := frmGPS.CentralLon;
+      DAlt := frmGPS.CentralAlt;
+      DSpeed := 0.0;
+      lblStatus.Caption := 'GPS DA CENTRAL ATIVO - AGUARDANDO TELEMETRIA DO DRONE';
+      lblStatus.Font.Color := $0000A5FF; // Orange
     end
     else
     begin
@@ -209,7 +218,7 @@ begin
       DLon := -47.7639;
       DAlt := 0.0;
       DSpeed := 0.0;
-      lblStatus.Caption := 'SINAL GPS AUSENTE - AGUARDANDO FIX';
+      lblStatus.Caption := 'SINAL GPS AUSENTE (CENTRAL E DRONE) - AGUARDANDO FIX';
       lblStatus.Font.Color := clRed;
     end;
   end;

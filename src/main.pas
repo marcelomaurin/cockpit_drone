@@ -409,9 +409,11 @@ end;
 
 procedure TfrmMain.AtualizaMapaDrone;
 var
-  Lat, Lon: Double;
   Col, Row: Integer;
-  Tel: TAIMavTelemetry;
+  LatCentral, LonCentral, AltCentral: Double;
+  LatDrone, LonDrone, AltDrone, VelDrone, RumoDrone: Double;
+  SatDrone, FixDrone: Integer;
+  TemPosDrone: Boolean;
 begin
   if not Assigned(frmMap) then
     Exit;
@@ -419,41 +421,84 @@ begin
   Col := X div 16;
   Row := Y div 16;
 
-  // Drone MAVLink conectado: posição real do GPS do drone.
-  if frmConnection is TfrmConectionMavlink then
-  begin
-    Tel := TfrmConectionMavlink(frmConnection).Mavlink.Telemetry;
-    if Tel.Connected and Tel.PositionValid then
-    begin
-      frmMap.AtualizaDrone(Tel.Lat, Tel.Lon, Col, Row);
-      Exit;
-    end;
-  end;
-
-  if GlobalFlightPlan.SimulationActive then
-  begin
-    Lat := GlobalFlightPlan.SimulatedDroneLat;
-    Lon := GlobalFlightPlan.SimulatedDroneLon;
-    frmMap.AtualizaDrone(Lat, Lon, Col, Row);
-    Exit;
-  end;
-
+  // ---------------------------------------------------------
+  // 1. GPS DA CENTRAL (BASE / ESTAÇÃO TERRENA)
+  // ---------------------------------------------------------
   EnsureGPS;
   if Assigned(frmGPS) then
-    frmGPS.Atualiza;
-
-  if Assigned(frmGPS) and frmGPS.TemPosicao then
   begin
-    Lat := frmGPS.Latitude;
-    Lon := frmGPS.Longitude;
-    frmMap.AtualizaDrone(Lat, Lon, Col, Row);
-    Exit;
+    frmGPS.Atualiza;
+    if frmGPS.TemPosicao then
+    begin
+      LatCentral := frmGPS.Latitude;
+      LonCentral := frmGPS.Longitude;
+      AltCentral := frmGPS.Altitude;
+      frmMap.DefineReferencia(LatCentral, LonCentral);
+      GlobalFlightPlan.DefineHome(LatCentral, LonCentral);
+    end
+    else
+    begin
+      LatCentral := frmMap.RefLat;
+      LonCentral := frmMap.RefLon;
+      AltCentral := 0;
+    end;
+  end
+  else
+  begin
+    LatCentral := frmMap.RefLat;
+    LonCentral := frmMap.RefLon;
+    AltCentral := 0;
   end;
 
-  Lat := -21.1775 + ((Y - refJoy) / 10000);
-  Lon := -47.8103 + ((X - refJoy) / 10000);
+  // ---------------------------------------------------------
+  // 2. GPS DO DRONE (TELEMETRIA EM VOO)
+  // ---------------------------------------------------------
+  TemPosDrone := False;
+  LatDrone := 0; LonDrone := 0; AltDrone := 0;
+  VelDrone := 0; RumoDrone := 0; SatDrone := 0; FixDrone := 0;
 
-  frmMap.AtualizaDrone(Lat, Lon, Col, Row);
+  // Origem A: Conexão ativa do drone via telemetria (ex: MAVLink)
+  if Assigned(frmConnection) and (frmConnection is TfrmConexaoDrone) then
+  begin
+    if TfrmConexaoDrone(frmConnection).ObterDadosGPS(LatDrone, LonDrone, AltDrone,
+         VelDrone, RumoDrone, SatDrone, FixDrone) then
+      TemPosDrone := True;
+  end;
+
+  // Origem B: Simulação de rota interna ativa
+  if (not TemPosDrone) and GlobalFlightPlan.SimulationActive then
+  begin
+    LatDrone := GlobalFlightPlan.SimulatedDroneLat;
+    LonDrone := GlobalFlightPlan.SimulatedDroneLon;
+    AltDrone := GlobalFlightPlan.SimulatedDroneAlt;
+    VelDrone := 5.0;
+    RumoDrone := 0;
+    SatDrone := 12;
+    FixDrone := 3;
+    TemPosDrone := True;
+  end;
+
+  // ---------------------------------------------------------
+  // 3. ATUALIZAÇÃO DA JANELA DE GPS (2 GPS SINCRONIZADOS)
+  // ---------------------------------------------------------
+  if Assigned(frmGPS) then
+    frmGPS.AtualizaTelemetriaDrone(LatDrone, LonDrone, AltDrone, VelDrone, RumoDrone,
+      SatDrone, FixDrone, TemPosDrone);
+
+  // ---------------------------------------------------------
+  // 4. ATUALIZAÇÃO DO MAPA
+  // ---------------------------------------------------------
+  if TemPosDrone then
+  begin
+    frmMap.AtualizaDrone(LatDrone, LonDrone, Col, Row);
+  end
+  else
+  begin
+    // Drone sem telemetria GPS: posição estimada a partir da base com manche
+    LatDrone := LatCentral + ((Y - refJoy) / 100000);
+    LonDrone := LonCentral + ((X - refJoy) / 100000);
+    frmMap.AtualizaDrone(LatDrone, LonDrone, Col, Row);
+  end;
 end;
 
 procedure TfrmMain.SitlToggle(Sender: TObject);
