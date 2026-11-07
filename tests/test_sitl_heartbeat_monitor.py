@@ -39,7 +39,7 @@ class HeartbeatTests(unittest.TestCase):
     def test_gcs_is_not_multirotor(self):
         msg = FakeHeartbeat()
         msg.type = 6
-        self.assertEqual(heartbeat_record(msg, 0)["vehicle_class"], "unsupported")
+        self.assertIsNone(heartbeat_record(msg, 0))
 
 
 if __name__ == "__main__":
