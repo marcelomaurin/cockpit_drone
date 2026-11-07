@@ -7,6 +7,8 @@ on:
       - '**/*.pas'
       - 'tools/sitl_heartbeat_monitor.py'
       - 'tests/test_sitl_*.py'
+      - 'tests/test_lazarus_inventory.py'
+      - 'tools/inventory_lazarus.py'
       - '**/*.lpi'
       - '**/*.lpk'
       - '.github/workflows/lazarus-build.yml'
@@ -36,6 +38,8 @@ jobs:
           fpc -iV | tee build-diagnostics/fpc-version.txt
           lazbuild --version | tee build-diagnostics/lazbuild-version.txt
           python3 tools/inventory_lazarus.py --json > build-diagnostics/lazarus-inventory.json
+          python3 tools/inventory_lazarus.py | tee build-diagnostics/lazarus-packages.txt
+          python3 -m unittest discover -s tests -p 'test_lazarus_inventory.py' -v
       - name: Test Python SITL heartbeat and UI contracts
         shell: bash
         run: |
