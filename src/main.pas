@@ -641,6 +641,8 @@ begin
   FSitlTimer.OnTimer := @SitlTick;
   TrayIcon1.Visible := True;
   KeyPreview := True;
+  OnKeyDown := @FormKeyDown;
+  OnKeyUp := @FormKeyUp;
 
   FJoystick := TJoystickController.Create(SdpoJoystick1);
   FControler := TDroneControler.Create;
@@ -1018,10 +1020,72 @@ end;
 procedure TfrmMain.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   case Key of
-    VK_UP:    FKeyUp := True;
-    VK_DOWN:  FKeyDown := True;
-    VK_LEFT:  FKeyLeft := True;
-    VK_RIGHT: FKeyRight := True;
+    VK_UP, VK_W:
+      begin
+        FKeyUp := True;
+        Key := 0;
+      end;
+    VK_DOWN, VK_S:
+      begin
+        FKeyDown := True;
+        Key := 0;
+      end;
+    VK_LEFT, VK_A:
+      begin
+        FKeyLeft := True;
+        Key := 0;
+      end;
+    VK_RIGHT, VK_D:
+      begin
+        FKeyRight := True;
+        Key := 0;
+      end;
+    VK_E, VK_PRIOR:
+      begin
+        FKeyZUp := True;
+        Key := 0;
+      end;
+    VK_Q, VK_NEXT:
+      begin
+        FKeyZDown := True;
+        Key := 0;
+      end;
+    VK_1, VK_NUMPAD1, VK_Z:
+      begin
+        FKeyB1 := True;
+        Key := 0;
+      end;
+    VK_2, VK_NUMPAD2, VK_X:
+      begin
+        FKeyB2 := True;
+        Key := 0;
+      end;
+    VK_3, VK_NUMPAD3, VK_INSERT:
+      begin
+        FKeyB3 := True;
+        Key := 0;
+      end;
+    VK_4, VK_NUMPAD4, VK_DELETE:
+      begin
+        FKeyB4 := True;
+        Key := 0;
+      end;
+    VK_5, VK_NUMPAD5:
+      begin
+        FKeyB5 := True;
+        Key := 0;
+      end;
+    VK_6, VK_NUMPAD6, VK_F:
+      begin
+        FKeyB6 := True;
+        Key := 0;
+      end;
+    VK_R, VK_HOME:
+      begin
+        FKeyB5 := True;
+        CentralizaComandos;
+        Key := 0;
+      end;
     VK_SPACE:
       begin
         // PÂNICO / CORTE IMEDIATO DE MOTORES
@@ -1035,6 +1099,30 @@ begin
         AdvStartClick(Self);
         Key := 0;
       end;
+    VK_C:
+      begin
+        AdvCameraClick(Self);
+        Key := 0;
+      end;
+    VK_M:
+      begin
+        AdvMapClick(Self);
+        Key := 0;
+      end;
+    VK_G:
+      begin
+        AdvGPSClick(Self);
+        Key := 0;
+      end;
+    VK_T:
+      begin
+        EnsureTacticalHUD;
+        if frmTacticalHUD.Visible then
+          frmTacticalHUD.Hide
+        else
+          frmTacticalHUD.Show;
+        Key := 0;
+      end;
     VK_ESCAPE:
       begin
         Close;
@@ -1046,53 +1134,29 @@ end;
 procedure TfrmMain.FormKeyPress(Sender: TObject; var Key: char);
 begin
   case UpCase(Key) of
-    'W': FKeyUp := True;
-    'S': FKeyDown := True;
-    'A': FKeyLeft := True;
-    'D': FKeyRight := True;
-    'Q': FKeyZDown := True;
-    'E': FKeyZUp := True;
-    '1': FKeyB1 := True;
-    '2': FKeyB2 := True;
-    '3': FKeyB3 := True;
-    '4': FKeyB4 := True;
-    '5': FKeyB5 := True;
-    '6': FKeyB6 := True;
-    'R': CentralizaComandos;
-    'T':
-      begin
-        EnsureTacticalHUD;
-        if frmTacticalHUD.Visible then
-          frmTacticalHUD.Hide
-        else
-          frmTacticalHUD.Show;
-      end;
+    'W', 'S', 'A', 'D', 'Q', 'E', 'Z', 'X', 'C', 'R', 'T', 'M', 'G', 'F', '1'..'6', ' ':
+      Key := #0;
   end;
 end;
 
 procedure TfrmMain.FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   case Key of
-    VK_UP:    FKeyUp := False;
-    VK_DOWN:  FKeyDown := False;
-    VK_LEFT:  FKeyLeft := False;
-    VK_RIGHT: FKeyRight := False;
-    // Teclas de letra: são ligadas no KeyPress e precisam ser soltas aqui,
-    // senão o comando fica preso depois de soltar a tecla.
-    VK_W: FKeyUp := False;
-    VK_S: FKeyDown := False;
-    VK_A: FKeyLeft := False;
-    VK_D: FKeyRight := False;
-    VK_Q: FKeyZDown := False;
-    VK_E: FKeyZUp := False;
+    VK_UP, VK_W:       FKeyUp := False;
+    VK_DOWN, VK_S:     FKeyDown := False;
+    VK_LEFT, VK_A:     FKeyLeft := False;
+    VK_RIGHT, VK_D:    FKeyRight := False;
+    VK_E, VK_PRIOR:    FKeyZUp := False;
+    VK_Q, VK_NEXT:     FKeyZDown := False;
+    VK_1, VK_NUMPAD1, VK_Z: FKeyB1 := False;
+    VK_2, VK_NUMPAD2, VK_X: FKeyB2 := False;
+    VK_3, VK_NUMPAD3, VK_INSERT: FKeyB3 := False;
+    VK_4, VK_NUMPAD4, VK_DELETE: FKeyB4 := False;
+    VK_5, VK_NUMPAD5, VK_R, VK_HOME: FKeyB5 := False;
+    VK_6, VK_NUMPAD6, VK_F: FKeyB6 := False;
     VK_SPACE:
       begin
-        FKeyB1 := False;
-        FKeyB2 := False;
-        FKeyB3 := False;
-        FKeyB4 := False;
-        FKeyB5 := False;
-        FKeyB6 := False;
+        LimpaTeclado;
       end;
   end;
 end;
@@ -1263,13 +1327,17 @@ begin
 
   if FKeyZDown and (not FKeyZUp) then
   begin
-    if Z > 0 then
-      Dec(Z);
+    if Z > 4 then
+      Dec(Z, 4)
+    else
+      Z := 0;
   end
   else if FKeyZUp and (not FKeyZDown) then
   begin
-    if Z < 255 then
-      Inc(Z);
+    if Z < 251 then
+      Inc(Z, 4)
+    else
+      Z := 255;
   end
   else
   begin

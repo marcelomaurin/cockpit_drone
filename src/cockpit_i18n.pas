@@ -8,16 +8,16 @@ implementation
 const
   Idiomas: array[0..7] of string = ('pt-BR','en','es','zh-CN','ar','de','ru','hi');
   // Chaves estaveis em portugues. Campos tecnicos, nomes de marcas e protocolos nao sao traduzidos.
-  Chaves: array[0..15] of string = ('Configuração','Configurações','Câmera','Mapa','Equipamento','Conexão','Conectar','Desconectar','Sair','Salvar','Cancelar','Idioma / Language','Visualização da Câmera','OFFLINE','Iniciar reconhecimento (pessoas/poses)','Parar reconhecimento');
-  Valores: array[0..7,0..15] of string = (
-    ('Configuração','Configurações','Câmera','Mapa','Equipamento','Conexão','Conectar','Desconectar','Sair','Salvar','Cancelar','Idioma / Language','Visualização da Câmera','OFFLINE','Iniciar reconhecimento (pessoas/poses)','Parar reconhecimento'),
-    ('Configuration','Settings','Camera','Map','Equipment','Connection','Connect','Disconnect','Exit','Save','Cancel','Language','Camera view','OFFLINE','Start recognition (people/poses)','Stop recognition'),
-    ('Configuración','Configuraciones','Cámara','Mapa','Equipo','Conexión','Conectar','Desconectar','Salir','Guardar','Cancelar','Idioma','Vista de cámara','SIN CONEXIÓN','Iniciar reconocimiento (personas/poses)','Detener reconocimiento'),
-    ('配置','设置','摄像头','地图','设备','连接','连接','断开连接','退出','保存','取消','语言','摄像头画面','离线','开始识别（人物/姿态）','停止识别'),
-    ('التهيئة','الإعدادات','الكاميرا','الخريطة','المعدات','الاتصال','اتصال','قطع الاتصال','خروج','حفظ','إلغاء','اللغة','عرض الكاميرا','غير متصل','بدء التعرف (الأشخاص/الوضعيات)','إيقاف التعرف'),
-    ('Konfiguration','Einstellungen','Kamera','Karte','Gerät','Verbindung','Verbinden','Trennen','Beenden','Speichern','Abbrechen','Sprache','Kameraansicht','OFFLINE','Erkennung starten (Personen/Posen)','Erkennung stoppen'),
-    ('Конфигурация','Настройки','Камера','Карта','Оборудование','Подключение','Подключить','Отключить','Выход','Сохранить','Отмена','Язык','Вид камеры','НЕ В СЕТИ','Начать распознавание (люди/позы)','Остановить распознавание'),
-    ('कॉन्फ़िगरेशन','सेटिंग्स','कैमरा','मानचित्र','उपकरण','कनेक्शन','कनेक्ट करें','डिस्कनेक्ट करें','बाहर जाएँ','सहेजें','रद्द करें','भाषा','कैमरा दृश्य','ऑफ़लाइन','पहचान शुरू करें (व्यक्ति/पोज़)','पहचान बंद करें')
+  Chaves: array[0..16] of string = ('Configuração','Configurações','Câmera','Mapa','Equipamento','Conexão','Conectar','Desconectar','Sair','Salvar','Cancelar','Idioma / Language','Visualização da Câmera','OFFLINE','Iniciar reconhecimento (pessoas/poses)','Parar reconhecimento','Teclado');
+  Valores: array[0..7,0..16] of string = (
+    ('Configuração','Configurações','Câmera','Mapa','Equipamento','Conexão','Conectar','Desconectar','Sair','Salvar','Cancelar','Idioma / Language','Visualização da Câmera','OFFLINE','Iniciar reconhecimento (pessoas/poses)','Parar reconhecimento','Teclado'),
+    ('Configuration','Settings','Camera','Map','Equipment','Connection','Connect','Disconnect','Exit','Save','Cancel','Language','Camera view','OFFLINE','Start recognition (people/poses)','Stop recognition','Keyboard'),
+    ('Configuración','Configuraciones','Cámara','Mapa','Equipo','Conexión','Conectar','Desconectar','Salir','Guardar','Cancelar','Idioma','Vista de cámara','SIN CONEXIÓN','Iniciar reconhecimento (personas/poses)','Detener reconocimiento','Teclado'),
+    ('配置','设置','摄像头','地图','设备','连接','连接','断开连接','退出','保存','取消','语言','摄像头画面','离线','开始识别（人物/姿态）','停止识别','键盘'),
+    ('التهيئة','الإعدادات','الكاميرا','الخريطة','المعدات','الاتصال','اتصال','قطع الاتصال','خروج','حفظ','إلغاء','اللغة','عرض الكاميرا','غير متصل','بدء التعرف (الأشخاص/الوضعيات)','إيقاف التعرف','لوحة المفاتيح'),
+    ('Konfiguration','Einstellungen','Kamera','Karte','Gerät','Verbindung','Verbinden','Trennen','Beenden','Speichern','Abbrechen','Sprache','Kameraansicht','OFFLINE','Erkennung starten (Personen/Posen)','Erkennung stoppen','Tastatur'),
+    ('Конфигурация','Настройки','Камера','Карта','Оборудование','Подключение','Подключить','Отключить','Выход','Сохранить','Отмена','Язык','Вид камеры','НЕ В СЕТИ','Начать распознавание (люди/позы)','Остановить распознавание','Клавиатура'),
+    ('कॉन्फ़िगरेशन','सेटिंग्स','कैमरा','मानचित्र','उपकरण','कनेक्शन','कनेक्ट करें','डिस्कनेक्ट करें','बाहर जाएँ','सहेजें','रद्द करें','भाषा','कैमरा दृश्य','ऑफ़लाइन','पहचान शुरू करें (व्यक्ति/पोज़)','पहचान बंद करें','कीबोर्ड')
   );
 var
   Originais: TStringList;

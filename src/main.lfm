@@ -11,7 +11,9 @@ object frmMain: TfrmMain
   LCLVersion = '4.4.0.0'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyDown = FormKeyDown
   OnKeyPress = FormKeyPress
+  OnKeyUp = FormKeyUp
   OnShow = FormShow
   object Label2: TLabel
     Left = 168

@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ComCtrls, ExtCtrls, Arrow, AdvLed, Types, SdpoJoystick, funcs, SdpoSerial,
-  fpjson, jsonparser, IniFiles, cockpit_i18n
+  fpjson, jsonparser, IniFiles, cockpit_i18n, Grids, LCLType
   {$IFDEF MSWINDOWS}, Windows{$ENDIF};
 
 type
@@ -165,6 +165,16 @@ type
     edESP32IP: TEdit;
     edESP32Porta: TEdit;
 
+    tsTeclado: TTabSheet;
+    sgTeclado: TStringGrid;
+    lblTecladoTitulo: TLabel;
+    lblTecladoDica: TLabel;
+    gbTesteTeclado: TGroupBox;
+    lblTesteResultado: TLabel;
+    edTesteTeclado: TEdit;
+
+    procedure CriaAbaTeclado;
+    procedure EdTesteTecladoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure AtualizaAbasProtocolo;
     procedure CarregarValoresTela;
     procedure SalvarConfiguracoes;
@@ -453,6 +463,7 @@ begin
   CriaAbaFQ777;
   CriaAbaARDrone;
   CriaAbaESP32Drone;
+  CriaAbaTeclado;
 
   TabSheet1.Caption := 'Cheerson CX-10W';
   ckCX10WSimulado := CriaOpcao(TabSheet1, 8, 175, 'Simulado (conecta no simulador local 127.0.0.1)', 'ckCX10WSimulado');
@@ -688,6 +699,153 @@ begin
     Left := 15; Top := 82;
     Caption := 'Botão 3 arma (aceleração no mínimo), botão 4 desarma.';
   end;
+end;
+
+procedure Tfrmconfig.EdTesteTecladoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  Desc: string;
+begin
+  case Key of
+    VK_UP:    Desc := 'Frente (Arfagem / Pitch +) [Seta Acima]';
+    VK_DOWN:  Desc := 'Trás (Arfagem / Pitch -) [Seta Abaixo]';
+    VK_LEFT:  Desc := 'Esquerda (Rolagem / Roll -) [Seta Esquerda]';
+    VK_RIGHT: Desc := 'Direita (Rolagem / Roll +) [Seta Direita]';
+    VK_W:     Desc := 'Frente (Arfagem / Pitch +) [W]';
+    VK_S:     Desc := 'Trás (Arfagem / Pitch -) [S]';
+    VK_A:     Desc := 'Esquerda (Rolagem / Roll -) [A]';
+    VK_D:     Desc := 'Direita (Rolagem / Roll +) [D]';
+    VK_E:     Desc := 'Subir (Acelerador / Throttle +) [E]';
+    VK_Q:     Desc := 'Descer (Acelerador / Throttle -) [Q]';
+    VK_PRIOR: Desc := 'Subir (Acelerador / Throttle +) [Page Up]';
+    VK_NEXT:  Desc := 'Descer (Acelerador / Throttle -) [Page Down]';
+    VK_1, VK_NUMPAD1: Desc := 'Girar Esquerda (Guinada / Yaw -) [1 / Botão 1]';
+    VK_Z:     Desc := 'Girar Esquerda (Guinada / Yaw -) [Z / Botão 1]';
+    VK_2, VK_NUMPAD2: Desc := 'Girar Direita (Guinada / Yaw +) [2 / Botão 2]';
+    VK_X:     Desc := 'Girar Direita (Guinada / Yaw +) [X / Botão 2]';
+    VK_3, VK_NUMPAD3: Desc := 'Decolar / Armar Motores [3 / Botão 3]';
+    VK_INSERT:Desc := 'Decolar / Armar Motores [Insert / Botão 3]';
+    VK_4, VK_NUMPAD4: Desc := 'Pousar / Desarmar Motores [4 / Botão 4]';
+    VK_DELETE:Desc := 'Pousar / Desarmar Motores [Delete / Botão 4]';
+    VK_5, VK_NUMPAD5: Desc := 'Pairar / Centralizar / Calibrar [5 / Botão 5]';
+    VK_R:     Desc := 'Pairar / Centralizar Comandos [R / Botão 5]';
+    VK_HOME:  Desc := 'Pairar / Centralizar Comandos [Home / Botão 5]';
+    VK_6, VK_NUMPAD6: Desc := 'Manobra Especial / Flip 360° [6 / Botão 6]';
+    VK_F:     Desc := 'Manobra Especial / Flip 360° [F / Botão 6]';
+    VK_SPACE: Desc := 'PÂNICO! Corte Imediato dos Motores (Z=0)';
+    VK_RETURN:Desc := 'Iniciar / Parar Conexão (Start / Stop)';
+    VK_T:     Desc := 'Alternar HUD Tático (Head-Up Display)';
+    VK_C:     Desc := 'Alternar Janela de Câmera';
+    VK_M:     Desc := 'Alternar Janela de Mapa Tático';
+    VK_G:     Desc := 'Alternar Janela de GPS Telemetria';
+    VK_ESCAPE:Desc := 'Fechar Janela / Sair';
+  else
+    Desc := Format('Código %d (sem ação configurada)', [Key]);
+  end;
+
+  if Assigned(lblTesteResultado) then
+  begin
+    lblTesteResultado.Caption := 'Comando: ' + Desc;
+    if Key = VK_SPACE then
+      lblTesteResultado.Font.Color := clRed
+    else
+      lblTesteResultado.Font.Color := clNavy;
+  end;
+  if Assigned(edTesteTeclado) then
+    edTesteTeclado.Text := '';
+  Key := 0;
+end;
+
+procedure Tfrmconfig.CriaAbaTeclado;
+var
+  Box: TScrollBox;
+  R: Integer;
+
+  procedure AdicionaLinha(const AComando, ATecla1, ATecla2: string);
+  begin
+    sgTeclado.Cells[0, R] := AComando;
+    sgTeclado.Cells[1, R] := ATecla1;
+    sgTeclado.Cells[2, R] := ATecla2;
+    Inc(R);
+  end;
+
+begin
+  tsTeclado := TTabSheet.Create(Self);
+  tsTeclado.Name := 'tsTeclado';
+  tsTeclado.PageControl := pcDrones;
+  tsTeclado.Caption := 'Teclado';
+
+  Box := TScrollBox.Create(Self);
+  Box.Parent := tsTeclado;
+  Box.Align := alClient;
+  Box.BorderStyle := bsNone;
+
+  lblTecladoTitulo := TLabel.Create(Self);
+  lblTecladoTitulo.Parent := Box;
+  lblTecladoTitulo.SetBounds(10, 8, 420, 18);
+  lblTecladoTitulo.Caption := 'Mapa de Teclas para Pilotagem e Navegação';
+  lblTecladoTitulo.Font.Style := [fsBold];
+
+  lblTecladoDica := TLabel.Create(Self);
+  lblTecladoDica.Parent := Box;
+  lblTecladoDica.SetBounds(10, 28, 420, 16);
+  lblTecladoDica.Caption := 'Use o teclado para pilotar o drone e controlar telas do cockpit:';
+
+  sgTeclado := TStringGrid.Create(Self);
+  sgTeclado.Parent := Box;
+  sgTeclado.SetBounds(10, 48, 420, 175);
+  sgTeclado.ColCount := 3;
+  sgTeclado.RowCount := 19;
+  sgTeclado.FixedCols := 0;
+  sgTeclado.FixedRows := 1;
+  sgTeclado.ColWidths[0] := 180;
+  sgTeclado.ColWidths[1] := 105;
+  sgTeclado.ColWidths[2] := 115;
+  sgTeclado.Options := sgTeclado.Options + [goRowSelect] - [goEditing];
+
+  R := 0;
+  AdicionaLinha('Comando / Função', 'Tecla Principal', 'Tecla Alternativa');
+  AdicionaLinha('Frente (Pitch +)', 'W', 'Seta Acima');
+  AdicionaLinha('Trás (Pitch -)', 'S', 'Seta Abaixo');
+  AdicionaLinha('Esquerda (Roll -)', 'A', 'Seta Esquerda');
+  AdicionaLinha('Direita (Roll +)', 'D', 'Seta Direita');
+  AdicionaLinha('Subir (Acelerador +)', 'E', 'Page Up');
+  AdicionaLinha('Descer (Acelerador -)', 'Q', 'Page Down');
+  AdicionaLinha('Girar Esquerda (Guinada -)', '1', 'Z  (Botão 1)');
+  AdicionaLinha('Girar Direita (Guinada +)', '2', 'X  (Botão 2)');
+  AdicionaLinha('Decolar / Armar', '3', 'Insert  (Botão 3)');
+  AdicionaLinha('Pousar / Desarmar', '4', 'Delete  (Botão 4)');
+  AdicionaLinha('Pairar / Centralizar', '5', 'R / Home  (Botão 5)');
+  AdicionaLinha('Manobra Especial / Flip', '6', 'F  (Botão 6)');
+  AdicionaLinha('PÂNICO / Corte Imediato', 'Espaço', 'Corte motores (Z=0)');
+  AdicionaLinha('Iniciar / Parar Conexão', 'Enter', 'Start / Stop Cockpit');
+  AdicionaLinha('Alternar HUD Tático', 'T', 'Tactical HUD');
+  AdicionaLinha('Alternar Janela Câmera', 'C', 'Vídeo ao vivo');
+  AdicionaLinha('Alternar Janela Mapa', 'M', 'Mapa Tático');
+  AdicionaLinha('Alternar Janela GPS', 'G', 'GPS Telemetria');
+
+  gbTesteTeclado := TGroupBox.Create(Self);
+  gbTesteTeclado.Parent := Box;
+  gbTesteTeclado.SetBounds(10, 228, 420, 68);
+  gbTesteTeclado.Caption := 'Teste de Tecla ao Vivo';
+
+  with TLabel.Create(Self) do
+  begin
+    Parent := gbTesteTeclado;
+    SetBounds(10, 4, 180, 15);
+    Caption := 'Digite no campo para testar:';
+  end;
+
+  edTesteTeclado := TEdit.Create(Self);
+  edTesteTeclado.Parent := gbTesteTeclado;
+  edTesteTeclado.SetBounds(195, 2, 215, 22);
+  edTesteTeclado.Text := 'Pressione uma tecla aqui...';
+  edTesteTeclado.OnKeyDown := @EdTesteTecladoKeyDown;
+
+  lblTesteResultado := TLabel.Create(Self);
+  lblTesteResultado.Parent := gbTesteTeclado;
+  lblTesteResultado.SetBounds(10, 26, 400, 18);
+  lblTesteResultado.Caption := 'Comando detectado: aguardando tecla...';
+  lblTesteResultado.Font.Style := [fsBold];
 end;
 
 function Tfrmconfig.GetModelConfigPath: string;
@@ -1124,6 +1282,8 @@ begin
     tsARDrone.TabVisible := (TipoAtivo = 5);
   if Assigned(tsESP32Drone) then
     tsESP32Drone.TabVisible := (TipoAtivo = 6);
+  if Assigned(tsTeclado) then
+    tsTeclado.TabVisible := True;
 end;
 
 procedure Tfrmconfig.CarregarValoresTela;
