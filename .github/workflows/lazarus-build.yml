@@ -5,6 +5,7 @@ on:
     branches: [master]
     paths:
       - '**/*.pas'
+      - '**/*.lpr'
       - 'tools/sitl_heartbeat_monitor.py'
       - 'tests/test_sitl_*.py'
       - 'tests/test_lazarus_inventory.py'
@@ -55,6 +56,13 @@ jobs:
           build-diagnostics/test_sitl_telemetry_state 2>&1 | tee build-diagnostics/sitl-state-test.log
           fpc -Fu./src -FUbuild-diagnostics/pascal-units -FEbuild-diagnostics tests/test_sitl_telemetry_bridge.pas 2>&1 | tee build-diagnostics/sitl-bridge-build.log
           build-diagnostics/test_sitl_telemetry_bridge 2>&1 | tee build-diagnostics/sitl-bridge-test.log
+      - name: Test simulator physics and protocol bridge independently
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-diagnostics/pascal-units
+          fpc -Fu./src -FUbuild-diagnostics/pascal-units -FEbuild-diagnostics tests/test_simulator_bridge.pas 2>&1 | tee build-diagnostics/simulator-bridge-build.log
+          build-diagnostics/test_simulator_bridge 2>&1 | tee build-diagnostics/simulator-bridge-test.log
       - name: Attempt compilation of every Lazarus project
         shell: bash
         run: |
