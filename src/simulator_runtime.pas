@@ -23,6 +23,7 @@ type
     procedure Disconnect;
     function Nearby: TJSONData;
     function Events(const AAfter: Int64): TJSONData;
+    function SendEvent(const AType: string; APayload: TJSONObject): TJSONData;
     property Vehicle: TSimulatorVehicle read FVehicle;
     property Online: Boolean read FOnline;
   end;
@@ -108,6 +109,13 @@ begin
   FOnline := False;
   R := FNetwork.Disconnect;
   R.Free;
+end;
+
+function TSimulatorRuntime.SendEvent(const AType: string;
+  APayload: TJSONObject): TJSONData;
+begin
+  if not FOnline then raise EMultiplayerAPI.Create('Simulator offline');
+  Result := FNetwork.SendEvent(AType, APayload);
 end;
 
 function TSimulatorRuntime.Nearby: TJSONData;
