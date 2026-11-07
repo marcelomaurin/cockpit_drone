@@ -19,6 +19,7 @@ type
     destructor Destroy; override;
     procedure Connect;
     procedure Step(ADeltaSeconds: Double);
+    procedure SyncTelemetry(ADeltaSeconds: Double);
     procedure Disconnect;
     function Nearby: TJSONData;
     function Events(const AAfter: Int64): TJSONData;
@@ -60,9 +61,14 @@ begin
 end;
 
 procedure TSimulatorRuntime.Step(ADeltaSeconds: Double);
-var R: TJSONData; S: TVehicleState;
 begin
   FVehicle.Step(ADeltaSeconds);
+  SyncTelemetry(ADeltaSeconds);
+end;
+
+procedure TSimulatorRuntime.SyncTelemetry(ADeltaSeconds: Double);
+var R: TJSONData; S: TVehicleState;
+begin
   if not FOnline then Exit; // offline simulation remains available
   if (ADeltaSeconds <= 0) or (ADeltaSeconds > 1) then Exit;
   FTelemetryElapsed := FTelemetryElapsed + ADeltaSeconds;
