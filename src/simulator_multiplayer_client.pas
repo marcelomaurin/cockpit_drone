@@ -151,8 +151,15 @@ begin
 end;
 
 function TSimulatorMultiplayerClient.Heartbeat: TJSONData;
+var
+  Obj: TJSONObject;
 begin
-  Result := Request('POST', 'heartbeat', TJSONObject.Create);
+  Obj := TJSONObject.Create;
+  try
+    Result := Request('POST', 'heartbeat', Obj);
+  finally
+    Obj.Free;
+  end;
 end;
 
 function TSimulatorMultiplayerClient.Disconnect: TJSONData;
