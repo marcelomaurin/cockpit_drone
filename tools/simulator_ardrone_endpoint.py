@@ -21,13 +21,15 @@ def at_float(value):
 
 
 class ARDroneEndpoint:
-    def __init__(self, host, command_port, nav_port, state_port):
+    def __init__(self, host, command_port, nav_port, state_port, physics_port=None):
         self.command = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.command.bind((host, command_port))
         self.nav = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.nav.bind((host, nav_port))
         self.local_state = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.local_state.bind(("127.0.0.1", state_port))
+        self.physics_port = physics_port
+        self.physics_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.nav_peer = None
         self.sequence = 1
         self.flying = False
@@ -67,6 +69,18 @@ class ARDroneEndpoint:
             except (ValueError, OverflowError, struct.error):
                 continue
         self.last_at = time.monotonic()
+        self.send_controls()
+
+    def send_controls(self):
+        if self.physics_port is not None:
+            c = self.controls
+            normalized = dict(throttle=max(abs(c['roll']), abs(c['pitch'])),
+                              turn=c['yaw'] if self.flying else 0.,
+                              climb=c['climb'] if self.flying else 0.,
+                              brake=0., roll=c['roll'] if self.flying else 0.,
+                              pitch=c['pitch'] if self.flying else 0.)
+            self.physics_socket.sendto(json.dumps(normalized).encode('utf-8'),
+                                       ('127.0.0.1', self.physics_port))
 
     def update_state(self, data):
         try:
@@ -104,7 +118,9 @@ class ARDroneEndpoint:
         while True:
             now = time.monotonic()
             if now - self.last_at > 2.:
-                self.controls = dict.fromkeys(self.controls, 0.)
+                if any(self.controls.values()):
+                    self.controls = dict.fromkeys(self.controls, 0.)
+                    self.send_controls()
             if now >= next_nav:
                 self.send_navdata()
                 next_nav = now + 0.1
@@ -125,5 +141,6 @@ if __name__ == "__main__":
     parser.add_argument("--command-port", type=int, default=5556)
     parser.add_argument("--nav-port", type=int, default=5554)
     parser.add_argument("--state-port", type=int, default=14564)
+    parser.add_argument("--physics-port", type=int, default=None)
     args = parser.parse_args()
-    ARDroneEndpoint(args.host, args.command_port, args.nav_port, args.state_port).run()
+    ARDroneEndpoint(args.host, args.command_port, args.nav_port, args.state_port, args.physics_port).run()
