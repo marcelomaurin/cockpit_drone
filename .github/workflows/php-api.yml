@@ -37,6 +37,23 @@ jobs:
           exit 1
       - name: Run API smoke tests
         run: php PHP/tests/smoke.php http://127.0.0.1:8765
+      - name: MySQL integration test
+        env:
+          DRONE_STORAGE: mysql
+          DRONE_MYSQL_DSN: mysql:host=127.0.0.1;dbname=drone;charset=utf8mb4
+          DRONE_MYSQL_USER: root
+          DRONE_MYSQL_PASSWORD: root
+        run: |
+          sudo systemctl start mysql
+          sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';" || true
+          mysql -h 127.0.0.1 -u root -proot -e "CREATE DATABASE IF NOT EXISTS drone"
+          mysql -h 127.0.0.1 -u root -proot drone < PHP/schema.sql
+          DRONE_STORAGE=mysql DRONE_MYSQL_DSN="$DRONE_MYSQL_DSN" DRONE_MYSQL_USER=root DRONE_MYSQL_PASSWORD=root php -S 127.0.0.1:8766 -t PHP PHP/index.php >"$RUNNER_TEMP/drone-mysql.log" 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8766/health >/dev/null; then break; fi
+            sleep 1
+          done
+          php PHP/tests/smoke.php http://127.0.0.1:8766
       - name: Show server logs on failure
         if: failure()
         run: cat "$RUNNER_TEMP/drone-php.log" || true
