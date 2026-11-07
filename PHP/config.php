@@ -5,7 +5,7 @@ return [
     'storage' => getenv('DRONE_STORAGE') ?: 'files', // files | mysql | apcu
     'radius_m' => 2000,
     'session_ttl' => 120,
-    'data_dir' => getenv('DRONE_DATA_DIR') ?: dirname(__DIR__) . '/drone-private-data',
+    'data_dir' => getenv('DRONE_DATA_DIR') ?: dirname(__DIR__, 2) . '/drone-private-data',
     'mysql' => [
         'dsn' => getenv('DRONE_MYSQL_DSN') ?: 'mysql:host=localhost;dbname=drone;charset=utf8mb4',
         'user' => getenv('DRONE_MYSQL_USER') ?: '',
