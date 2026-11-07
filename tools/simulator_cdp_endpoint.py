@@ -3,6 +3,7 @@
 Implements firmware/esp32_drone/PROTOCOLO.md without physical motor output.
 """
 import argparse
+import json
 import math
 import select
 import socket
@@ -41,9 +42,11 @@ def decode(data):
 
 
 class VirtualCDP:
-    def __init__(self, host, port):
+    def __init__(self, host, port, physics_port=None):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind((host, port))
+        self.physics_port = physics_port
+        self.physics_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.peer = None
         self.seq = 0
         self.armed = False
@@ -91,6 +94,19 @@ class VirtualCDP:
             self.armed = True
             self.state = 1
         self.throttle = throttle if self.armed else 0
+        self.send_controls()
+
+    def send_controls(self):
+        if self.physics_port is None:
+            return
+        throttle = max(0., min(1., self.throttle / 1000.)) if self.armed else 0.
+        controls = dict(throttle=throttle,
+                        turn=self.yaw / 1000. if self.armed else 0.,
+                        climb=max(-1., min(1., (throttle - .45) / .55)) if self.armed else 0.,
+                        brake=0., roll=self.roll / 1000. if self.armed else 0.,
+                        pitch=self.pitch / 1000. if self.armed else 0.)
+        self.physics_socket.sendto(json.dumps(controls).encode('utf-8'),
+                                   ('127.0.0.1', self.physics_port))
 
     def tick(self):
         now = time.monotonic()
@@ -100,6 +116,8 @@ class VirtualCDP:
             self.armed = False
             self.throttle = 0
             self.state = 2
+            self.send_controls()
+            self.last_control = 0.
         if now - self.window_start >= 1:
             self.control_rate = self.control_count
             self.control_count = 0
@@ -135,5 +153,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=4210)
+    parser.add_argument("--physics-port", type=int, default=None)
     args = parser.parse_args()
-    VirtualCDP(args.host, args.port).run()
+    VirtualCDP(args.host, args.port, args.physics_port).run()
