@@ -7,7 +7,7 @@ interface
 uses SysUtils, Math;
 
 type
-  TVehicleKind = (vkMultirotor, vkAirplane, vkBoat, vkCar);
+  TVehicleKind = (vkMultirotor, vkAirplane, vkBoat, vkCar, vkHelicopter);
   TVehicleControls = record
     Throttle: Double;  // 0..1
     Turn: Double;      // -1..1
@@ -63,6 +63,7 @@ begin
     vkAirplane: Result := 65;
     vkBoat: Result := 12;
     vkCar: Result := 35;
+    vkHelicopter: Result := 28;
   else
     Result := 10;
   end;
@@ -84,6 +85,7 @@ begin
     vkAirplane: begin Accel := 2; TurnRate := 25; ClimbRate := 8; end;
     vkBoat: begin Accel := 1; TurnRate := 35; ClimbRate := 0; end;
     vkCar: begin Accel := 3.5; TurnRate := 65; ClimbRate := 0; end;
+    vkHelicopter: begin Accel := 2.5; TurnRate := 65; ClimbRate := 7; end;
   end;
   if FKind = vkCar then
     TargetSpeed := TargetSpeed * (1 - Clamp(FControls.Brake, 0, 1));
