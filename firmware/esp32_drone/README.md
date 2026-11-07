@@ -23,7 +23,7 @@ M3=27, M4=14, SDA=21, SCL=22, bateria=34, LED=2.
 
 1. Instale a IDE Arduino e o suporte a placas **esp32** (Espressif).
 2. Abra `esp32_drone/esp32_drone.ino`, escolha a placa e a porta.
-3. Ajuste `config.h` (pinos, sentido dos eixos, senha do Wi-Fi).
+3. Ajuste `config.h` (pinos, sentido dos eixos, senha fixa do Wi-Fi, se não quiser a aleatória).
 4. Grave. No monitor serial (115200) aparecem o nome da rede e o IP.
 
 Na primeira execução o firmware calibra o sensor: deixe o drone **parado e
@@ -32,7 +32,7 @@ nivelado** por uns 3 segundos. Para recalibrar depois, use o botão
 
 ## Primeiro teste — SEM HÉLICES
 
-1. Conecte o PC na rede `CockpitDrone-XXXX` (senha `cockpit123`) e ligue o
+1. Conecte o PC na rede `CockpitDrone-XXXX` (a senha aparece no monitor serial, 115200, a cada partida) e ligue o
    cockpit com o protocolo **Drone ESP32 (firmware Cockpit)**.
 2. **Teste de sinais do sensor** (na janela de conexão do cockpit):
    - incline o drone para a **direita**: a rolagem deve ficar **positiva**;

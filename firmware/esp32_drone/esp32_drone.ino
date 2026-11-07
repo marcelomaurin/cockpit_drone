@@ -462,8 +462,22 @@ void setup() {
 #ifdef WIFI_SENHA_FIXA
   snprintf(senha, sizeof(senha), "%s", WIFI_SENHA_FIXA);
 #else
-  // Deriva do MAC único: "cp" + 4 bytes finais hex = 10 caracteres
-  snprintf(senha, sizeof(senha), "cp%02X%02X%02X%02X", mac[2], mac[3], mac[4], mac[5]);
+  // Senha aleatoria gerada no primeiro uso e guardada na memoria (chave "wpw").
+  // Nao e derivada do MAC: o endereco do AP vai aberto nos anuncios da rede,
+  // e uma senha calculada a partir dele seria publica.
+  // Para gerar outra senha: apague a chave (prefs.remove("wpw")) ou a memoria.
+  String guardada = prefs.getString("wpw", "");
+  if (guardada.length() < 8) {
+    const char alfabeto[] = "abcdefghjkmnpqrstuvwxyz23456789";  // sem 0/o, 1/l/i
+    char nova[11];
+    for (int i = 0; i < 10; i++)
+      nova[i] = alfabeto[esp_random() % (sizeof(alfabeto) - 1)];
+    nova[10] = 0;
+    prefs.putString("wpw", nova);
+    guardada = nova;
+    Serial.println("Senha do Wi-Fi gerada agora (primeiro uso). Anote-a:");
+  }
+  snprintf(senha, sizeof(senha), "%s", guardada.c_str());
 #endif
   WiFi.softAP(ssid, senha, WIFI_CANAL, 0, 1);  // 1 cliente: so o cockpit
   WiFi.setSleep(false);

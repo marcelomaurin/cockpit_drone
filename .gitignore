@@ -29,3 +29,10 @@ backup/
 simulador/src/lib/
 *.a
 src/lib/
+
+# Executáveis gerados pela compilação (o instalador os empacota a partir daqui;
+# as versões publicadas ficam em bin/ e install/win32/).
+/src/drone.exe
+/simulador/simulador.exe
+/simulador/testes/*.exe
+/install/Output/

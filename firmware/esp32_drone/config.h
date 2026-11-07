@@ -7,9 +7,9 @@
 
 // ---------------- Rede ----------------
 #define WIFI_PREFIXO_SSID   "CockpitDrone-"   // + 4 dígitos do MAC
-// Senha do AP Wi-Fi: se WIFI_SENHA_FIXA nao for definida, a senha e
-// derivada dinamicamente do MAC ("cp" + 8 digitos hex = 10 caracteres),
-// evitando que multiplos drones usem a mesma senha padrao.
+// Senha do AP Wi-Fi: se WIFI_SENHA_FIXA nao for definida, cada drone gera
+// uma senha aleatoria de 10 caracteres no primeiro uso, guarda na memoria e
+// a mostra no monitor serial (115200) a cada partida.
 // Descomente abaixo para forcar uma senha estatica personalizada:
 // #define WIFI_SENHA_FIXA     "cockpit123"
 #define WIFI_CANAL          6

@@ -26,6 +26,8 @@ jobs:
       - name: Lint all PHP files
         run: |
           find PHP -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Test session listing ignores rate-limit records
+        run: php PHP/tests/storage_sessions.php
       - name: Test direct entrypoint and missing configuration
         run: python3 tests/run_php_entrypoint.py "$(command -v php)"
       - name: Install WebSocket dependencies

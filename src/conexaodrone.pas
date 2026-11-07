@@ -58,6 +58,17 @@ type
   private
     FLockComando: TCriticalSection;
     FUltimoComando: TComandoManche;
+    { Momento (GetTickCount64) em que a interface atualizou o comando. }
+    FComandoTick: QWord;
+    { Cliques ainda não entregues à linha de execução de controle: cada
+      clique é entregue uma única vez, mesmo que a interface e a linha de
+      execução andem em ritmos diferentes. }
+    FApertouPendente: array[1..6] of Boolean;
+    FComandoVencido: Boolean;
+    { Mensagens do componente geradas fora da linha principal; a interface
+      as mostra no próximo tique do temporizador. }
+    FFilaMensagens: TStringList;
+    FEstadoPendente: Boolean;
     FThreadControle: TThreadControleDrone;
     FInfo: TPanel;
     FBotoes: TPanel;
@@ -81,6 +92,9 @@ type
     procedure DroneVideo(Sender: TObject; AData: PByte; ACount: Integer);
     procedure DecoderQuadro(Sender: TObject; ABitmap: TBitmap);
     procedure DecoderErro(Sender: TObject; const AMessage: string);
+    function ForaDaLinhaPrincipal: Boolean;
+    procedure EnfileiraMensagem(const AMessage: string; AErro: Boolean);
+    procedure DescarregaMensagens;
   protected
     FDecoder: TAIH264Decoder;
     { Montagem da janela (chame no construtor da janela do drone). }
@@ -94,6 +108,10 @@ type
       const AFFmpeg: string);
     procedure DefineErro(const AMotivo: string);
     procedure AtualizaComandoManche(const ACmd: TComandoManche);
+    { Comando para a linha de execução de controle. Se a interface não
+      atualiza o comando há mais de LIMITE_COMANDO_MS (travada, diálogo
+      longo), devolve o comando neutro: eixos no centro, aceleração zero e
+      subida zero (pairar), sem cliques. }
     function ObtemComandoProtegido: TComandoManche;
     { Chamado a cada mensagem (AErro = True para erros), depois do registro. }
     procedure MensagemDrone(const AMessage: string; AErro: Boolean); virtual;
@@ -139,6 +157,12 @@ implementation
 
 uses
   main, camera, controler;
+
+const
+  { Idade máxima do comando lido pela interface. Passado esse tempo sem
+    atualização, a linha de execução de controle envia o comando neutro
+    em vez de repetir o último (que poderia ser aceleração máxima). }
+  LIMITE_COMANDO_MS = 500;
 
 { TfrmConexaoDrone }
 
@@ -198,11 +222,13 @@ begin
 
   FLbVideo := nil;
   FLockComando := TCriticalSection.Create;
+  FFilaMensagens := TStringList.Create;
 end;
 
 destructor TfrmConexaoDrone.Destroy;
 begin
   Encerrar;
+  FreeAndNil(FFilaMensagens);
   FreeAndNil(FLockComando);
   FreeAndNil(FBitmap);
   inherited Destroy;
@@ -289,6 +315,15 @@ begin
     Exit(True);
   for I := 1 to 6 do
     FBotoesAntes[I] := True; // botão já apertado na largada não vale como clique
+  FLockComando.Enter;
+  try
+    FUltimoComando := Default(TComandoManche);
+    FillChar(FApertouPendente, SizeOf(FApertouPendente), 0);
+    FComandoTick := GetTickCount64;
+    FComandoVencido := False;
+  finally
+    FLockComando.Leave;
+  end;
   Screen.Cursor := crHourGlass;
   try
     try
@@ -335,6 +370,8 @@ begin
     FThreadControle.WaitFor;
     FreeAndNil(FThreadControle);
   end;
+  // Mostra o que a linha de execução de controle deixou na fila.
+  DescarregaMensagens;
   if Assigned(FDrone) then
   begin
     try
@@ -407,35 +444,119 @@ begin
 end;
 
 procedure TfrmConexaoDrone.AtualizaComandoManche(const ACmd: TComandoManche);
+var
+  I: Integer;
 begin
-  if Assigned(FLockComando) then
-  begin
-    FLockComando.Enter;
-    try
-      FUltimoComando := ACmd;
-    finally
-      FLockComando.Leave;
-    end;
+  if not Assigned(FLockComando) then
+    Exit;
+  FLockComando.Enter;
+  try
+    FUltimoComando := ACmd;
+    // Acumula os cliques até a linha de execução de controle consumi-los.
+    for I := 1 to 6 do
+      if ACmd.Apertou[I] then
+        FApertouPendente[I] := True;
+    FComandoTick := GetTickCount64;
+  finally
+    FLockComando.Leave;
   end;
 end;
 
 function TfrmConexaoDrone.ObtemComandoProtegido: TComandoManche;
+var
+  I: Integer;
 begin
   Result := Default(TComandoManche);
-  if Assigned(FLockComando) then
-  begin
+  if not Assigned(FLockComando) then
+    Exit;
+  FLockComando.Enter;
+  try
+    if GetTickCount64 - FComandoTick > LIMITE_COMANDO_MS then
+    begin
+      // Interface parada: nada de repetir o último comando nem cliques.
+      FillChar(FApertouPendente, SizeOf(FApertouPendente), 0);
+      if not FComandoVencido then
+      begin
+        FComandoVencido := True;
+        EnfileiraMensagem(Format('Comando sem atualização há mais de %d ms: ' +
+          'enviando comando neutro (centro, aceleração zero).',
+          [LIMITE_COMANDO_MS]), True);
+      end;
+      Exit;
+    end;
+    if FComandoVencido then
+    begin
+      FComandoVencido := False;
+      EnfileiraMensagem('Comando do cockpit restabelecido.', False);
+    end;
+    Result := FUltimoComando;
+    // Cada clique é entregue uma única vez.
+    for I := 1 to 6 do
+    begin
+      Result.Apertou[I] := FApertouPendente[I];
+      FApertouPendente[I] := False;
+    end;
+  finally
+    FLockComando.Leave;
+  end;
+end;
+
+function TfrmConexaoDrone.ForaDaLinhaPrincipal: Boolean;
+begin
+  Result := GetCurrentThreadId <> MainThreadID;
+end;
+
+procedure TfrmConexaoDrone.EnfileiraMensagem(const AMessage: string; AErro: Boolean);
+begin
+  if not Assigned(FFilaMensagens) then
+    Exit;
+  // Pode ser chamado com FLockComando já obtido (seção crítica reentrante).
+  FLockComando.Enter;
+  try
+    FFilaMensagens.AddObject(AMessage, TObject(PtrInt(Ord(AErro))));
+    while FFilaMensagens.Count > 200 do
+      FFilaMensagens.Delete(0);
+  finally
+    FLockComando.Leave;
+  end;
+end;
+
+procedure TfrmConexaoDrone.DescarregaMensagens;
+var
+  Lista: TStringList;
+  I: Integer;
+  Estado: Boolean;
+begin
+  if not Assigned(FFilaMensagens) then
+    Exit;
+  Lista := TStringList.Create;
+  try
     FLockComando.Enter;
     try
-      Result := FUltimoComando;
+      Lista.Assign(FFilaMensagens);
+      FFilaMensagens.Clear;
+      Estado := FEstadoPendente;
+      FEstadoPendente := False;
     finally
       FLockComando.Leave;
     end;
+    // Já na linha principal: os manipuladores normais mostram as mensagens.
+    for I := 0 to Lista.Count - 1 do
+      if PtrInt(Lista.Objects[I]) <> 0 then
+        DroneErro(Self, Lista[I])
+      else
+        DroneStatus(Self, Lista[I]);
+    if Estado then
+      AtualizaPainel;
+  finally
+    Lista.Free;
   end;
 end;
 
 procedure TfrmConexaoDrone.TimerTick(Sender: TObject);
 begin
   AtualizaComandoManche(LeComando);
+  DescarregaMensagens;
   if GetTickCount64 - FUltimaTela >= 250 then
   begin
     FUltimaTela := GetTickCount64;
@@ -492,6 +613,14 @@ end;
 
 procedure TfrmConexaoDrone.DroneStatus(Sender: TObject; const AMessage: string);
 begin
+  // Comandos como decolar e armar partem da linha de execução de controle;
+  // se o componente avisar de lá, a mensagem vai para a fila (a LCL só
+  // pode ser usada na linha principal).
+  if ForaDaLinhaPrincipal then
+  begin
+    EnfileiraMensagem(AMessage, False);
+    Exit;
+  end;
   // Mensagens repetidas em sequência aparecem uma vez só.
   if AMessage = FUltimaMensagem then
     Exit;
@@ -502,6 +631,11 @@ end;
 
 procedure TfrmConexaoDrone.DroneErro(Sender: TObject; const AMessage: string);
 begin
+  if ForaDaLinhaPrincipal then
+  begin
+    EnfileiraMensagem(AMessage, True);
+    Exit;
+  end;
   FUltimoErro := AMessage;
   Log('ERRO: ' + AMessage);
   MensagemDrone(AMessage, True);
@@ -509,6 +643,19 @@ end;
 
 procedure TfrmConexaoDrone.DroneEstado(Sender: TObject);
 begin
+  if ForaDaLinhaPrincipal then
+  begin
+    if Assigned(FLockComando) then
+    begin
+      FLockComando.Enter;
+      try
+        FEstadoPendente := True;
+      finally
+        FLockComando.Leave;
+      end;
+    end;
+    Exit;
+  end;
   AtualizaPainel;
 end;
 
