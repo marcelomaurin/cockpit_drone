@@ -1,0 +1,22 @@
+name: ESP-Drone simulator smoke test
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'tools/simulator_espdrone_endpoint.py'
+      - 'tools/test_simulator_espdrone.py'
+      - '.github/workflows/simulator-espdrone-smoke.yml'
+  workflow_dispatch:
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile Python source
+        run: python -m py_compile tools/simulator_espdrone_endpoint.py tools/test_simulator_espdrone.py
+      - name: Test CRTP to virtual motion over loopback UDP
+        run: python tools/test_simulator_espdrone.py
