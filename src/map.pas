@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   StdCtrls, BCGameGrid, mvTypes, BGRABitmap, BGRABitmapTypes, Math, mvEngine,
-  mvGpsObj, mvDrawingEngine, mvMapViewer, objetos, flightplan;
+  mvGpsObj, mvDrawingEngine, mvMapViewer, objetos, flightplan, LCLIntf;
 
 type
 
@@ -90,6 +90,7 @@ type
     procedure SelecionaProvedorMapa(const ANome: string);
     procedure DefineCameraSegueDrone(AAtivo: Boolean);
     procedure CapturaImagemMapa(ADestino: TBitmap);
+    procedure AbreGoogleMaps;
 
     property Objetos: TObjetosMapa read FObjetos;
   end;
@@ -443,6 +444,38 @@ begin
       FormatFloat('0.0', AAltitudeM) + ' m  Rumo: ' +
       FormatFloat('0.0', AHeadingDeg) + '°';
   if Assigned(gridMAP) then gridMAP.RenderAndDrawControl;
+end;
+
+procedure TfrmMap.AbreGoogleMaps;
+var
+  BaseURL, APIKey, Lat, Lon: string;
+  FS: TFormatSettings;
+begin
+  // Serve web/google_maps_simulator.html over HTTP(S), not file://.
+  // Google Maps JavaScript API keys must be restricted to allowed origins.
+  BaseURL := Trim(GetEnvironmentVariable('COCKPIT_GOOGLE_MAPS_URL'));
+  APIKey := Trim(GetEnvironmentVariable('COCKPIT_GOOGLE_MAPS_API_KEY'));
+  if (BaseURL = '') or (APIKey = '') then
+  begin
+    ShowMessage('Configure COCKPIT_GOOGLE_MAPS_URL (URL HTTPS/HTTP do visualizador)' +
+      ' e COCKPIT_GOOGLE_MAPS_API_KEY (chave com restricao de origem).');
+    Exit;
+  end;
+  if (Pos('https://', LowerCase(BaseURL)) <> 1) and
+     (Pos('http://localhost', LowerCase(BaseURL)) <> 1) and
+     (Pos('http://127.0.0.1', LowerCase(BaseURL)) <> 1) then
+  begin
+    ShowMessage('Use HTTPS ou HTTP local para o visualizador Google Maps.');
+    Exit;
+  end;
+  FS := DefaultFormatSettings;
+  FS.DecimalSeparator := '.';
+  Lat := FloatToStr(FDroneLat, FS);
+  Lon := FloatToStr(FDroneLon, FS);
+  if Pos('?', BaseURL) > 0 then BaseURL := BaseURL + '&'
+  else BaseURL := BaseURL + '?';
+  OpenURL(BaseURL + 'lat=' + Lat + '&lon=' + Lon +
+    '&zoom=' + IntToStr(MapView1.Zoom) + '&key=' + APIKey);
 end;
 
 procedure TfrmMap.DefineCameraSegueDrone(AAtivo: Boolean);
