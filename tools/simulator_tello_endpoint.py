@@ -12,11 +12,14 @@ import time
 
 
 class TelloSimulator:
-    def __init__(self, port=8889, state_port=14561):
+    def __init__(self, port=8889, state_port=14561, physics_port=None):
         self.command_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.command_socket.bind(("0.0.0.0", port))
         self.state_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.state_socket.bind(("127.0.0.1", state_port))
+        self.physics_port = physics_port
+        self.physics_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.controls = dict(throttle=0., turn=0., climb=0., brake=0., roll=0., pitch=0.)
         self.client = None
         self.sdk = False
         self.flying = False
@@ -37,16 +40,23 @@ class TelloSimulator:
             if self.flying:
                 return "error"
             self.flying = True
+            self.controls['climb'] = 0.6
+            self.send_controls()
             self.state["altitude_m"] = max(0.5, self.state["altitude_m"])
             return "ok"
         if cmd == "land":
             self.flying = False
+            self.controls.update(throttle=0., turn=0., climb=-0.6, roll=0., pitch=0.)
+            self.send_controls()
             self.state["altitude_m"] = 0.0
             return "ok"
         if cmd == "emergency":
             self.flying = False
             self.state["altitude_m"] = 0.0
             return "ok"
+        if cmd == 'stop':
+            self.controls.update(throttle=0., turn=0., climb=0., roll=0., pitch=0.)
+            self.send_controls()
         if cmd in ("streamon", "streamoff", "stop"):
             return "ok" if cmd != "streamon" else "error"  # no video encoder
         if cmd == "battery?":
@@ -72,11 +82,20 @@ class TelloSimulator:
             if any(abs(v) > 100 for v in values):
                 return "error"
             if self.flying:
+                self.controls.update(throttle=max(abs(values[0]), abs(values[1])) / 100.,
+                                     turn=values[3] / 100., climb=values[2] / 100.,
+                                     roll=values[0] / 100., pitch=values[1] / 100.)
+                self.send_controls()
                 self.state["speed_mps"] = max(abs(values[0]), abs(values[1])) / 100 * 8
                 self.state["heading_deg"] = (self.state["heading_deg"] + values[3] * 0.02) % 360
                 self.state["altitude_m"] = max(0, self.state["altitude_m"] + values[2] * 0.001)
             return None  # Tello RC does not ACK
         return "error"
+
+    def send_controls(self):
+        if self.physics_port is not None:
+            self.physics_socket.sendto(json.dumps(self.controls).encode('utf-8'),
+                                       ('127.0.0.1', self.physics_port))
 
     def update(self, data):
         try:
@@ -129,5 +148,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8889)
     parser.add_argument("--state-port", type=int, default=14561)
+    parser.add_argument("--physics-port", type=int, default=None)
     args = parser.parse_args()
-    TelloSimulator(args.port, args.state_port).run()
+    TelloSimulator(args.port, args.state_port, args.physics_port).run()
