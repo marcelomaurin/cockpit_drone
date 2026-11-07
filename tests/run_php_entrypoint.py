@@ -17,7 +17,7 @@ def main():
     php=str(Path(sys.argv[1]).resolve())
     with tempfile.TemporaryDirectory(prefix='cockpit-entrypoint-') as directory:
         root=Path(directory)
-        for name in ('index.php','api.php','storage.php','schema.sql','config_sample.php','home.html'):
+        for name in ('index.php','api.php','storage.php','schema.sql','config_sample.php','home.html','tutorial.php'):
             shutil.copyfile(ROOT/'PHP'/name,root/name)
         with socket.socket() as s:
             s.bind(('127.0.0.1',0)); port=s.getsockname()[1]
@@ -39,6 +39,10 @@ def main():
                 assert status==503 and data['error']=='configuration_required',(status,data)
                 status,data=request('/index.php')
                 assert status==200 and '<html lang="pt-BR">' in data
+                status,data=request('/tutorial.php')
+                assert status==200 and 'Tutorial Cockpit Drone' in data,(status,data)
+                status,data=request('/tutorial')
+                assert status==200 and 'Tutorial Cockpit Drone' in data,(status,data)
                 shutil.copyfile(root/'config_sample.php',root/'config.php')
                 for path in ('/','/index.php','/PHP/index.php'):
                     status,data=request(path)

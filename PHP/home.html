@@ -9,12 +9,40 @@
 </head>
 <body>
 <a class="skip" href="#conteudo">Pular para o conteúdo</a>
-<header><div class="wrap"><nav aria-label="Navegação principal"><a class="brand" href="#">Cockpit<span>Drone</span> / servidor</a><div class="links"><a href="#conectar">Conectar</a><a href="#instalar">Instalar o serviço</a><a href="#ajuda">Ajuda</a><a href="https://github.com/marcelomaurin/cockpit_drone">GitHub do projeto</a></div></nav></div></header>
+<header><div class="wrap"><nav aria-label="Navegação principal"><a class="brand" href="#">Cockpit<span>Drone</span> / servidor</a><div class="links"><a href="https://github.com/marcelomaurin/cockpit_drone/tree/master/bin" target="_blank" rel="noopener">📥 Baixar Simulação (bin/)</a><a href="tutorial.php">Tutorial de Uso</a><a href="#conectar">Conectar</a><a href="#instalar">Instalar o serviço</a><a href="#ajuda">Ajuda</a><a href="https://github.com/marcelomaurin/cockpit_drone">GitHub do projeto</a></div></nav></div></header>
 <main id="conteudo" class="wrap">
 <div class="hero"><div class="eyebrow">Servidor multiplayer • simulação compartilhada</div><h1>Um mesmo espaço de voo.<br>Vários participantes.</h1><p class="lead">Este servidor conecta sessões do Cockpit Drone para compartilhar posições e eventos de simulação. Participantes a até <strong>2 km</strong> aparecem no mapa e na lista da câmera.</p>
-<div class="actions"><a class="button primary" href="#conectar">Como conectar o cockpit</a><a class="button" href="#instalar">Configurar o servidor</a><a class="button" href="https://github.com/marcelomaurin/cockpit_drone">Projeto no GitHub</a><a class="button" href="health">Consultar status da API</a></div>
+<div class="actions"><a class="button primary" href="https://github.com/marcelomaurin/cockpit_drone/tree/master/bin" target="_blank" rel="noopener">📥 Baixar Simulação no GitHub</a><a class="button" href="tutorial.php">📖 Tutorial de Uso</a><a class="button" href="#download">Como Baixar</a><a class="button" href="#conectar">Como conectar o cockpit</a><a class="button" href="health">Status da API</a></div>
 <p class="small muted">Esta é a página de orientação. O status da API verifica o serviço HTTP; não confirma que o WebSocket esteja em execução.</p>
 <div class="flow" aria-label="Fluxo da comunicação"><div><strong>Cockpit / site</strong><small>Publica a posição simulada</small></div><span class="arrow" aria-hidden="true">↔</span><div><strong>Servidor multiplayer</strong><small>Filtra participantes por proximidade</small></div><span class="arrow" aria-hidden="true">↔</span><div><strong>Outras sessões</strong><small>Recebem as atualizações</small></div></div></div>
+<section id="download">
+<div class="eyebrow">Download & Simulação</div>
+<h2>Baixe o Cockpit Drone e o Simulador</h2>
+<p class="lead">Para começar a simular e pilotar, acesse a pasta oficial de binários compilados ou baixe o instalador para Windows diretamente do GitHub.</p>
+<div class="grid">
+<div class="card">
+<h3>📁 Pasta bin/ no GitHub</h3>
+<p>Contém os executáveis compilados do <strong>Cockpit Drone (drone.exe)</strong>, do <strong>Simulador 3D (simulador.exe)</strong> e o instalador oficial:</p>
+<ul>
+<li><strong>setup_cockpit_drone_0.41.exe:</strong> Instalador completo para Windows com simulador, cockpit e recursos.</li>
+<li><strong>drone.exe:</strong> Interface do Cockpit com instrumentos de voo, HUD tático e GPS duplo.</li>
+<li><strong>simulador.exe:</strong> Simulador de física e dinâmica de voo com suporte a rede local e mundo compartilhado.</li>
+</ul>
+<div class="actions">
+<a class="button primary" href="https://github.com/marcelomaurin/cockpit_drone/tree/master/bin" target="_blank" rel="noopener">Acessar Pasta de Download (GitHub bin/)</a>
+<a class="button" href="https://github.com/marcelomaurin/cockpit_drone/raw/master/bin/setup_cockpit_drone_0.41.exe" target="_blank" rel="noopener">Baixar Instalador (.exe)</a>
+</div>
+</div>
+<div class="card">
+<h3>🕹️ Experiência de Controle: Joystick vs Teclado</h3>
+<p><strong>O simulador é melhor rodado em um joystick analógico</strong> (como controles USB de videogame ou manches de voo), pois proporciona controle contínuo e suave dos 4 eixos de voo (arfagem, rolagem, guinada e aceleração).</p>
+<p><em>No entanto, o simulador e o cockpit também podem ser pilotados perfeitamente pelo teclado</em>, contando com corte de emergência na barra de espaço e centralização automática.</p>
+<div class="actions">
+<a class="button" href="tutorial.php">Ver Tutorial Completo e Mapa de Teclas</a>
+</div>
+</div>
+</div>
+</section>
 <section id="conectar"><div class="eyebrow">Para quem vai simular</div><h2>Conecte sua sessão em quatro passos</h2><div class="grid"><div class="card"><span class="tag">Cockpit Drone • Windows</span><ol><li><strong>Use uma versão com a integração multiplayer.</strong> Abra o Cockpit Drone e prepare uma simulação de rota com coordenadas válidas.</li><li><strong>Peça o endereço ao administrador.</strong> Na janela principal, clique em <strong>Entrar multiplayer</strong>.</li><li><strong>Informe o endereço WebSocket.</strong> Em produção, normalmente será semelhante a <code>wss://seu-servidor.example/ws</code>.</li><li><strong>Ative a simulação e abra o mapa ou a câmera.</strong> Sessões próximas aparecerão automaticamente. Use <strong>Sair multiplayer</strong> para encerrar.</li></ol><p class="small muted">Na câmera, os participantes aparecem em uma lista de proximidade. Não há sobreposição em perspectiva sobre o vídeo.</p></div>
 <div class="card"><h3>Qual endereço devo usar?</h3><p class="muted">O endereço depende da instalação. Os exemplos abaixo não apontam para um servidor público.</p><p><strong>Servidor na mesma máquina</strong><br><code>ws://127.0.0.1:8081</code></p><p><strong>Servidor publicado com HTTPS</strong><br><code>wss://seu-servidor.example/ws</code></p><p><strong>Alternativa pela API HTTP</strong><br><code>https://seu-servidor.example/PHP</code></p><p class="small muted">Use a URL base da API, sem <code>/health</code> nem <code>/nearby</code>. Em outra máquina, <code>127.0.0.1</code> aponta para ela própria: peça o endereço correto do servidor.</p></div></div>
 <div class="note"><strong>Onde o serviço é instalado?</strong> O serviço WebSocket roda no servidor, que pode ser o mesmo computador do simulador. No cockpit, você configura o endereço; não precisa instalar PHP em cada estação participante.</div>
@@ -59,6 +87,6 @@ sudo journalctl -u cockpit-drone-ws -n 50</code></pre><p class="muted">No Window
 <tr><td>HTTP 503 / configuração ausente</td><td>Crie <code>config.php</code> a partir do modelo e configure o ambiente. A página de instruções pode abrir mesmo antes dessa etapa.</td></tr>
 <tr><td>HTTP 500</td><td>Consulte o log do PHP, procurando por <code>Drone API:</code>. Confira versão do PHP, driver do banco, credenciais e permissões.</td></tr>
 </tbody></table></div>
-<div class="actions"><a class="button" href="health">Consultar status HTTP</a><a class="button" href="https://github.com/marcelomaurin/cockpit_drone">Código-fonte e documentação</a></div><p class="small muted">O projeto está em desenvolvimento. Compile o cockpit com suas dependências Lazarus/AI Drone; a ausência da unidade <code>aidronemavlink</code> impede a compilação completa. Esta página não oferece um instalador pronto.</p></section>
+<div class="actions"><a class="button" href="health">Consultar status HTTP</a><a class="button" href="https://github.com/marcelomaurin/cockpit_drone">Código-fonte e documentação</a></div><p class="small muted">O projeto está em desenvolvimento. Compile o cockpit com suas dependências Lazarus/AI Drone; a ausência da unidade <code>aidronemavlink</code> impede a compilação completa. Baixe o instalador pronto e os executáveis na pasta bin/ do repositório GitHub.</p></section>
 </main><footer class="wrap">Cockpit Drone · Servidor de posições e eventos de simulação. O servidor não transmite comandos de voo para equipamentos físicos.</footer>
 </body></html>

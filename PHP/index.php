@@ -33,6 +33,13 @@ if ($isHome && in_array($method, ['GET', 'HEAD'], true)) {
     exit;
 }
 
+// Tutorial do simulador e do cockpit
+if (($route === 'tutorial.php' || $route === 'tutorial') && in_array($method, ['GET', 'HEAD'], true)) {
+    header('Content-Type: text/html; charset=utf-8');
+    if ($method === 'GET') require __DIR__ . '/tutorial.php';
+    exit;
+}
+
 // Se for requisição ao endpoint de mundo compartilhado do simulador (api.php ou POST com ação no corpo)
 if ($route === 'api.php' || $route === 'api') {
     require __DIR__ . '/api.php';
