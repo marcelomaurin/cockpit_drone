@@ -339,15 +339,16 @@ begin
   cbIdioma.Align := alTop;
   cbIdioma.Style := csDropDownList;
   cbIdioma.Items.Add('Português (Brasil)');
-  cbIdioma.Items.Add('English');
-  cbIdioma.Items.Add('Español');
-  cbIdioma.Items.Add('中文 (简体)');
-  cbIdioma.Items.Add('العربية');
-  cbIdioma.Items.Add('Deutsch');
-  cbIdioma.Items.Add('Русский');
-  cbIdioma.Items.Add('हिन्दी');
-  CarregaIdioma;
-  cbIdioma.OnChange := @IdiomaAlterado;
+    cbIdioma.Items.Add('English');
+    cbIdioma.Items.Add('Español');
+    cbIdioma.Items.Add('Français');
+    cbIdioma.Items.Add('Deutsch');
+    cbIdioma.Items.Add('Русский');
+    cbIdioma.Items.Add('中文 (简体)');
+    cbIdioma.Items.Add('日本語');
+    cbIdioma.Items.Add('العربية');
+    cbIdioma.Items.Add('हिन्दी (Hindi)');
+    cbIdioma.OnChange := @IdiomaAlterado;
 
   OnShow := @FormShow;
   OnClose := @FormClose;
@@ -1228,7 +1229,7 @@ var
   Codigo: string;
   I: Integer;
 const
-  Codigos: array[0..7] of string = ('pt-BR', 'en', 'es', 'zh-CN', 'ar', 'de', 'ru', 'hi');
+  Codigos: array[0..9] of string = ('pt-BR', 'en', 'es', 'fr', 'de', 'ru', 'zh-CN', 'ja', 'ar', 'hi');
 begin
   Ini := TIniFile.Create(GetAppConfigDir(False) + 'cockpit_ui.ini');
   try
@@ -1245,7 +1246,7 @@ procedure Tfrmconfig.IdiomaAlterado(Sender: TObject);
 var
   Ini: TIniFile;
 const
-  Codigos: array[0..7] of string = ('pt-BR', 'en', 'es', 'zh-CN', 'ar', 'de', 'ru', 'hi');
+  Codigos: array[0..9] of string = ('pt-BR', 'en', 'es', 'fr', 'de', 'ru', 'zh-CN', 'ja', 'ar', 'hi');
 begin
   if cbIdioma.ItemIndex < 0 then Exit;
   ForceDirectories(GetAppConfigDir(False));

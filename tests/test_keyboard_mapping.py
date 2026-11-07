@@ -9,7 +9,9 @@ class KeyboardMappingTest(unittest.TestCase):
         source = (ROOT / "src/cockpit_i18n.pas").read_text(encoding="utf-8")
         self.assertIn("'Teclado'", source)
         self.assertIn("'Keyboard'", source)
+        self.assertIn("'Clavier'", source)
         self.assertIn("'Tastatur'", source)
+        self.assertIn("'キーボード'", source)
 
     def test_config_has_keyboard_tab(self):
         source = (ROOT / "src/config.pas").read_text(encoding="utf-8")

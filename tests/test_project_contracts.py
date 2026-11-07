@@ -32,7 +32,7 @@ class ProjectContracts(unittest.TestCase):
 
     def test_all_requested_languages(self):
         source = (ROOT / "src/cockpit_i18n.pas").read_text(encoding="utf-8")
-        for language in ("pt-BR", "en", "es", "zh-CN", "ar", "de", "ru", "hi"):
+        for language in ("pt-BR", "en", "es", "fr", "de", "ru", "zh-CN", "ja", "ar", "hi"):
             self.assertIn("'" + language + "'", source)
 
 if __name__ == "__main__":
