@@ -457,15 +457,14 @@ begin
   APIKey := Trim(GetEnvironmentVariable('COCKPIT_GOOGLE_MAPS_API_KEY'));
   if (BaseURL = '') or (APIKey = '') then
   begin
-    ShowMessage('Configure COCKPIT_GOOGLE_MAPS_URL (URL HTTPS/HTTP do visualizador)' +
-      ' e COCKPIT_GOOGLE_MAPS_API_KEY (chave com restricao de origem).');
+    SelecionaProvedorMapa('OpenStreetMap Standard');
     Exit;
   end;
   if (Pos('https://', LowerCase(BaseURL)) <> 1) and
      (Pos('http://localhost', LowerCase(BaseURL)) <> 1) and
      (Pos('http://127.0.0.1', LowerCase(BaseURL)) <> 1) then
   begin
-    ShowMessage('Use HTTPS ou HTTP local para o visualizador Google Maps.');
+    SelecionaProvedorMapa('OpenStreetMap Standard');
     Exit;
   end;
   FS := DefaultFormatSettings;
