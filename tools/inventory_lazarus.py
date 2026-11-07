@@ -24,6 +24,9 @@ def inventory(root=ROOT):
             tree = ET.parse(path)
             for element in tree.iter():
                 if element.tag == "RequiredPackages":
+                    for package in element.iter("PackageName"):
+                        if package.get("Value"):
+                            item["packages"].append(package.get("Value"))
                     for package in element.iter("Item"):
                         if package.get("Name"):
                             item["packages"].append(package.get("Name"))
