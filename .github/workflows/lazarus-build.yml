@@ -63,6 +63,13 @@ jobs:
           mkdir -p build-diagnostics/pascal-units
           fpc -Fu./src -FUbuild-diagnostics/pascal-units -FEbuild-diagnostics tests/test_simulator_bridge.pas 2>&1 | tee build-diagnostics/simulator-bridge-build.log
           build-diagnostics/test_simulator_bridge 2>&1 | tee build-diagnostics/simulator-bridge-test.log
+      - name: Test joystick mapping
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-diagnostics/pascal-units
+          fpc -Fu./src -FUbuild-diagnostics/pascal-units -FEbuild-diagnostics tests/test_joymapa.pas 2>&1 | tee build-diagnostics/joymapa-build.log
+          build-diagnostics/test_joymapa 2>&1 | tee build-diagnostics/joymapa-test.log
       - name: Build standalone and diagnostic Lazarus projects
         shell: bash
         run: |

@@ -75,7 +75,7 @@ object frmconfig: Tfrmconfig
       end
     end
     object TabSheet2: TTabSheet
-      Caption = 'Joystic'
+      Caption = 'Joystick'
       ClientHeight = 310
       ClientWidth = 453
       object Label4: TLabel
