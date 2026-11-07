@@ -1,0 +1,7 @@
+Options -Indexes
+<FilesMatch "^(config\\.php|schema\\.sql)$">
+Require all denied
+</FilesMatch>
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(connect|telemetry|nearby|events|disconnect|health)/?$ index.php [L,QSA]
