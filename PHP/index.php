@@ -71,7 +71,7 @@ final class FileStore implements Store {
         $f=fopen($this->eventFile(),'c+b'); if (!$f) throw new RuntimeException('Cannot open events');
         flock($f,LOCK_EX); $list=json_decode((string)stream_get_contents($f),true);
         if (!is_array($list)) $list=[];
-        $id=(int)floor(microtime(true)*1000000);
+        $id=max((int)floor(microtime(true)*1000000), (int)($list[count($list)-1]['id']??0)+1);
         $list[]= ['id'=>$id,'sender'=>$sender,'data'=>$value,'at'=>time()];
         $list=array_values(array_filter($list,fn($e)=>($e['at']??0)>time()-120));
         rewind($f); ftruncate($f,0); fwrite($f,json_encode($list,JSON_THROW_ON_ERROR)); fflush($f);
@@ -181,6 +181,7 @@ try {
         $self['lat']=coordinate($v['lat']??null,-90,90);
         $self['lon']=coordinate($v['lon']??null,-180,180);
         $self['telemetry']=$v;
+        $self['updated_at']=time();
         $store->put($key,$self,(int)$config['session_ttl']);
         reply(200,['status'=>'ok']);
     }
@@ -208,7 +209,10 @@ try {
     }
     if ($route==='events' && $method==='GET') {
         if ($self['lat']===null) reply(409,['error'=>'send_telemetry_first']);
-        $after=max(0,(int)($_GET['after']??0)); $out=[];
+        $afterRaw=$_GET['after']??'0';
+        if (!is_string($afterRaw) || !preg_match('/^[0-9]{1,19}$/',$afterRaw))
+            reply(400,['error'=>'invalid_event_cursor']);
+        $after=(int)$afterRaw; $out=[];
         foreach ($store->events($after) as $e) {
             if ($e['sender']===$key) continue;
             $sender=$store->get($e['sender']);
@@ -216,7 +220,9 @@ try {
             if (distance($self['lat'],$self['lon'],$e['data']['lat'],$e['data']['lon'])<=(float)$config['radius_m'])
                 $out[]=['id'=>$e['id'],'sender_id'=>$sender['id'],'event'=>$e['data']];
         }
-        reply(200,['events'=>$out]);
+        $last=$after;
+        foreach ($out as $event) $last=max($last,(int)$event['id']);
+        reply(200,['events'=>$out,'next_after'=>$last]);
     }
     reply(404,['error'=>'unknown_endpoint']);
 } catch (Throwable $e) {
