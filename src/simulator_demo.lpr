@@ -7,7 +7,6 @@ uses
 
 var
   Sim: TSimulatorRuntime;
-  Controls: TVehicleControls;
   State: TVehicleState;
   I: Integer;
   URL: string;
@@ -18,9 +17,6 @@ begin
   Sim := TSimulatorRuntime.Create(vkMultirotor, URL, -21.17, -47.81, 600);
   Bridge := TSimulatorProtocolBridge.Create(Sim.Vehicle);
   try
-    Controls.Throttle := 0.5;
-    Controls.Turn := 0.05;
-    Controls.Climb := 0.1;
     // Demo controls pass through the same normalized bridge as protocol adapters.
     Bridge.ApplyCommand('{"throttle":0.5,"turn":0.05,"climb":0.1,"brake":0,"roll":0,"pitch":0}');
     if URL <> '' then
@@ -35,6 +31,8 @@ begin
       if (I mod 4) = 0 then
         Bridge.ApplyCommand('{"throttle":0.5,"turn":0.05,"climb":0.1,"brake":0,"roll":0,"pitch":0}');
       Bridge.Step(0.1);
+      // Physics was advanced by the bridge; sync without stepping twice.
+      Sim.SyncTelemetry(0.1);
       if (I mod 10) = 0 then
       begin
         State := Sim.Vehicle.State;
