@@ -1,17 +1,19 @@
-"""Tests for keyboard navigation, drone flight controls and configuration tab."""
+"""Tests for keyboard navigation, drone flight controls, language tab and configuration tabs."""
 import pathlib
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 class KeyboardMappingTest(unittest.TestCase):
-    def test_i18n_has_teclado_in_all_languages(self):
+    def test_i18n_has_teclado_and_language_in_all_languages(self):
         source = (ROOT / "src/cockpit_i18n.pas").read_text(encoding="utf-8")
         self.assertIn("'Teclado'", source)
         self.assertIn("'Keyboard'", source)
         self.assertIn("'Clavier'", source)
         self.assertIn("'Tastatur'", source)
         self.assertIn("'キーボード'", source)
+        self.assertIn("'Language'", source)
+        self.assertIn("'Idioma'", source)
 
     def test_config_has_keyboard_tab(self):
         source = (ROOT / "src/config.pas").read_text(encoding="utf-8")
@@ -21,6 +23,15 @@ class KeyboardMappingTest(unittest.TestCase):
         self.assertIn("tsTeclado.Caption := 'Teclado';", source)
         self.assertIn("tsTeclado.TabVisible := True;", source)
         self.assertIn("EdTesteTecladoKeyDown", source)
+
+    def test_config_has_language_tab_with_pt_br_default(self):
+        source = (ROOT / "src/config.pas").read_text(encoding="utf-8")
+        self.assertIn("tsIdioma: TTabSheet;", source)
+        self.assertIn("procedure CriaAbaIdioma;", source)
+        self.assertIn("tsIdioma.Caption := 'Language';", source)
+        self.assertIn("tsIdioma.TabVisible := True;", source)
+        self.assertIn("cbIdioma.ItemIndex := 0;", source)
+        self.assertIn("'pt-BR'", source)
 
     def test_config_table_has_all_pilot_commands(self):
         source = (ROOT / "src/config.pas").read_text(encoding="utf-8")

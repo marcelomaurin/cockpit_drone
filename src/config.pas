@@ -165,6 +165,12 @@ type
     edESP32IP: TEdit;
     edESP32Porta: TEdit;
 
+    tsIdioma: TTabSheet;
+    lblIdiomaTitulo: TLabel;
+    lblIdiomaDesc: TLabel;
+    lblIdiomaDica: TLabel;
+    lblIdiomaAtual: TLabel;
+
     tsTeclado: TTabSheet;
     sgTeclado: TStringGrid;
     lblTecladoTitulo: TLabel;
@@ -173,6 +179,7 @@ type
     lblTesteResultado: TLabel;
     edTesteTeclado: TEdit;
 
+    procedure CriaAbaIdioma;
     procedure CriaAbaTeclado;
     procedure EdTesteTecladoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure AtualizaAbasProtocolo;
@@ -330,25 +337,7 @@ begin
   LimpaLeitura;
   CarregaPortasSeriais;
 
-  lblIdioma := TLabel.Create(Self);
-  lblIdioma.Parent := pnNAV;
-  lblIdioma.Caption := 'Idioma / Language';
-  lblIdioma.Align := alTop;
-  cbIdioma := TComboBox.Create(Self);
-  cbIdioma.Parent := pnNAV;
-  cbIdioma.Align := alTop;
-  cbIdioma.Style := csDropDownList;
-  cbIdioma.Items.Add('Português (Brasil)');
-    cbIdioma.Items.Add('English');
-    cbIdioma.Items.Add('Español');
-    cbIdioma.Items.Add('Français');
-    cbIdioma.Items.Add('Deutsch');
-    cbIdioma.Items.Add('Русский');
-    cbIdioma.Items.Add('中文 (简体)');
-    cbIdioma.Items.Add('日本語');
-    cbIdioma.Items.Add('العربية');
-    cbIdioma.Items.Add('हिन्दी (Hindi)');
-    cbIdioma.OnChange := @IdiomaAlterado;
+  // Idioma configurado na aba dedicada tsIdioma
 
   OnShow := @FormShow;
   OnClose := @FormClose;
@@ -465,6 +454,8 @@ begin
   CriaAbaARDrone;
   CriaAbaESP32Drone;
   CriaAbaTeclado;
+  CriaAbaIdioma;
+  CarregaIdioma;
 
   TabSheet1.Caption := 'Cheerson CX-10W';
   ckCX10WSimulado := CriaOpcao(TabSheet1, 8, 175, 'Simulado (conecta no simulador local 127.0.0.1)', 'ckCX10WSimulado');
@@ -847,6 +838,60 @@ begin
   lblTesteResultado.SetBounds(10, 26, 400, 18);
   lblTesteResultado.Caption := 'Comando detectado: aguardando tecla...';
   lblTesteResultado.Font.Style := [fsBold];
+end;
+
+procedure Tfrmconfig.CriaAbaIdioma;
+var
+  Box: TScrollBox;
+begin
+  tsIdioma := TTabSheet.Create(Self);
+  tsIdioma.Name := 'tsIdioma';
+  tsIdioma.PageControl := pcDrones;
+  tsIdioma.Caption := 'Language';
+
+  Box := TScrollBox.Create(Self);
+  Box.Parent := tsIdioma;
+  Box.Align := alClient;
+  Box.BorderStyle := bsNone;
+
+  lblIdiomaTitulo := TLabel.Create(Self);
+  lblIdiomaTitulo.Parent := Box;
+  lblIdiomaTitulo.SetBounds(20, 16, 400, 20);
+  lblIdiomaTitulo.Caption := 'Configuração de Idioma / Language Settings';
+  lblIdiomaTitulo.Font.Style := [fsBold];
+
+  lblIdiomaDesc := TLabel.Create(Self);
+  lblIdiomaDesc.Parent := Box;
+  lblIdiomaDesc.SetBounds(20, 42, 400, 16);
+  lblIdiomaDesc.Caption := 'Selecione o idioma da interface (Padrão: Português pt-BR):';
+
+  cbIdioma := TComboBox.Create(Self);
+  cbIdioma.Parent := Box;
+  cbIdioma.SetBounds(20, 64, 320, 26);
+  cbIdioma.Style := csDropDownList;
+  cbIdioma.Items.Add('Português (Brasil) [Padrão]');
+  cbIdioma.Items.Add('English');
+  cbIdioma.Items.Add('Español');
+  cbIdioma.Items.Add('Français');
+  cbIdioma.Items.Add('Deutsch');
+  cbIdioma.Items.Add('Русский');
+  cbIdioma.Items.Add('中文 (简体)');
+  cbIdioma.Items.Add('日本語');
+  cbIdioma.Items.Add('العربية');
+  cbIdioma.Items.Add('हिन्दी (Hindi)');
+  cbIdioma.OnChange := @IdiomaAlterado;
+
+  lblIdiomaDica := TLabel.Create(Self);
+  lblIdiomaDica.Parent := Box;
+  lblIdiomaDica.SetBounds(20, 104, 400, 36);
+  lblIdiomaDica.Caption := 'O idioma selecionado é gravado nas preferências e aplicado' + LineEnding +
+    'imediatamente a todas as janelas do Cockpit Drone.';
+
+  lblIdiomaAtual := TLabel.Create(Self);
+  lblIdiomaAtual.Parent := Box;
+  lblIdiomaAtual.SetBounds(20, 148, 400, 18);
+  lblIdiomaAtual.Caption := 'Código ativo: pt-BR';
+  lblIdiomaAtual.Font.Style := [fsBold];
 end;
 
 function Tfrmconfig.GetModelConfigPath: string;
@@ -1237,9 +1282,14 @@ begin
   finally
     Ini.Free;
   end;
-  cbIdioma.ItemIndex := 0;
-  for I := 0 to High(Codigos) do
-    if SameText(Codigo, Codigos[I]) then cbIdioma.ItemIndex := I;
+  if Assigned(cbIdioma) then
+  begin
+    cbIdioma.ItemIndex := 0; // Default: Portugues
+    for I := 0 to High(Codigos) do
+      if SameText(Codigo, Codigos[I]) then cbIdioma.ItemIndex := I;
+  end;
+  if Assigned(lblIdiomaAtual) then
+    lblIdiomaAtual.Caption := 'Código ativo: ' + Codigo;
 end;
 
 procedure Tfrmconfig.IdiomaAlterado(Sender: TObject);
@@ -1248,7 +1298,7 @@ var
 const
   Codigos: array[0..9] of string = ('pt-BR', 'en', 'es', 'fr', 'de', 'ru', 'zh-CN', 'ja', 'ar', 'hi');
 begin
-  if cbIdioma.ItemIndex < 0 then Exit;
+  if (not Assigned(cbIdioma)) or (cbIdioma.ItemIndex < 0) then Exit;
   ForceDirectories(GetAppConfigDir(False));
   Ini := TIniFile.Create(GetAppConfigDir(False) + 'cockpit_ui.ini');
   try
@@ -1257,8 +1307,11 @@ begin
   finally
     Ini.Free;
   end;
+  if Assigned(lblIdiomaAtual) then
+    lblIdiomaAtual.Caption := 'Código ativo: ' + Codigos[cbIdioma.ItemIndex];
   AplicarIdioma(Self);
-
+  if Assigned(frmMain) then
+    AplicarIdioma(frmMain);
 end;
 
 procedure Tfrmconfig.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -1285,6 +1338,8 @@ begin
     tsESP32Drone.TabVisible := (TipoAtivo = 6);
   if Assigned(tsTeclado) then
     tsTeclado.TabVisible := True;
+  if Assigned(tsIdioma) then
+    tsIdioma.TabVisible := True;
 end;
 
 procedure Tfrmconfig.CarregarValoresTela;
