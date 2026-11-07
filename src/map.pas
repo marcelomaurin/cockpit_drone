@@ -54,6 +54,7 @@ type
     FDroneRow: Integer;
     FDroneLat: Double;
     FDroneLon: Double;
+    FCameraSegueDrone: Boolean;
 
     FRefCol: Integer;
     FRefRow: Integer;
@@ -87,6 +88,8 @@ type
     procedure AtualizaPosicaoSimulada(const ALatitude, ALongitude: Double;
       const AAltitudeM, AHeadingDeg: Double; ACentralizar: Boolean = False);
     procedure SelecionaProvedorMapa(const ANome: string);
+    procedure DefineCameraSegueDrone(AAtivo: Boolean);
+    procedure CapturaImagemMapa(ADestino: TBitmap);
 
     property Objetos: TObjetosMapa read FObjetos;
   end;
@@ -253,6 +256,7 @@ begin
 
   FDroneLat := FRefLat;
   FDroneLon := FRefLon;
+  FCameraSegueDrone := False;
 
   FDroneCol := -1;
   FDroneRow := -1;
@@ -426,7 +430,7 @@ begin
      IsNan(ALatitude) or IsNan(ALongitude) then Exit;
   FDroneLat := ALatitude;
   FDroneLon := ALongitude;
-  if ACentralizar and Assigned(MapView1) then
+  if (ACentralizar or FCameraSegueDrone) and Assigned(MapView1) then
   begin
     MapView1.MapCenter.Latitude := ALatitude;
     MapView1.MapCenter.Longitude := ALongitude;
@@ -439,6 +443,26 @@ begin
       FormatFloat('0.0', AAltitudeM) + ' m  Rumo: ' +
       FormatFloat('0.0', AHeadingDeg) + '°';
   if Assigned(gridMAP) then gridMAP.RenderAndDrawControl;
+end;
+
+procedure TfrmMap.DefineCameraSegueDrone(AAtivo: Boolean);
+begin
+  FCameraSegueDrone := AAtivo;
+  if AAtivo then CentralizaMapa(FDroneLat, FDroneLon);
+end;
+
+procedure TfrmMap.CapturaImagemMapa(ADestino: TBitmap);
+begin
+  if not Assigned(ADestino) then
+    raise EArgumentException.Create('Bitmap de destino nao informado');
+  if not Assigned(MapView1) then
+    raise Exception.Create('Visualizador de mapa indisponivel');
+  if (MapView1.Width <= 0) or (MapView1.Height <= 0) then
+    raise Exception.Create('Mapa sem dimensoes para captura');
+  // Captures the current map viewport; this is NOT an onboard camera feed.
+  // Attribution and provider licensing must be preserved by the caller.
+  ADestino.SetSize(MapView1.Width, MapView1.Height);
+  MapView1.PaintTo(ADestino.Canvas, 0, 0);
 end;
 
 procedure TfrmMap.SelecionaProvedorMapa(const ANome: string);
