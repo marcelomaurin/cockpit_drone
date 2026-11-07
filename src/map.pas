@@ -84,6 +84,9 @@ type
     procedure OcultarGrid;
     procedure AlternaGrid;
     procedure DefineReferencia(const ALatitude, ALongitude: Double);
+    procedure AtualizaPosicaoSimulada(const ALatitude, ALongitude: Double;
+      const AAltitudeM, AHeadingDeg: Double; ACentralizar: Boolean = False);
+    procedure SelecionaProvedorMapa(const ANome: string);
 
     property Objetos: TObjetosMapa read FObjetos;
   end;
@@ -413,6 +416,41 @@ begin
   AtualizaReferenciaNoGrid;
   AtualizaStatus;
   gridMAP.RenderAndDrawControl;
+end;
+
+procedure TfrmMap.AtualizaPosicaoSimulada(const ALatitude, ALongitude: Double;
+  const AAltitudeM, AHeadingDeg: Double; ACentralizar: Boolean);
+begin
+  if (ALatitude < -90) or (ALatitude > 90) or
+     (ALongitude < -180) or (ALongitude > 180) or
+     IsNan(ALatitude) or IsNan(ALongitude) then Exit;
+  FDroneLat := ALatitude;
+  FDroneLon := ALongitude;
+  if ACentralizar and Assigned(MapView1) then
+  begin
+    MapView1.MapCenter.Latitude := ALatitude;
+    MapView1.MapCenter.Longitude := ALongitude;
+    MapView1.Invalidate;
+  end;
+  AtualizaObjetosNoGrid;
+  AtualizaStatus;
+  if Assigned(Label9) then
+    Label9.Caption := Label9.Caption + '  Alt: ' +
+      FormatFloat('0.0', AAltitudeM) + ' m  Rumo: ' +
+      FormatFloat('0.0', AHeadingDeg) + '°';
+  if Assigned(gridMAP) then gridMAP.RenderAndDrawControl;
+end;
+
+procedure TfrmMap.SelecionaProvedorMapa(const ANome: string);
+begin
+  if not Assigned(MapView1) then Exit;
+  // Only registered providers can be selected; Google Maps requires
+  // its own licensed API integration and is not a generic tile endpoint.
+  if Trim(ANome) = '' then Exit;
+  MapView1.Active := False;
+  MapView1.MapProvider := ANome;
+  MapView1.Active := True;
+  MapView1.Invalidate;
 end;
 
 procedure TfrmMap.MostrarGrid;
