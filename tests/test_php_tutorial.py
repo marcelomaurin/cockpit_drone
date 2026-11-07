@@ -1,4 +1,4 @@
-"""Tests for PHP tutorial, download links and simulator guide."""
+"""Tests for PHP tutorial, download links, language menu and simulator guide."""
 import pathlib
 import unittest
 
@@ -13,15 +13,36 @@ class PhpTutorialTest(unittest.TestCase):
         self.assertIn("teclado", content.lower())
         self.assertIn('id="download"', content)
 
-    def test_index_php_routes_tutorial(self):
+    def test_home_html_has_language_menu(self):
+        content = (ROOT / "PHP/home.html").read_text(encoding="utf-8")
+        self.assertIn('id="lang-select"', content)
+        self.assertIn('value="pt-BR" selected', content)
+        self.assertIn('value="en"', content)
+        self.assertIn('value="ja"', content)
+        self.assertIn('value="ar"', content)
+        self.assertIn('i18n.js', content)
+
+    def test_index_php_routes_tutorial_and_i18n(self):
         content = (ROOT / "PHP/index.php").read_text(encoding="utf-8")
         self.assertIn("tutorial.php", content)
         self.assertIn("$route === 'tutorial'", content)
+        self.assertIn("i18n.js", content)
+
+    def test_i18n_js_covers_all_ten_languages(self):
+        i18n_path = ROOT / "PHP/i18n.js"
+        self.assertTrue(i18n_path.exists())
+        content = i18n_path.read_text(encoding="utf-8")
+        for lang in ("pt-BR", "en", "es", "fr", "de", "ru", "zh-CN", "ja", "ar", "hi"):
+            self.assertIn(f"'{lang}':", content, f"Language {lang} missing from i18n.js")
 
     def test_tutorial_php_exists_and_covers_requirements(self):
         tutorial_path = ROOT / "PHP/tutorial.php"
         self.assertTrue(tutorial_path.exists(), "PHP/tutorial.php does not exist")
         content = tutorial_path.read_text(encoding="utf-8")
+
+        # Must have language picker
+        self.assertIn('id="lang-select"', content)
+        self.assertIn('i18n.js', content)
 
         # Must guide user on where to download
         self.assertIn("https://github.com/marcelomaurin/cockpit_drone/tree/master/bin", content)

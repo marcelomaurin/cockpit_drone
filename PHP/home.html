@@ -5,23 +5,40 @@
 <title>Cockpit Drone • Servidor multiplayer</title>
 <style>
 :root{color-scheme:dark;--bg:#0b1420;--panel:#142131;--ink:#eef4fa;--muted:#b3c3d3;--line:#304257;--accent:#64e3bd}*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:24px}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 system-ui,-apple-system,Segoe UI,sans-serif}a{color:var(--accent);text-underline-offset:4px}a:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:5px}.wrap{max-width:1100px;margin:auto;padding:0 24px}header{border-bottom:1px solid var(--line)}nav{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;padding:22px 0}.brand{font-size:18px;font-weight:750;color:var(--ink);text-decoration:none}.brand span{color:var(--accent)}.links{display:flex;gap:24px;flex-wrap:wrap;font-size:14px}.links a{color:var(--muted);text-decoration:none}.hero{padding:68px 0 48px}.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.16em;color:var(--accent);font-weight:750}h1{font-size:clamp(34px,5.5vw,60px);line-height:1.08;letter-spacing:-.045em;max-width:820px;margin:16px 0 24px}h2{font-size:28px;line-height:1.25;letter-spacing:-.02em;margin:0 0 18px}h3{font-size:19px;line-height:1.35;margin:0 0 12px}p{margin:0 0 18px}.lead{font-size:19px;color:var(--muted);max-width:760px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin:28px 0}.button{display:inline-block;padding:11px 18px;border:1px solid var(--line);border-radius:8px;text-decoration:none;font-weight:650;color:var(--ink)}.primary{background:var(--accent);color:#08251c;border-color:var(--accent)}.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:18px;align-items:center;margin-top:36px}.flow div{background:var(--panel);border:1px solid var(--line);padding:20px;border-radius:10px}.flow small{display:block;color:var(--muted)}.arrow{color:var(--accent);font-size:24px}section{padding:40px 0;border-top:1px solid var(--line)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}.card{padding:26px;background:var(--panel);border:1px solid var(--line);border-radius:12px}.muted,li{color:var(--muted)}li{margin:10px 0;padding-left:4px}strong{color:var(--ink)}ol,ul{padding-left:23px;margin:12px 0}code{font:14px/1.6 ui-monospace,Consolas,monospace;color:#c1f9e7;overflow-wrap:anywhere}pre{margin:18px 0;padding:18px;background:#09111c;border:1px solid var(--line);border-radius:8px;overflow:auto;max-width:100%}pre code{white-space:pre}.note{border-left:3px solid var(--accent);padding:14px 18px;background:var(--panel);color:var(--muted);margin:22px 0}.tag{font-size:12px;border:1px solid var(--line);padding:4px 8px;border-radius:5px;color:var(--accent);display:inline-block;margin-bottom:14px}details{border:1px solid var(--line);border-radius:9px;padding:18px 22px;margin:16px 0}summary{cursor:pointer;font-weight:650}details>div{padding-top:18px}table{width:100%;border-collapse:collapse;font-size:15px}th,td{text-align:left;vertical-align:top;padding:14px 12px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:500}.table{overflow-x:auto}footer{padding:28px 0 40px;color:var(--muted);font-size:14px}.small{font-size:14px}.skip{position:absolute;left:-9999px}.skip:focus{left:12px;top:12px;background:var(--bg);padding:10px;z-index:2}@media(max-width:720px){.grid{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.arrow{display:none}.hero{padding-top:42px}.links{gap:16px}.card{padding:22px}.wrap{padding:0 18px}h2{font-size:25px}}
+.lang-picker{display:inline-flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 9px;font-size:13px}
+.lang-picker select{background:transparent;color:var(--ink);border:none;outline:none;font:inherit;cursor:pointer}
+.lang-picker select option{background:var(--panel);color:var(--ink)}
 </style>
 </head>
 <body>
 <a class="skip" href="#conteudo">Pular para o conteúdo</a>
-<header><div class="wrap"><nav aria-label="Navegação principal"><a class="brand" href="#">Cockpit<span>Drone</span> / servidor</a><div class="links"><a href="https://github.com/marcelomaurin/cockpit_drone/tree/master/bin" target="_blank" rel="noopener">📥 Baixar Simulação (bin/)</a><a href="tutorial.php">Tutorial de Uso</a><a href="#conectar">Conectar</a><a href="#instalar">Instalar o serviço</a><a href="#ajuda">Ajuda</a><a href="https://github.com/marcelomaurin/cockpit_drone">GitHub do projeto</a></div></nav></div></header>
+<header><div class="wrap"><nav aria-label="Navegação principal"><a class="brand" href="#">Cockpit<span>Drone</span> / servidor</a><div class="links"><a href="https://github.com/marcelomaurin/cockpit_drone/tree/master/bin" target="_blank" rel="noopener">📥 Baixar Simulação (bin/)</a><a href="tutorial.php" data-i18n="nav_tutorial">Tutorial de Uso</a><a href="#conectar" data-i18n="nav_connect">Conectar</a><a href="#instalar" data-i18n="nav_install">Instalar o serviço</a><a href="#ajuda" data-i18n="nav_help">Ajuda</a><a href="https://github.com/marcelomaurin/cockpit_drone" data-i18n="nav_github">GitHub do projeto</a></div><div class="lang-picker">
+<label for="lang-select" title="Idioma / Language">🌐</label>
+<select id="lang-select" onchange="changeLanguage(this.value)" aria-label="Selecione o idioma">
+<option value="pt-BR" selected>Português (Brasil)</option>
+<option value="en">English</option>
+<option value="es">Español</option>
+<option value="fr">Français</option>
+<option value="de">Deutsch</option>
+<option value="ru">Русский</option>
+<option value="zh-CN">中文 (简体)</option>
+<option value="ja">日本語</option>
+<option value="ar">العربية</option>
+<option value="hi">हिन्दी (Hindi)</option>
+</select>
+</div></nav></div></header>
 <main id="conteudo" class="wrap">
-<div class="hero"><div class="eyebrow">Servidor multiplayer • simulação compartilhada</div><h1>Um mesmo espaço de voo.<br>Vários participantes.</h1><p class="lead">Este servidor conecta sessões do Cockpit Drone para compartilhar posições e eventos de simulação. Participantes a até <strong>2 km</strong> aparecem no mapa e na lista da câmera.</p>
-<div class="actions"><a class="button primary" href="https://github.com/marcelomaurin/cockpit_drone/tree/master/bin" target="_blank" rel="noopener">📥 Baixar Simulação no GitHub</a><a class="button" href="tutorial.php">📖 Tutorial de Uso</a><a class="button" href="#download">Como Baixar</a><a class="button" href="#conectar">Como conectar o cockpit</a><a class="button" href="health">Status da API</a></div>
+<div class="hero"><div class="eyebrow" data-i18n="hero_eyebrow">Servidor multiplayer • simulação compartilhada</div><h1 data-i18n="hero_title">Um mesmo espaço de voo.<br>Vários participantes.</h1><p class="lead" data-i18n="hero_lead">Este servidor conecta sessões do Cockpit Drone para compartilhar posições e eventos de simulação. Participantes a até <strong>2 km</strong> aparecem no mapa e na lista da câmera.</p>
+<div class="actions"><a class="button primary" href="https://github.com/marcelomaurin/cockpit_drone/tree/master/bin" target="_blank" rel="noopener" data-i18n="btn_download_gh">📥 Baixar Simulação no GitHub</a><a class="button" href="tutorial.php" data-i18n="btn_tutorial">📖 Tutorial de Uso</a><a class="button" href="#download" data-i18n="btn_how_download">Como Baixar</a><a class="button" href="#conectar" data-i18n="btn_how_connect">Como conectar o cockpit</a><a class="button" href="health">Status da API</a></div>
 <p class="small muted">Esta é a página de orientação. O status da API verifica o serviço HTTP; não confirma que o WebSocket esteja em execução.</p>
 <div class="flow" aria-label="Fluxo da comunicação"><div><strong>Cockpit / site</strong><small>Publica a posição simulada</small></div><span class="arrow" aria-hidden="true">↔</span><div><strong>Servidor multiplayer</strong><small>Filtra participantes por proximidade</small></div><span class="arrow" aria-hidden="true">↔</span><div><strong>Outras sessões</strong><small>Recebem as atualizações</small></div></div></div>
 <section id="download">
-<div class="eyebrow">Download & Simulação</div>
-<h2>Baixe o Cockpit Drone e o Simulador</h2>
-<p class="lead">Para começar a simular e pilotar, acesse a pasta oficial de binários compilados ou baixe o instalador para Windows diretamente do GitHub.</p>
+<div class="eyebrow" data-i18n="sec_download_eyebrow">Download & Simulação</div>
+<h2 data-i18n="sec_download_title">Baixe o Cockpit Drone e o Simulador</h2>
+<p class="lead" data-i18n="sec_download_lead">Para começar a simular e pilotar, acesse a pasta oficial de binários compilados ou baixe o instalador para Windows diretamente do GitHub.</p>
 <div class="grid">
 <div class="card">
-<h3>📁 Pasta bin/ no GitHub</h3>
+<h3 data-i18n="card_bin_title">📁 Pasta bin/ no GitHub</h3>
 <p>Contém os executáveis compilados do <strong>Cockpit Drone (drone.exe)</strong>, do <strong>Simulador 3D (simulador.exe)</strong> e o instalador oficial:</p>
 <ul>
 <li><strong>setup_cockpit_drone_0.41.exe:</strong> Instalador completo para Windows com simulador, cockpit e recursos.</li>
@@ -34,11 +51,11 @@
 </div>
 </div>
 <div class="card">
-<h3>🕹️ Experiência de Controle: Joystick vs Teclado</h3>
+<h3 data-i18n="card_ctrl_title">🕹️ Experiência de Controle: Joystick vs Teclado</h3>
 <p><strong>O simulador é melhor rodado em um joystick analógico</strong> (como controles USB de videogame ou manches de voo), pois proporciona controle contínuo e suave dos 4 eixos de voo (arfagem, rolagem, guinada e aceleração).</p>
 <p><em>No entanto, o simulador e o cockpit também podem ser pilotados perfeitamente pelo teclado</em>, contando com corte de emergência na barra de espaço e centralização automática.</p>
 <div class="actions">
-<a class="button" href="tutorial.php">Ver Tutorial Completo e Mapa de Teclas</a>
+<a class="button" href="tutorial.php" data-i18n="btn_see_tutorial">Ver Tutorial Completo e Mapa de Teclas</a>
 </div>
 </div>
 </div>
@@ -89,4 +106,5 @@ sudo journalctl -u cockpit-drone-ws -n 50</code></pre><p class="muted">No Window
 </tbody></table></div>
 <div class="actions"><a class="button" href="health">Consultar status HTTP</a><a class="button" href="https://github.com/marcelomaurin/cockpit_drone">Código-fonte e documentação</a></div><p class="small muted">O projeto está em desenvolvimento. Compile o cockpit com suas dependências Lazarus/AI Drone; a ausência da unidade <code>aidronemavlink</code> impede a compilação completa. Baixe o instalador pronto e os executáveis na pasta bin/ do repositório GitHub.</p></section>
 </main><footer class="wrap">Cockpit Drone · Servidor de posições e eventos de simulação. O servidor não transmite comandos de voo para equipamentos físicos.</footer>
+<script src="i18n.js"></script>
 </body></html>

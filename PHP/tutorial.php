@@ -59,6 +59,9 @@ tr:last-child td{border-bottom:none}
 tr:hover td{background:rgba(255,255,255,0.02)}
 footer{padding:30px 0 44px;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
 @media(max-width:768px){.grid{grid-template-columns:1fr}.hero{padding-top:36px}}
+.lang-picker{display:inline-flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 9px;font-size:13px}
+.lang-picker select{background:transparent;color:var(--ink);border:none;outline:none;font:inherit;cursor:pointer}
+.lang-picker select option{background:var(--panel);color:var(--ink)}
 </style>
 </head>
 <body>
@@ -75,26 +78,41 @@ footer{padding:30px 0 44px;color:var(--muted);font-size:14px;border-top:1px soli
         <a href="#multiplayer">Mundo Compartilhado</a>
         <a href="https://github.com/marcelomaurin/cockpit_drone/tree/master/bin" target="_blank" rel="noopener">GitHub bin/</a>
       </div>
+    <div class="lang-picker">
+<label for="lang-select" title="Idioma / Language">🌐</label>
+<select id="lang-select" onchange="changeLanguage(this.value)" aria-label="Selecione o idioma">
+<option value="pt-BR" selected>Português (Brasil)</option>
+<option value="en">English</option>
+<option value="es">Español</option>
+<option value="fr">Français</option>
+<option value="de">Deutsch</option>
+<option value="ru">Русский</option>
+<option value="zh-CN">中文 (简体)</option>
+<option value="ja">日本語</option>
+<option value="ar">العربية</option>
+<option value="hi">हिन्दी (Hindi)</option>
+</select>
+</div>
     </nav>
   </div>
 </header>
 
 <main class="wrap">
   <div class="hero">
-    <div class="eyebrow">Guia Oficial &bull; Simulação e Voo</div>
-    <h1>Tutorial do Simulador de Drone e do Cockpit</h1>
-    <p class="lead">Aprenda a baixar, configurar e pilotar drones com o Cockpit Drone e seu simulador físico 3D integrado. Conecte-se localmente ou participe do mundo compartilhado online.</p>
+    <div class="eyebrow" data-i18n="tut_hero_eyebrow">Guia Oficial &bull; Simulação e Voo</div>
+    <h1 data-i18n="tut_hero_title">Tutorial do Simulador de Drone e do Cockpit</h1>
+    <p class="lead" data-i18n="tut_hero_lead">Aprenda a baixar, configurar e pilotar drones com o Cockpit Drone e seu simulador físico 3D integrado. Conecte-se localmente ou participe do mundo compartilhado online.</p>
     <div class="actions">
-      <a class="button primary" href="https://github.com/marcelomaurin/cockpit_drone/tree/master/bin" target="_blank" rel="noopener">📥 Baixar Simulação na pasta bin/ do GitHub</a>
-      <a class="button" href="#joystick-vs-teclado">Controles (Joystick & Teclado)</a>
-      <a class="button" href="#passo-a-passo">Como Iniciar o Voo</a>
-      <a class="button" href="index.php">Voltar ao Servidor</a>
+      <a class="button primary" href="https://github.com/marcelomaurin/cockpit_drone/tree/master/bin" target="_blank" rel="noopener" data-i18n="tut_btn_download_bin">📥 Baixar Simulação na pasta bin/ do GitHub</a>
+      <a class="button" href="#joystick-vs-teclado" data-i18n="tut_btn_controls">Controles (Joystick & Teclado)</a>
+      <a class="button" href="#passo-a-passo" data-i18n="tut_btn_start_flight">Como Iniciar o Voo</a>
+      <a class="button" href="index.php" data-i18n="tut_btn_back_server">Voltar ao Servidor</a>
     </div>
   </div>
 
   <section id="download">
     <div class="eyebrow">1. Instalação</div>
-    <h2>Onde Baixar a Simulação e o Cockpit</h2>
+    <h2 data-i18n="tut_sec1_title">Onde Baixar a Simulação e o Cockpit</h2>
     <p>Todos os binários compilados, instaladores e arquivos de suporte estão disponíveis na pasta oficial <code>bin/</code> do repositório no GitHub:</p>
     
     <div class="grid">
@@ -121,7 +139,7 @@ footer{padding:30px 0 44px;color:var(--muted);font-size:14px;border-top:1px soli
 
   <section id="joystick-vs-teclado">
     <div class="eyebrow">2. Experiência de Controle</div>
-    <h2>Joystick vs. Teclado: Qual Usar?</h2>
+    <h2 data-i18n="tut_sec2_title">Joystick vs. Teclado: Qual Usar?</h2>
     
     <div class="note">
       <strong>💡 Dica de Pilotagem:</strong> O simulador opera com <strong>resposta contínua nos 4 eixos de voo</strong> (arfagem, rolagem, guinada e aceleração vertical). Por essa razão, <strong>o simulador é melhor rodado com um joystick analógico</strong>, permitindo modulação precisa e voo suave, <em>apesar de também poder ser perfeitamente pilotado via teclado</em>.
@@ -154,7 +172,7 @@ footer{padding:30px 0 44px;color:var(--muted);font-size:14px;border-top:1px soli
 
   <section id="mapa-teclas">
     <div class="eyebrow">3. Referência de Comandos</div>
-    <h2>Mapa Completo de Teclas</h2>
+    <h2 data-i18n="tut_sec3_title">Mapa Completo de Teclas</h2>
     <p>Mapeamento de teclas implementado no Cockpit Drone para orientação durante a navegação e pilotagem:</p>
 
     <div class="table-wrap">
@@ -289,7 +307,7 @@ footer{padding:30px 0 44px;color:var(--muted);font-size:14px;border-top:1px soli
 
   <section id="passo-a-passo">
     <div class="eyebrow">4. Operação Prática</div>
-    <h2>Passo a Passo: Como Rodar a Simulação</h2>
+    <h2 data-i18n="tut_sec4_title">Passo a Passo: Como Rodar a Simulação</h2>
 
     <div class="grid-3">
       <div class="card">
@@ -325,7 +343,7 @@ footer{padding:30px 0 44px;color:var(--muted);font-size:14px;border-top:1px soli
 
   <section id="multiplayer">
     <div class="eyebrow">5. Conectividade Online</div>
-    <h2>Mundo Compartilhado (Multiplayer)</h2>
+    <h2 data-i18n="tut_sec5_title">Mundo Compartilhado (Multiplayer)</h2>
     <p>O Cockpit Drone suporta o compartilhamento de espaço aéreo em tempo real. Vários pilotos podem se conectar ao mesmo servidor para visualizar os drones uns dos outros no mapa e nas telas de telemetria.</p>
     
     <div class="card">
@@ -348,5 +366,6 @@ footer{padding:30px 0 44px;color:var(--muted);font-size:14px;border-top:1px soli
     <p class="muted">Disponível no GitHub: <a href="https://github.com/marcelomaurin/cockpit_drone" target="_blank" rel="noopener">github.com/marcelomaurin/cockpit_drone</a></p>
   </div>
 </footer>
+<script src="i18n.js"></script>
 </body>
 </html>

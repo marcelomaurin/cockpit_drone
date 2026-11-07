@@ -33,6 +33,13 @@ if ($isHome && in_array($method, ['GET', 'HEAD'], true)) {
     exit;
 }
 
+// Servir script de internacionalizacao
+if ($route === 'i18n.js') {
+    header('Content-Type: application/javascript; charset=utf-8');
+    readfile(__DIR__ . '/i18n.js');
+    exit;
+}
+
 // Tutorial do simulador e do cockpit
 if (($route === 'tutorial.php' || $route === 'tutorial') && in_array($method, ['GET', 'HEAD'], true)) {
     header('Content-Type: text/html; charset=utf-8');
