@@ -162,6 +162,8 @@ try {
     $path=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH);
     $path=rtrim((string)$path,'/');
     $route=basename($path);
+    $allowedRoutes=['health','connect','telemetry','nearby','events','disconnect','heartbeat'];
+    if (!in_array($route,$allowedRoutes,true)) reply(404,['error'=>'unknown_endpoint']);
     $method=$_SERVER['REQUEST_METHOD']??'GET';
     if ($route==='health' && $method==='GET') reply(200,['status'=>'ok','storage'=>$storage]);
     if ($route==='connect' && $method==='POST') {
@@ -198,7 +200,10 @@ try {
     }
     if ($route==='events' && $method==='POST') {
         if ($self['lat']===null) reply(409,['error'=>'send_telemetry_first']);
-        $v=body(); $v['lat']=$self['lat']; $v['lon']=$self['lon'];
+        $v=body();
+        if (!isset($v['type']) || !is_string($v['type']) || !preg_match('/^[a-zA-Z0-9_.-]{1,64}$/',$v['type']))
+            reply(400,['error'=>'invalid_event_type']);
+        $v['lat']=$self['lat']; $v['lon']=$self['lon'];
         $id=$store->appendEvent($key,$v); reply(201,['id'=>$id]);
     }
     if ($route==='events' && $method==='GET') {
@@ -207,8 +212,8 @@ try {
         foreach ($store->events($after) as $e) {
             if ($e['sender']===$key) continue;
             $sender=$store->get($e['sender']);
-            if (!$sender || !isset($sender['lat'],$sender['lon'])) continue;
-            if (distance($self['lat'],$self['lon'],$sender['lat'],$sender['lon'])<=(float)$config['radius_m'])
+            if (!$sender || !isset($e['data']['lat'],$e['data']['lon'])) continue;
+            if (distance($self['lat'],$self['lon'],$e['data']['lat'],$e['data']['lon'])<=(float)$config['radius_m'])
                 $out[]=['id'=>$e['id'],'sender_id'=>$sender['id'],'event'=>$e['data']];
         }
         reply(200,['events'=>$out]);
