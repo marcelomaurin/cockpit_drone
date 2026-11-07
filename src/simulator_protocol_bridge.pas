@@ -4,7 +4,7 @@ unit simulator_protocol_bridge;
 
 interface
 
-uses SysUtils, Math, fpjson, simulator_vehicle_core;
+uses SysUtils, Math, fpjson, jsonparser, simulator_vehicle_core;
 
 type
   ESimulatorBridge = class(Exception);
