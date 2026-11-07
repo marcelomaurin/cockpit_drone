@@ -7,11 +7,12 @@ interface
 uses SysUtils, Math;
 
 type
-  TVehicleKind = (vkMultirotor, vkAirplane, vkBoat);
+  TVehicleKind = (vkMultirotor, vkAirplane, vkBoat, vkCar);
   TVehicleControls = record
     Throttle: Double;  // 0..1
     Turn: Double;      // -1..1
-    Climb: Double;     // -1..1; ignored for boats
+    Climb: Double;     // -1..1; ignored for boats and cars
+    Brake: Double;     // 0..1; car brake, ignored by other vehicles
   end;
   TVehicleState = record
     Latitude, Longitude, AltitudeM: Double;
@@ -52,6 +53,7 @@ begin
   FControls.Throttle := 0;
   FControls.Turn := 0;
   FControls.Climb := 0;
+  FControls.Brake := 0;
 end;
 
 function TSimulatorVehicle.MaxSpeed: Double;
@@ -60,6 +62,7 @@ begin
     vkMultirotor: Result := 20;
     vkAirplane: Result := 65;
     vkBoat: Result := 12;
+    vkCar: Result := 35;
   else
     Result := 10;
   end;
@@ -70,7 +73,7 @@ const
   EarthRadiusM = 6371000.0;
 var
   Dt, TargetSpeed, Accel, TurnRate, ClimbRate: Double;
-  NorthM, EastM, CosLat, LatRad: Double;
+  NorthM, EastM, CosLat, LatRad, Steering: Double;
 begin
   if (ADeltaSeconds <= 0) or (ADeltaSeconds > 1) then Exit;
   if FState.BatteryPct <= 0 then Exit;
@@ -80,11 +83,19 @@ begin
     vkMultirotor: begin Accel := 4; TurnRate := 90; ClimbRate := 5; end;
     vkAirplane: begin Accel := 2; TurnRate := 25; ClimbRate := 8; end;
     vkBoat: begin Accel := 1; TurnRate := 35; ClimbRate := 0; end;
+    vkCar: begin Accel := 3.5; TurnRate := 65; ClimbRate := 0; end;
   end;
+  if FKind = vkCar then
+    TargetSpeed := TargetSpeed * (1 - Clamp(FControls.Brake, 0, 1));
   FState.SpeedMps := FState.SpeedMps +
-    Clamp(TargetSpeed - FState.SpeedMps, -Accel * Dt, Accel * Dt);
+    Clamp(TargetSpeed - FState.SpeedMps,
+      -Accel * (1 + 4 * Clamp(FControls.Brake, 0, 1)) * Dt, Accel * Dt);
+  // Boats and cars cannot rotate in place: steering requires forward speed.
+  Steering := 1;
+  if FKind in [vkBoat, vkCar] then
+    Steering := Clamp(FState.SpeedMps / 4, 0, 1);
   FState.HeadingDeg := FState.HeadingDeg +
-    Clamp(FControls.Turn, -1, 1) * TurnRate * Dt;
+    Clamp(FControls.Turn, -1, 1) * TurnRate * Steering * Dt;
   FState.HeadingDeg := FState.HeadingDeg -
     Floor(FState.HeadingDeg / 360) * 360;
   FState.VerticalSpeedMps := Clamp(FControls.Climb, -1, 1) * ClimbRate;
