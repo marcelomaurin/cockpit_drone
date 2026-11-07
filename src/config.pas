@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ComCtrls, ExtCtrls, Arrow, AdvLed, Types, SdpoJoystick, funcs, SdpoSerial,
-  fpjson, jsonparser, IniFiles, cockpit_i18n, Grids, LCLType
+  fpjson, jsonparser, IniFiles, cockpit_i18n, Grids, LCLType, joymapa
   {$IFDEF MSWINDOWS}, Windows{$ENDIF};
 
 type
@@ -178,6 +178,36 @@ type
     gbTesteTeclado: TGroupBox;
     lblTesteResultado: TLabel;
     edTesteTeclado: TEdit;
+
+    { Aba "Comandos do Joystick": função de cada eixo e botão. }
+    tsJoyMapa: TTabSheet;
+    cbJoyPerfil: TComboBox;
+    cbJoyEixo: array[TJoyFuncEixo] of TComboBox;
+    ckJoyInverte: array[TJoyFuncEixo] of TCheckBox;
+    lbJoyEixoVivo: array[TJoyFuncEixo] of TLabel;
+    cbJoyBotao: array[TJoyFuncBotao] of TComboBox;
+    lbJoyBotaoVivo: array[TJoyFuncBotao] of TLabel;
+    lbJoyBrutos: TLabel;
+    lbJoyStatus: TLabel;
+    FTimerJoyMapa: TTimer;
+    FJoyAtualizandoTela: Boolean;
+    { Captura: função aguardando movimento (eixo) ou clique (botão). }
+    FJoyCapturaEixo: Integer;    // -1 ou Ord(TJoyFuncEixo)
+    FJoyCapturaBotao: Integer;   // -1 ou Ord(TJoyFuncBotao)
+    FJoyCapturaBase: TJoyEixosBrutos;
+    FJoyBotoesAntes: Cardinal;
+    FJoyCapturaFim: QWord;
+
+    procedure CriaAbaJoyMapa;
+    procedure MostraMapaJoy(const M: TJoyMapa);
+    function MapaJoyDaTela: TJoyMapa;
+    procedure ValidaMapaJoyTela;
+    procedure JoyPerfilChange(Sender: TObject);
+    procedure JoyLinhaChange(Sender: TObject);
+    procedure JoyCapturaEixoClick(Sender: TObject);
+    procedure JoyCapturaBotaoClick(Sender: TObject);
+    procedure TimerJoyMapaTick(Sender: TObject);
+    function LeJoystickBruto(out AEixos: TJoyEixosBrutos; out ABotoes: Cardinal): Boolean;
 
     procedure CriaAbaIdioma;
     procedure CriaAbaTeclado;
@@ -454,6 +484,7 @@ begin
   CriaAbaARDrone;
   CriaAbaESP32Drone;
   CriaAbaTeclado;
+  CriaAbaJoyMapa;
   CriaAbaIdioma;
   CarregaIdioma;
 
@@ -745,6 +776,419 @@ begin
   if Assigned(edTesteTeclado) then
     edTesteTeclado.Text := '';
   Key := 0;
+end;
+
+{ ---------------------------------------------------------------------------
+  Aba "Comandos do Joystick": mostra e permite mudar a função de cada eixo e
+  botão. O mapa vale no cockpit ao salvar (fechar Configurações).
+  --------------------------------------------------------------------------- }
+
+const
+  JOY_LINHA = 26;
+  JOY_TEMPO_CAPTURA_MS = 6000;
+
+procedure Tfrmconfig.CriaAbaJoyMapa;
+var
+  Box: TScrollBox;
+  Y, I: Integer;
+  E: TJoyFuncEixo;
+  B: TJoyFuncBotao;
+  P: TJoyPerfil;
+  Bt: TButton;
+
+  function Rotulo(AX, AY, AW: Integer; const ATexto: string; ANegrito: Boolean = False): TLabel;
+  begin
+    Result := TLabel.Create(Self);
+    Result.Parent := Box;
+    Result.AutoSize := False;
+    Result.SetBounds(AX, AY, AW, 18);
+    Result.Caption := ATexto;
+    if ANegrito then
+      Result.Font.Style := [fsBold];
+  end;
+
+  function Lista(AX, AY, AW: Integer): TComboBox;
+  begin
+    Result := TComboBox.Create(Self);
+    Result.Parent := Box;
+    Result.Style := csDropDownList;
+    Result.SetBounds(AX, AY, AW, 22);
+    Result.OnChange := @JoyLinhaChange;
+  end;
+
+begin
+  FJoyCapturaEixo := -1;
+  FJoyCapturaBotao := -1;
+
+  tsJoyMapa := TTabSheet.Create(Self);
+  tsJoyMapa.Name := 'tsJoyMapa';
+  tsJoyMapa.PageControl := pcDrones;
+  tsJoyMapa.Caption := 'Comandos do Joystick';
+
+  Box := TScrollBox.Create(Self);
+  Box.Parent := tsJoyMapa;
+  Box.Align := alClient;
+  Box.BorderStyle := bsNone;
+  Box.HorzScrollBar.Visible := False;
+
+  Rotulo(8, 6, 420, 'Função de cada eixo e botão do joystick', True);
+  Rotulo(8, 24, 430, 'Escolha um perfil ou ajuste cada linha. "Capturar": mova o comando ' +
+    'ou aperte o botão. Vale no cockpit ao salvar.');
+
+  Rotulo(8, 50, 45, 'Perfil:');
+  cbJoyPerfil := TComboBox.Create(Self);
+  cbJoyPerfil.Parent := Box;
+  cbJoyPerfil.Style := csDropDownList;
+  cbJoyPerfil.SetBounds(55, 46, 375, 22);
+  for P := Low(P) to High(P) do
+    cbJoyPerfil.Items.Add(NomePerfil(P));
+  cbJoyPerfil.Items.Add('Personalizado');
+  cbJoyPerfil.OnChange := @JoyPerfilChange;
+
+  // Eixos
+  Y := 78;
+  Rotulo(8, Y, 140, 'Eixo / comando', True);
+  Rotulo(150, Y, 92, 'Eixo', True);
+  Rotulo(246, Y, 62, 'Inverter', True);
+  Rotulo(376, Y, 60, 'Ao vivo', True);
+  Inc(Y, 20);
+  for E := Low(E) to High(E) do
+  begin
+    Rotulo(8, Y + 3, 140, NomeFuncEixo(E));
+    cbJoyEixo[E] := Lista(150, Y, 92);
+    cbJoyEixo[E].Items.Add(NomeEixo(JOY_EIXO_NENHUM));
+    for I := 0 to JOY_EIXOS - 1 do
+      cbJoyEixo[E].Items.Add(NomeEixo(I));
+    ckJoyInverte[E] := TCheckBox.Create(Self);
+    ckJoyInverte[E].Parent := Box;
+    ckJoyInverte[E].SetBounds(262, Y + 2, 40, 20);
+    ckJoyInverte[E].Caption := '';
+    ckJoyInverte[E].Hint := 'Inverte o sentido deste eixo.';
+    ckJoyInverte[E].ShowHint := True;
+    ckJoyInverte[E].OnChange := @JoyLinhaChange;
+    Bt := TButton.Create(Self);
+    Bt.Parent := Box;
+    Bt.SetBounds(306, Y, 66, 22);
+    Bt.Caption := 'Capturar';
+    Bt.Tag := Ord(E);
+    Bt.Hint := 'Clique e mova o comando ' + SentidoFuncEixo(E) + '.';
+    Bt.ShowHint := True;
+    Bt.OnClick := @JoyCapturaEixoClick;
+    lbJoyEixoVivo[E] := Rotulo(376, Y + 3, 60, '-');
+    Inc(Y, JOY_LINHA);
+  end;
+
+  // Botões
+  Inc(Y, 6);
+  Rotulo(8, Y, 140, 'Botão / função', True);
+  Rotulo(150, Y, 92, 'Botão', True);
+  Inc(Y, 20);
+  for B := Low(B) to High(B) do
+  begin
+    Rotulo(8, Y + 3, 140, NomeFuncBotao(B));
+    cbJoyBotao[B] := Lista(150, Y, 92);
+    cbJoyBotao[B].Items.Add(NomeBotao(JOY_BOTAO_NENHUM));
+    for I := 1 to JOY_BOTOES do
+      cbJoyBotao[B].Items.Add(NomeBotao(I));
+    Bt := TButton.Create(Self);
+    Bt.Parent := Box;
+    Bt.SetBounds(306, Y, 66, 22);
+    Bt.Caption := 'Capturar';
+    Bt.Tag := Ord(B);
+    Bt.Hint := 'Clique e aperte o botão do joystick.';
+    Bt.ShowHint := True;
+    Bt.OnClick := @JoyCapturaBotaoClick;
+    lbJoyBotaoVivo[B] := Rotulo(376, Y + 3, 60, '-');
+    Inc(Y, JOY_LINHA);
+  end;
+
+  Inc(Y, 4);
+  lbJoyBrutos := Rotulo(8, Y, 430, '');
+  lbJoyBrutos.Font.Color := clGray;
+  Inc(Y, 20);
+  lbJoyStatus := TLabel.Create(Self);
+  lbJoyStatus.Parent := Box;
+  lbJoyStatus.AutoSize := False;
+  lbJoyStatus.WordWrap := True;
+  lbJoyStatus.SetBounds(8, Y, 430, 64);
+  lbJoyStatus.Font.Style := [fsBold];
+
+  FTimerJoyMapa := TTimer.Create(Self);
+  FTimerJoyMapa.Interval := 50;
+  FTimerJoyMapa.OnTimer := @TimerJoyMapaTick;
+  FTimerJoyMapa.Enabled := True;
+
+  MostraMapaJoy(MapaPadrao);
+end;
+
+procedure Tfrmconfig.MostraMapaJoy(const M: TJoyMapa);
+var
+  E: TJoyFuncEixo;
+  B: TJoyFuncBotao;
+  P: TJoyPerfil;
+begin
+  if not Assigned(tsJoyMapa) then
+    Exit;
+  FJoyAtualizandoTela := True;
+  try
+    for E := Low(E) to High(E) do
+    begin
+      // Item 0 = "Nenhum"; itens 1..6 = eixos 0..5.
+      cbJoyEixo[E].ItemIndex := EnsureRange(M.Eixo[E] + 1, 0, JOY_EIXOS);
+      ckJoyInverte[E].Checked := M.Inverte[E];
+    end;
+    for B := Low(B) to High(B) do
+      cbJoyBotao[B].ItemIndex := EnsureRange(M.Botao[B], 0, JOY_BOTOES);
+    if PerfilDoMapa(M, P) then
+      cbJoyPerfil.ItemIndex := Ord(P)
+    else
+      cbJoyPerfil.ItemIndex := cbJoyPerfil.Items.Count - 1;
+  finally
+    FJoyAtualizandoTela := False;
+  end;
+  ValidaMapaJoyTela;
+end;
+
+function Tfrmconfig.MapaJoyDaTela: TJoyMapa;
+var
+  E: TJoyFuncEixo;
+  B: TJoyFuncBotao;
+begin
+  Result := MapaPadrao;
+  if not Assigned(tsJoyMapa) then
+    Exit;
+  for E := Low(E) to High(E) do
+  begin
+    Result.Eixo[E] := Max(0, cbJoyEixo[E].ItemIndex) - 1;
+    Result.Inverte[E] := ckJoyInverte[E].Checked;
+  end;
+  for B := Low(B) to High(B) do
+    Result.Botao[B] := Max(0, cbJoyBotao[B].ItemIndex);
+end;
+
+procedure Tfrmconfig.ValidaMapaJoyTela;
+var
+  Erros, Avisos: string;
+begin
+  if not Assigned(lbJoyStatus) then
+    Exit;
+  if (FJoyCapturaEixo >= 0) or (FJoyCapturaBotao >= 0) then
+    Exit; // a mensagem da captura fica visível até terminar
+  if not ValidaMapa(MapaJoyDaTela, Erros, Avisos) then
+  begin
+    lbJoyStatus.Font.Color := clRed;
+    lbJoyStatus.Caption := 'Conflito (não será salvo):' + LineEnding + Erros;
+  end
+  else if Avisos <> '' then
+  begin
+    lbJoyStatus.Font.Color := clOlive;
+    lbJoyStatus.Caption := Avisos;
+  end
+  else
+  begin
+    lbJoyStatus.Font.Color := clGreen;
+    lbJoyStatus.Caption := 'Mapa válido.';
+  end;
+end;
+
+procedure Tfrmconfig.JoyPerfilChange(Sender: TObject);
+begin
+  if FJoyAtualizandoTela then
+    Exit;
+  // "Personalizado" só aparece; escolher não muda nada.
+  if (cbJoyPerfil.ItemIndex >= 0) and (cbJoyPerfil.ItemIndex <= Ord(High(TJoyPerfil))) then
+    MostraMapaJoy(MapaPerfil(TJoyPerfil(cbJoyPerfil.ItemIndex)))
+  else
+    MostraMapaJoy(MapaJoyDaTela);
+end;
+
+procedure Tfrmconfig.JoyLinhaChange(Sender: TObject);
+var
+  P: TJoyPerfil;
+begin
+  if FJoyAtualizandoTela then
+    Exit;
+  FJoyAtualizandoTela := True;
+  try
+    if PerfilDoMapa(MapaJoyDaTela, P) then
+      cbJoyPerfil.ItemIndex := Ord(P)
+    else
+      cbJoyPerfil.ItemIndex := cbJoyPerfil.Items.Count - 1;
+  finally
+    FJoyAtualizandoTela := False;
+  end;
+  ValidaMapaJoyTela;
+end;
+
+function Tfrmconfig.LeJoystickBruto(out AEixos: TJoyEixosBrutos; out ABotoes: Cardinal): Boolean;
+var
+  I: Integer;
+begin
+  for I := 0 to JOY_EIXOS - 1 do
+    AEixos[I] := JOY_BRUTO_MAX div 2;
+  ABotoes := 0;
+  Result := False;
+  if not (MainDisponivel and frmMain.SdpoJoystick1.Active) then
+    Exit;
+  try
+    for I := 0 to JOY_EIXOS - 1 do
+      AEixos[I] := frmMain.SdpoJoystick1.Axis[I];
+    for I := 0 to JOY_BOTOES - 1 do
+      if frmMain.SdpoJoystick1.Buttons[I] <> 0 then
+        ABotoes := ABotoes or (Cardinal(1) shl I);
+    Result := True;
+  except
+    Result := False;
+  end;
+end;
+
+procedure Tfrmconfig.JoyCapturaEixoClick(Sender: TObject);
+var
+  Botoes: Cardinal;
+  F: TJoyFuncEixo;
+begin
+  F := TJoyFuncEixo(TComponent(Sender).Tag);
+  FJoyCapturaBotao := -1;
+  if not LeJoystickBruto(FJoyCapturaBase, Botoes) then
+  begin
+    lbJoyStatus.Font.Color := clRed;
+    lbJoyStatus.Caption := 'Joystick inativo: marque "active" na aba Joystick.';
+    Exit;
+  end;
+  FJoyCapturaEixo := Ord(F);
+  FJoyCapturaFim := GetTickCount64 + JOY_TEMPO_CAPTURA_MS;
+  lbJoyStatus.Font.Color := clNavy;
+  lbJoyStatus.Caption := Format('%s: com os comandos soltos, leve até o fim %s...',
+    [NomeFuncEixo(F), SentidoFuncEixo(F)]);
+end;
+
+procedure Tfrmconfig.JoyCapturaBotaoClick(Sender: TObject);
+var
+  Eixos: TJoyEixosBrutos;
+begin
+  FJoyCapturaEixo := -1;
+  if not LeJoystickBruto(Eixos, FJoyBotoesAntes) then
+  begin
+    lbJoyStatus.Font.Color := clRed;
+    lbJoyStatus.Caption := 'Joystick inativo: marque "active" na aba Joystick.';
+    Exit;
+  end;
+  FJoyCapturaBotao := TComponent(Sender).Tag;
+  FJoyCapturaFim := GetTickCount64 + JOY_TEMPO_CAPTURA_MS;
+  lbJoyStatus.Font.Color := clNavy;
+  lbJoyStatus.Caption := NomeFuncBotao(TJoyFuncBotao(FJoyCapturaBotao)) +
+    ': aperte o botão do joystick...';
+end;
+
+procedure Tfrmconfig.TimerJoyMapaTick(Sender: TObject);
+
+  function Pct(AValor: Byte; ACentrado: Boolean): string;
+  begin
+    if ACentrado then
+      Result := Format('%+d%%', [Round((AValor - JOY_CENTRO) * 100 / JOY_CENTRO)])
+    else
+      Result := Format('%d%%', [Round(AValor * 100 / 255)]);
+  end;
+
+var
+  Eixos: TJoyEixosBrutos;
+  Botoes: Cardinal;
+  Cmd: TJoyComando;
+  E: TJoyFuncEixo;
+  B: TJoyFuncBotao;
+  I, N, EixoAchado: Integer;
+  Inv: Boolean;
+  S: string;
+begin
+  if not Assigned(tsJoyMapa) or not Visible or (pcDrones.ActivePage <> tsJoyMapa) then
+    Exit;
+
+  if not LeJoystickBruto(Eixos, Botoes) then
+  begin
+    lbJoyBrutos.Caption := 'Joystick inativo: marque "active" na aba Joystick para ver ao vivo.';
+    for E := Low(E) to High(E) do
+      lbJoyEixoVivo[E].Caption := '-';
+    for B := Low(B) to High(B) do
+      lbJoyBotaoVivo[B].Caption := '-';
+    Exit;
+  end;
+
+  // Captura em andamento.
+  if (FJoyCapturaEixo >= 0) or (FJoyCapturaBotao >= 0) then
+  begin
+    if GetTickCount64 > FJoyCapturaFim then
+    begin
+      FJoyCapturaEixo := -1;
+      FJoyCapturaBotao := -1;
+      lbJoyStatus.Font.Color := clRed;
+      lbJoyStatus.Caption := 'Captura cancelada: nenhum movimento ou botão detectado.';
+    end
+    else if FJoyCapturaEixo >= 0 then
+    begin
+      E := TJoyFuncEixo(FJoyCapturaEixo);
+      if DetectaEixo(E, FJoyCapturaBase, Eixos, EixoAchado, Inv) then
+      begin
+        cbJoyEixo[E].ItemIndex := EixoAchado + 1;
+        ckJoyInverte[E].Checked := Inv;
+        FJoyCapturaEixo := -1;
+        JoyLinhaChange(nil);
+        if lbJoyStatus.Font.Color = clGreen then
+        begin
+          S := NomeFuncEixo(E) + ' capturado: ' + NomeEixo(EixoAchado);
+          if Inv then
+            S := S + ', invertido';
+          lbJoyStatus.Caption := S + '.';
+        end;
+      end;
+    end
+    else
+    begin
+      N := DetectaBotao(FJoyBotoesAntes, Botoes);
+      FJoyBotoesAntes := Botoes;
+      if N <> JOY_BOTAO_NENHUM then
+      begin
+        B := TJoyFuncBotao(FJoyCapturaBotao);
+        cbJoyBotao[B].ItemIndex := N;
+        FJoyCapturaBotao := -1;
+        JoyLinhaChange(nil);
+        if lbJoyStatus.Font.Color = clGreen then
+          lbJoyStatus.Caption := Format('%s capturado: %s.', [NomeFuncBotao(B), NomeBotao(N)]);
+      end;
+    end;
+  end;
+
+  // Leitura ao vivo com o mapa da tela (ainda não salvo).
+  Cmd := AplicaMapa(MapaJoyDaTela, Eixos, Botoes);
+  for E := Low(E) to High(E) do
+    if not Cmd.TemEixo[E] then
+      lbJoyEixoVivo[E].Caption := '-'
+    else
+      case E of
+        jeRolagem: lbJoyEixoVivo[E].Caption := Pct(Cmd.Rolagem, True);
+        // Arfagem: 0 = frente; mostra + para a frente.
+        jeArfagem: lbJoyEixoVivo[E].Caption := Pct(255 - Cmd.Arfagem, True);
+        jeGuinada: lbJoyEixoVivo[E].Caption := Pct(Cmd.Guinada, True);
+        jeAcelerador: lbJoyEixoVivo[E].Caption := Pct(Cmd.Acelerador, False);
+      end;
+  for B := Low(B) to High(B) do
+    if Cmd.Botao[B] then
+      lbJoyBotaoVivo[B].Caption := 'APERTADO'
+    else
+      lbJoyBotaoVivo[B].Caption := '-';
+
+  S := '';
+  for I := 0 to JOY_EIXOS - 1 do
+    S := S + Format('%s %d%%  ', [NOMES_EIXO[I], Round(Eixos[I] * 100 / JOY_BRUTO_MAX)]);
+  N := 0;
+  for I := 1 to JOY_BOTOES do
+    if BotaoApertado(Botoes, I) then
+    begin
+      if N = 0 then
+        S := S + '| botões:';
+      S := S + ' ' + IntToStr(I);
+      Inc(N);
+    end;
+  lbJoyBrutos.Caption := S;
 end;
 
 procedure Tfrmconfig.CriaAbaTeclado;
@@ -1338,6 +1782,8 @@ begin
     tsESP32Drone.TabVisible := (TipoAtivo = 6);
   if Assigned(tsTeclado) then
     tsTeclado.TabVisible := True;
+  if Assigned(tsJoyMapa) then
+    tsJoyMapa.TabVisible := True;
   if Assigned(tsIdioma) then
     tsIdioma.TabVisible := True;
 end;
@@ -1349,6 +1795,7 @@ begin
 
   ckJoyActive.Checked := FSetMain.JoystickAtivo;
   cbDevice.ItemIndex := FSetMain.JoystickDeviceIndex;
+  MostraMapaJoy(FSetMain.JoyMapa);
 
   cbSerialPort.Text := FSetMain.SerialPort;
   cbBaudrate.ItemIndex := FSetMain.BaudRate;
@@ -1436,12 +1883,23 @@ end;
 procedure Tfrmconfig.SalvarConfiguracoes;
 var
   Val: Integer;
+  Mapa: TJoyMapa;
+  ErrosJoy, AvisosJoy: string;
 begin
   if not Assigned(FSetMain) then
     Exit;
 
   FSetMain.JoystickAtivo := ckJoyActive.Checked;
   FSetMain.JoystickDeviceIndex := cbDevice.ItemIndex;
+  if Assigned(tsJoyMapa) then
+  begin
+    Mapa := MapaJoyDaTela;
+    if ValidaMapa(Mapa, ErrosJoy, AvisosJoy) then
+      FSetMain.JoyMapa := Mapa
+    else
+      ShowMessage('O mapa do joystick tem conflitos e não foi salvo ' +
+        '(o anterior continua valendo):' + LineEnding + ErrosJoy);
+  end;
 
   FSetMain.SerialPort := cbSerialPort.Text;
   FSetMain.BaudRate := cbBaudrate.ItemIndex;

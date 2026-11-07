@@ -41,6 +41,10 @@ type
     FLbEntrada: TLabel;
     FAceleradorTeclado: Double;
     FCorte: Boolean;
+    { Marcado pela linha de execução de controle quando o canal cai. }
+    FControlePerdido: Boolean;
+    { Usado só pela linha de execução de controle. }
+    FControleLigado: Boolean;
     FUltimoTick: QWord;
     FRedeAnterior: string;
     FRedeDrone: string;
@@ -217,6 +221,8 @@ begin
     FAceleradorTeclado := 0;
     FJoystickAnteriorConectado := False;
     FCorte := True; // começa bloqueado: só o REARMAR libera os motores
+    FControlePerdido := False;
+    FControleLigado := False;
     FUltimoTick := GetTickCount64;
     FFQ.ThrottleArmLock := True;
     FFQ.Connect;
@@ -338,6 +344,12 @@ begin
     Log('Joystick perdido: corte travado até rearme manual.');
   end;
   FJoystickAnteriorConectado := S.Connected;
+  if FControlePerdido then
+  begin
+    FControlePerdido := False;
+    FAceleradorTeclado := 0;
+    Log('Canal de controle perdido: corte travado até rearme manual.');
+  end;
   if S.Connected then
     FEntrada := S.DeviceName
   else
@@ -386,14 +398,26 @@ end;
 
 procedure TfrmConectionFQ777.Controle(const C: TComandoManche);
 begin
+  { Roda na linha de execução de controle: só lê FCorte e marca
+    FControlePerdido; o acelerador do teclado é zerado na linha principal
+    (LeComando), que é quem o altera. }
   // Sem o canal de controle, nada é transmitido e o corte fica travado.
   if not FFQ.ControlConnected then
   begin
     FCorte := True;
-    FAceleradorTeclado := 0;
+    // Avisa só na queda (ligado -> desligado), não durante a conexão inicial.
+    if FControleLigado then
+      FControlePerdido := True;
+    FControleLigado := False;
     Exit;
   end;
-  FFQ.SetSticks(C.Rolagem, C.Arfagem, C.Guinada, C.Acelerador);
+  FControleLigado := True;
+  // O comando recebido pode ter sido lido antes do CORTE (até um intervalo
+  // de atraso): com o corte ativo, envia neutro e aceleração zero na hora.
+  if FCorte then
+    FFQ.SetSticks(0, 0, 0, 0)
+  else
+    FFQ.SetSticks(C.Rolagem, C.Arfagem, C.Guinada, C.Acelerador);
 end;
 
 procedure TfrmConectionFQ777.AtualizaPainel;

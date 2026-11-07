@@ -5,6 +5,11 @@ function distance(float $a, float $b, float $c, float $d): float {
     $h = sin($x/2)**2 + cos(deg2rad($a))*cos(deg2rad($c))*sin($y/2)**2;
     return 6371000 * 2 * asin(min(1.0, sqrt($h)));
 }
+/* Only real pilot sessions: the same store also keeps rate-limit records
+   (ratelimit_*), which must not count as active sessions nor be listed. */
+function isSessionRecord($v): bool {
+    return is_array($v) && isset($v['key'],$v['id']) && is_string($v['key']);
+}
 interface Store {
     public function get(string $key): ?array;
     public function put(string $key, array $value, int $ttl): void;
@@ -41,7 +46,7 @@ final class FileStore implements Store {
             $f=@fopen($p,'rb'); if (!$f) continue;
             flock($f,LOCK_SH); $raw=stream_get_contents($f); flock($f,LOCK_UN); fclose($f);
             $v=json_decode((string)$raw,true);
-            if (is_array($v) && ($v['expiry']??0)>time() && isset($v['data'])) $out[]=$v['data'];
+            if (is_array($v) && ($v['expiry']??0)>time() && isSessionRecord($v['data']??null)) $out[]=$v['data'];
             // Expired records are ignored; do not race a concurrent renewal by unlinking.
 
         }
@@ -80,7 +85,7 @@ final class ApcuStore implements Store {
         $out=[]; $it=new APCUIterator('/^drone:idx:/');
         foreach ($it as $row) {
             $key=substr($row['key'],strlen('drone:idx:'));
-            $v=$this->get($key); if ($v!==null) $out[]=$v;
+            $v=$this->get($key); if (isSessionRecord($v)) $out[]=$v;
         }
         return $out;
     }
@@ -129,7 +134,7 @@ final class MysqlStore implements Store {
     public function sessions(): array {
         $q=$this->db->prepare('SELECT payload FROM drone_sessions WHERE expires_at>?');
         $q->execute([time()]);
-        return array_map(fn($r)=>json_decode($r['payload'],true),$q->fetchAll());
+        return array_values(array_filter(array_map(fn($r)=>json_decode($r['payload'],true),$q->fetchAll()),'isSessionRecord'));
     }
     public function appendEvent(string $sender,array $value): int {
         $q=$this->db->prepare('INSERT INTO drone_events(sender_hash,payload,created_at) VALUES(?,?,?)');

@@ -132,6 +132,13 @@ type
     FKeyB5: Boolean;
     FKeyB6: Boolean;
 
+    { PÂNICO (barra de espaço ou botão de corte do joystick): acelerador em
+      zero, eixos no centro e botões ignorados até soltar o comando de corte
+      E baixar o acelerador do joystick ao mínimo. Sem a trava, o eixo do
+      acelerador devolvia a aceleração no ciclo seguinte. }
+    FCorteTravado: Boolean;
+    FCorteTecla: Boolean;
+
     FBtRota: TButton;
     FSitlBridge: TSitlTelemetryBridge;
     FSitlTimer: TTimer;
@@ -1089,9 +1096,12 @@ begin
     VK_SPACE:
       begin
         // PÂNICO / CORTE IMEDIATO DE MOTORES
-        Z := 0;
+        // CentralizaComandos põe Z no centro (pairar): o zero vem depois.
         CentralizaComandos;
+        Z := 0;
         LimpaTeclado;
+        FCorteTecla := True;
+        FCorteTravado := True;
         Key := 0;
       end;
     VK_RETURN:
@@ -1157,6 +1167,7 @@ begin
     VK_SPACE:
       begin
         LimpaTeclado;
+        FCorteTecla := False;
       end;
   end;
 end;
@@ -1280,11 +1291,20 @@ end;
 procedure TfrmMain.timerJoystickTimer(Sender: TObject);
 var
   X0, Y0, Z0: Double;
-  JoyDisponivel: Boolean;
+  G0: Byte;
+  JoyDisponivel, TemG, AceleradorJoy, CorteJoy: Boolean;
 begin
   X0 := refJoy;
   Y0 := refJoy;
   Z0 := Z;
+  G0 := refJoy;
+  TemG := False;
+  AceleradorJoy := False;
+  CorteJoy := False;
+
+  // Mapa de eixos e botões escolhido em Configurações > Comandos do Joystick.
+  if Assigned(FJoystick) and Assigned(FSetMain) then
+    FJoystick.Mapa := FSetMain.JoyMapa;
 
   JoyDisponivel := UsaJoystick and Assigned(FJoystick) and FJoystick.Active;
   if JoyDisponivel then
@@ -1295,6 +1315,10 @@ begin
     X0 := FJoystick.State.X;
     Y0 := FJoystick.State.Y;
     Z0 := FJoystick.State.Z;
+    G0 := FJoystick.State.G;
+    TemG := FJoystick.State.TemGuinada;
+    AceleradorJoy := FJoystick.State.TemAcelerador;
+    CorteJoy := FJoystick.State.Corte;
 
     B1 := FJoystick.State.Buttons.B1;
     B2 := FJoystick.State.Buttons.B2;
@@ -1341,10 +1365,13 @@ begin
   end
   else
   begin
-    if UsaJoystick then
+    if UsaJoystick and not JoyDisponivel then
+      Z := 0 // joystick perdido: acelerador mínimo
+    else if AceleradorJoy then
       Z := Byte(EnsureRange(Round(Z0), 0, 255))
     else
     begin
+      // Sem joystick, ou joystick sem eixo de acelerador: teclado (E/Q).
       // Teclado: ao soltar a tecla de subir, se estiver subindo forte (Z > 132),
       // recua suavemente em direcao ao nivel de pairar (128) para nao continuar subindo descontrolado.
       if Z > 132 then
@@ -1355,6 +1382,29 @@ begin
   end;
 
   AplicaTecladoNosBotoes;
+
+  if CorteJoy and not FCorteTravado then
+  begin
+    FCorteTravado := True;
+    LimpaTeclado;
+  end;
+  if FCorteTravado then
+  begin
+    // Libera só com o corte solto e o acelerador do joystick no mínimo
+    // (sem eixo de acelerador, o teclado já fica em zero após o corte).
+    if (not CorteJoy) and (not FCorteTecla) and
+       ((not AceleradorJoy) or (Round(Z0) <= 12)) then
+      FCorteTravado := False
+    else
+    begin
+      Z := 0;
+      X0 := refJoy;
+      Y0 := refJoy;
+      TemG := False;
+      B1 := 0; B2 := 0; B3 := 0; B4 := 0; B5 := 0; B6 := 0;
+    end;
+  end;
+
   AtualizaLedsBotoes;
 
   if B5 = 255 then
@@ -1383,7 +1433,7 @@ begin
   if X < refJoy then ArrowRigth.ArrowColor := clRed;
 
   if Assigned(FControler) then
-    FControler.Atualiza(X, Y, Z, B1, B2, B3, B4, B5, B6);
+    FControler.Atualiza(X, Y, Z, B1, B2, B3, B4, B5, B6, G0, TemG);
 
   AtualizaRotorDisplay;
 

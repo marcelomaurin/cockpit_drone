@@ -46,8 +46,12 @@ type
     constructor Create;
 
     procedure Reset;
+    { AG/ATemG: guinada por eixo do joystick (0 = gira à esquerda, 127 =
+      parado, 255 = gira à direita), com a mesma zona morta dos outros eixos.
+      Os botões 1/2, quando apertados, têm prioridade sobre o eixo. }
     procedure Atualiza(const AX, AY, AZ: Byte;
-      const AB1, AB2, AB3, AB4, AB5, AB6: Byte);
+      const AB1, AB2, AB3, AB4, AB5, AB6: Byte;
+      const AG: Byte = 127; const ATemG: Boolean = False);
 
     property Ativo: Boolean read FAtivo write FAtivo;
 
@@ -148,7 +152,7 @@ begin
 end;
 
 procedure TDroneControler.Atualiza(const AX, AY, AZ: Byte;
-  const AB1, AB2, AB3, AB4, AB5, AB6: Byte);
+  const AB1, AB2, AB3, AB4, AB5, AB6: Byte; const AG: Byte; const ATemG: Boolean);
 begin
   if not FAtivo then
   begin
@@ -161,6 +165,8 @@ begin
   FAcelerador := AZ / 255;
   FSubida := Eixo(AZ);
   FGuinada := 0;
+  if ATemG then
+    FGuinada := Eixo(AG);
   if (AB1 = 255) and (AB2 <> 255) then
     FGuinada := -GUINADA_BOTAO
   else if (AB2 = 255) and (AB1 <> 255) then

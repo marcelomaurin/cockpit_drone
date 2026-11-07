@@ -33,7 +33,10 @@ class PhpTutorialTest(unittest.TestCase):
         self.assertTrue(i18n_path.exists())
         content = i18n_path.read_text(encoding="utf-8")
         for lang in ("pt-BR", "en", "es", "fr", "de", "ru", "zh-CN", "ja", "ar", "hi"):
-            self.assertIn(f"'{lang}':", content, f"Language {lang} missing from i18n.js")
+            # Chave do objeto de traduções com aspas simples ou duplas.
+            self.assertTrue(
+                f"'{lang}':" in content or f'"{lang}":' in content,
+                f"Language {lang} missing from i18n.js")
 
     def test_tutorial_php_exists_and_covers_requirements(self):
         tutorial_path = ROOT / "PHP/tutorial.php"

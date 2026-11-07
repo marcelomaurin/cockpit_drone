@@ -5,7 +5,7 @@ unit setmain;
 interface
 
 uses
-  Classes, SysUtils, IniFiles;
+  Classes, SysUtils, IniFiles, joymapa;
 
 const
   CONFIG_FILE = 'drone.cfg';
@@ -160,6 +160,9 @@ type
     FQ777: TFQ777Settings;
     Tello: TTelloSettings;
     ESPDrone: TESPDroneSettings;
+    { Função de cada eixo e botão do joystick (seção [JOYSTICK_MAPA]).
+      Sem a seção no arquivo, vale o mapa anterior: X/Y/Z e botões 1..6. }
+    JoyMapa: TJoyMapa;
 
     function GetConfigFileName: string;
     constructor Create;
@@ -282,6 +285,7 @@ begin
   FJoystickAtivo := False;
   FJoystickDeviceIndex := 0;
   FJoystickNome := '';
+  JoyMapa := MapaPadrao;
 
   // Controle
   FTimerInterval := 100;
@@ -413,6 +417,7 @@ begin
     FJoystickAtivo := Ini.ReadBool('JOYSTICK', 'ATIVO', FJoystickAtivo);
     FJoystickDeviceIndex := Ini.ReadInteger('JOYSTICK', 'DEVICE_INDEX', FJoystickDeviceIndex);
     FJoystickNome := Ini.ReadString('JOYSTICK', 'NOME', FJoystickNome);
+    LeMapa(Ini, 'JOYSTICK_MAPA', JoyMapa);
 
     // Controle
     FTimerInterval := Ini.ReadInteger('CONTROLE', 'TIMER_INTERVAL', FTimerInterval);
@@ -535,6 +540,7 @@ begin
     Ini.WriteBool('JOYSTICK', 'ATIVO', FJoystickAtivo);
     Ini.WriteInteger('JOYSTICK', 'DEVICE_INDEX', FJoystickDeviceIndex);
     Ini.WriteString('JOYSTICK', 'NOME', FJoystickNome);
+    GravaMapa(Ini, 'JOYSTICK_MAPA', JoyMapa);
 
     // Controle
     Ini.WriteInteger('CONTROLE', 'TIMER_INTERVAL', FTimerInterval);

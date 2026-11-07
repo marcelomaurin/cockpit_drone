@@ -7,7 +7,7 @@ Protocolo entre o cockpit (Lazarus) e o firmware do drone ESP32 desta pasta.
 | Item | Valor |
 |---|---|
 | Wi-Fi do drone | ponto de acesso `CockpitDrone-XXXX` (XXXX = final do endereço MAC) |
-| Senha padrão | `cockpit123` (troque em `config.h`) |
+| Senha | aleatória por drone, gerada no primeiro uso e mostrada no monitor serial (ou fixa com `WIFI_SENHA_FIXA` em `config.h`) |
 | IP do drone | `192.168.4.1` |
 | Porta | UDP `4210` (o drone responde para o IP e a porta de quem enviou) |
 
