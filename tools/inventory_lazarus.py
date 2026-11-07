@@ -37,6 +37,12 @@ def inventory(root=ROOT):
         except (ET.ParseError, OSError) as exc:
             item["error"] = str(exc)
         projects.append(item)
+    available_packages = {p.stem.lower() for p in root.rglob("*.lpk") if p.is_file()}
+    for project in projects:
+        project["external_packages"] = sorted(
+            package for package in project["packages"]
+            if package.lower() not in available_packages and package.lower() != "lcl"
+        )
     sources = sorted(str(p.relative_to(root)) for p in root.rglob("*.pas") if p.is_file())
     return {"projects": projects, "pascal_source_count": len(sources),
             "pascal_sources": sources, "missing_project": not any(p["kind"] == ".lpi" for p in projects)}
@@ -57,6 +63,8 @@ def main():
                 print("  XML ERROR:", p["error"])
             for package in p["packages"]:
                 print("  package:", package)
+            for package in p["external_packages"]:
+                print("  external package (verify installation):", package)
         if result["missing_project"]:
             print("WARNING: No Lazarus .lpi project found")
     return 1 if result["missing_project"] or any(p["error"] for p in result["projects"]) else 0
