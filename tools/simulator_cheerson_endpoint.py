@@ -10,6 +10,7 @@ import json
 import math
 import select
 import socket
+import threading
 import time
 
 
@@ -28,6 +29,10 @@ class CheersonEndpoint:
         self.state = dict(roll=0., pitch=0., throttle=0., yaw=0.,
                           battery_pct=100., altitude_m=0.)
         self.last_command = 0.
+        self.lock = threading.Lock()
+        self.physics_stop = threading.Event()
+        self.physics_thread = None
+        self.physics_port = None
 
     def command(self, data):
         if len(data) != 8 or data[0] != 0xCC or data[7] != 0x33:
@@ -37,11 +42,12 @@ class CheersonEndpoint:
             checksum ^= b
         if checksum != data[6]:
             return
-        self.state.update(roll=(data[1] - 127) / 128,
-                          pitch=(data[2] - 127) / 128,
-                          throttle=data[3] / 255,
-                          yaw=(data[4] - 127) / 128)
-        self.last_command = time.monotonic()
+        with self.lock:
+            self.state.update(roll=(data[1] - 127) / 128,
+                              pitch=(data[2] - 127) / 128,
+                              throttle=data[3] / 255,
+                              yaw=(data[4] - 127) / 128)
+            self.last_command = time.monotonic()
 
     def update_state(self, data):
         try:
@@ -56,7 +62,21 @@ class CheersonEndpoint:
         except (ValueError, TypeError, UnicodeDecodeError):
             pass
 
+    def physics_loop(self, port):
+        sender = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            while not self.physics_stop.wait(0.05):
+                with self.lock:
+                    snapshot = dict(self.state)
+                sender.sendto(json.dumps(snapshot).encode('utf-8'), ('127.0.0.1', port))
+        finally:
+            sender.close()
+
     def run(self):
+        if self.physics_port is not None:
+            self.physics_thread = threading.Thread(target=self.physics_loop,
+                args=(self.physics_port,), daemon=True)
+            self.physics_thread.start()
         while True:
             watched = [self.tcp, self.udp, self.state_socket] + list(self.connections)
             readable, _, _ = select.select(watched, [], [], 0.05)
@@ -91,7 +111,8 @@ class CheersonEndpoint:
                         self.connections.pop(sock, None)
                         sock.close()
             if self.last_command and time.monotonic() - self.last_command > 0.5:
-                self.state.update(roll=0., pitch=0., throttle=0., yaw=0.)
+                with self.lock:
+                    self.state.update(roll=0., pitch=0., throttle=0., yaw=0.)
 
 
 if __name__ == "__main__":
@@ -100,5 +121,9 @@ if __name__ == "__main__":
     parser.add_argument("--tcp-port", type=int, default=8888)
     parser.add_argument("--udp-port", type=int, default=8895)
     parser.add_argument("--state-port", type=int, default=14562)
+    parser.add_argument("--physics-port", type=int, default=None,
+                        help="send normalized controls as JSON to local simulator UDP port")
     args = parser.parse_args()
-    CheersonEndpoint(args.host, args.tcp_port, args.udp_port, args.state_port).run()
+    endpoint = CheersonEndpoint(args.host, args.tcp_port, args.udp_port, args.state_port)
+    endpoint.physics_port = args.physics_port
+    endpoint.run()
