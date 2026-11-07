@@ -4,10 +4,13 @@ unit simulator_multiplayer_client;
 
 interface
 
-uses Classes, SysUtils, fphttpclient, fpjson, jsonparser;
+uses Classes, SysUtils, fphttpclient, fpjson, jsonparser, opensslsockets;
 
 type
-  EMultiplayerAPI = class(Exception);
+  EMultiplayerAPI = class(Exception)
+  public
+    StatusCode: Integer;
+  end;
   TSimulatorMultiplayerClient = class
   private
     FBaseURL, FToken: string;
@@ -36,6 +39,8 @@ begin
   while (Length(FBaseURL) > 0) and (FBaseURL[Length(FBaseURL)] = '/') do
     Delete(FBaseURL, Length(FBaseURL), 1);
   FHTTP := TFPHTTPClient.Create(nil);
+  FHTTP.ConnectTimeout := 1500;
+  FHTTP.IOTimeout := 1500;
   FHTTP.AddHeader('Accept', 'application/json');
 end;
 
@@ -51,6 +56,7 @@ var
   Response: TStringStream;
   Input: TStringStream;
   TextBody: string;
+  Failure: EMultiplayerAPI;
 begin
   Result := nil;
   Response := TStringStream.Create('');
@@ -74,8 +80,12 @@ begin
       Result := GetJSON(Response.DataString);
     except
       on E: Exception do
-        raise EMultiplayerAPI.Create('Multiplayer ' + AMethod + ' /' +
+      begin
+        Failure := EMultiplayerAPI.Create('Multiplayer ' + AMethod + ' /' +
           AEndpoint + ': ' + E.Message);
+        Failure.StatusCode := FHTTP.ResponseStatusCode;
+        raise Failure;
+      end;
     end;
   finally
     FHTTP.RequestBody := nil;

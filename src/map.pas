@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   StdCtrls, BCGameGrid, mvTypes, BGRABitmap, BGRABitmapTypes, Math, mvEngine,
-  mvGpsObj, mvDrawingEngine, mvMapViewer, objetos, flightplan, LCLIntf;
+  mvGpsObj, mvDrawingEngine, mvMapViewer, objetos, flightplan, LCLIntf, multiplayer_state;
 
 type
 
@@ -48,6 +48,7 @@ type
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
 
   private
+    FParticipantLabels: array of TLabel;
     FMouseIni: TPoint;
     FMousePressionado: Boolean;
     FDroneCol: Integer;
@@ -78,6 +79,7 @@ type
     procedure CliqueNoMapa(Shift: TShiftState; X, Y: Integer);
 
   public
+    procedure SetParticipants(const Items: TParticipants);
     procedure CentralizaMapa(const ALatitude, ALongitude: Double);
     procedure PosicionaDroneNoGrid(ACol, ARow: Integer);
     procedure AtualizaDrone(const ALatitude, ALongitude: Double; ACol, ARow: Integer);
@@ -113,6 +115,38 @@ const
   MAPA_INICIAL_ZOOM = 13;
 
 { TfrmMap }
+
+procedure TfrmMap.SetParticipants(const Items: TParticipants);
+var I: Integer; P: TPoint;
+begin
+  while Length(FParticipantLabels) > Length(Items) do
+  begin
+    FParticipantLabels[High(FParticipantLabels)].Free;
+    SetLength(FParticipantLabels, Length(FParticipantLabels)-1);
+  end;
+  while Length(FParticipantLabels) < Length(Items) do
+  begin
+    I := Length(FParticipantLabels);
+    SetLength(FParticipantLabels, I+1);
+    FParticipantLabels[I] := TLabel.Create(Self);
+    FParticipantLabels[I].Parent := Self;
+    FParticipantLabels[I].Font.Color := clYellow;
+    FParticipantLabels[I].Color := clBlack;
+    FParticipantLabels[I].Transparent := False;
+  end;
+  for I := 0 to High(Items) do
+  begin
+    P := MapView1.LatLonToScreen(Items[I].Lat, Items[I].Lon);
+    with FParticipantLabels[I] do
+    begin
+      Caption := Format('* %s (%.0f m)', [Items[I].Name, Items[I].Distance]);
+      Left := MapView1.Left + P.X; Top := MapView1.Top + P.Y;
+      Visible := (P.X >= 0) and (P.Y >= 0) and
+        (P.X < MapView1.Width) and (P.Y < MapView1.Height);
+      BringToFront;
+    end;
+  end;
+end;
 
 procedure TfrmMap.AtualizaReferenciaPorObjetoZero;
 begin
@@ -451,7 +485,7 @@ var
   BaseURL, APIKey, Lat, Lon: string;
   FS: TFormatSettings;
 begin
-  // Serve web/google_maps_simulator.html over HTTP(S), not file://.
+  // Serve PHP/google_maps_simulator.html over HTTP(S), not file://.
   // Google Maps JavaScript API keys must be restricted to allowed origins.
   BaseURL := Trim(GetEnvironmentVariable('COCKPIT_GOOGLE_MAPS_URL'));
   APIKey := Trim(GetEnvironmentVariable('COCKPIT_GOOGLE_MAPS_API_KEY'));

@@ -1,0 +1,16 @@
+# Saídas de compilação
+src/lib/
+src/backup/
+/simulador
+testes/*.o
+testes/*.ppu
+testes/sim_console
+testes/sim_console.exe
+testes/mundo_console
+testes/mundo_console.exe
+# Preferências e cache ficam na pasta do usuário, mas por garantia:
+simulador.ini
+cache_mapas/
+# Servidor: configuração local e banco SQLite
+servidor_mundo/config.php
+servidor_mundo/dados/

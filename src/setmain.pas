@@ -20,6 +20,7 @@ type
     PortaUDP: Integer;           // comando
     Video: Boolean;
     FFmpeg: string;              // '' = procura ao lado do programa e no PATH
+    Simulado: Boolean;           // True = conecta no simulador local (127.0.0.1)
   end;
 
   { Parrot AR.Drone 2.0 (seção [ARDRONE] do drone.cfg). }
@@ -315,6 +316,7 @@ begin
   CX10W.PortaUDP := 8895;
   CX10W.Video := True;
   CX10W.FFmpeg := '';
+  CX10W.Simulado := False;
 
   // Parrot AR.Drone 2.0
   ARDrone.IP := '192.168.1.1';
@@ -445,6 +447,7 @@ begin
     CX10W.PortaUDP := Ini.ReadInteger('CX10W', 'PORTA_UDP', CX10W.PortaUDP);
     CX10W.Video := Ini.ReadBool('CX10W', 'VIDEO', CX10W.Video);
     CX10W.FFmpeg := Ini.ReadString('CX10W', 'FFMPEG', CX10W.FFmpeg);
+    CX10W.Simulado := Ini.ReadBool('CX10W', 'SIMULADO', CX10W.Simulado);
 
     // Parrot AR.Drone 2.0
     ARDrone.IP := Ini.ReadString('ARDRONE', 'IP', ARDrone.IP);
@@ -566,6 +569,7 @@ begin
     Ini.WriteInteger('CX10W', 'PORTA_UDP', CX10W.PortaUDP);
     Ini.WriteBool('CX10W', 'VIDEO', CX10W.Video);
     Ini.WriteString('CX10W', 'FFMPEG', CX10W.FFmpeg);
+    Ini.WriteBool('CX10W', 'SIMULADO', CX10W.Simulado);
 
     // Parrot AR.Drone 2.0
     Ini.WriteString('ARDRONE', 'IP', ARDrone.IP);

@@ -95,15 +95,21 @@ type
     procedure CriaAbaOpendrone;
     procedure CriaAbaARDrone;
     procedure CriaAbaESP32Drone;
+    function GetModelConfigPath: string;
+    procedure SelecionaModeloPorProtocolo(AProtoIdx: Integer);
     procedure CarregaCatalogo;
     procedure MarcaAlterada(Sender: TObject);
     procedure ModeloAlterado(Sender: TObject);
     procedure SelecionaModeloSalvo;
     procedure IdiomaAlterado(Sender: TObject);
     procedure CarregaIdioma;
+    procedure CX10WSimuladoClick(Sender: TObject);
 
   public
     TipoAtivo: Integer;
+    lblProtocol: TLabel;
+    lblMarca: TLabel;
+    lblModelo: TLabel;
     cbProtocol: TComboBox;
     cbMarca: TComboBox;
     cbModelo: TComboBox;
@@ -114,6 +120,7 @@ type
     FCarregandoModelo: Boolean;
 
     // Dynamic tabs and edits
+    ckCX10WSimulado: TCheckBox;
     tsMavlink: TTabSheet;
     edMavIP: TEdit;
     edMavPort: TEdit;
@@ -335,11 +342,15 @@ begin
   OnShow := @FormShow;
   OnClose := @FormClose;
 
+  lblProtocol := TLabel.Create(Self);
+  lblProtocol.Parent := tsEquipamento;
+  lblProtocol.Caption := 'Protocolo de Comunicação:';
+  lblProtocol.Font.Style := [fsBold];
+  lblProtocol.SetBounds(16, 12, 320, 16);
+
   cbProtocol := TComboBox.Create(Self);
   cbProtocol.Parent := tsEquipamento;
-  cbProtocol.Left := edIP.Left;
-  cbProtocol.Width := edIP.Width;
-  cbProtocol.Top := edIP.Top + edIP.Height + 10;
+  cbProtocol.SetBounds(16, 30, 320, 24);
   cbProtocol.Style := csDropDownList;
   cbProtocol.Items.Add('Cheerson CX-10W');
   cbProtocol.Items.Add('MAVLink (ArduPilot/PX4)');
@@ -359,32 +370,38 @@ begin
 
   cbProtocol.OnChange := @cbProtocolChange;
 
+  lblMarca := TLabel.Create(Self);
+  lblMarca.Parent := tsEquipamento;
+  lblMarca.Caption := 'Fabricante / Marca:';
+  lblMarca.Font.Style := [fsBold];
+  lblMarca.SetBounds(16, 64, 320, 16);
+
   cbMarca := TComboBox.Create(Self);
   cbMarca.Parent := tsEquipamento;
-  cbMarca.SetBounds(cbProtocol.Left, cbProtocol.Top + 38, cbProtocol.Width, 24);
+  cbMarca.SetBounds(16, 82, 320, 24);
   cbMarca.Style := csDropDownList;
   cbMarca.OnChange := @MarcaAlterada;
+
+  lblModelo := TLabel.Create(Self);
+  lblModelo.Parent := tsEquipamento;
+  lblModelo.Caption := 'Modelo do Drone:';
+  lblModelo.Font.Style := [fsBold];
+  lblModelo.SetBounds(16, 116, 320, 16);
+
   cbModelo := TComboBox.Create(Self);
   cbModelo.Parent := tsEquipamento;
-  cbModelo.SetBounds(cbProtocol.Left, cbProtocol.Top + 70, cbProtocol.Width, 24);
+  cbModelo.SetBounds(16, 134, 320, 24);
   cbModelo.Style := csDropDownList;
   cbModelo.OnChange := @ModeloAlterado;
+
   lblModeloStatus := TLabel.Create(Self);
   lblModeloStatus.Parent := tsEquipamento;
-  lblModeloStatus.SetBounds(cbProtocol.Left, cbProtocol.Top + 101, cbProtocol.Width + 140, 40);
+  lblModeloStatus.SetBounds(16, 170, 420, 60);
   lblModeloStatus.AutoSize := False;
   lblModeloStatus.WordWrap := True;
+
   CarregaCatalogo;
   SelecionaModeloSalvo;
-
-  with TLabel.Create(Self) do
-  begin
-    Parent := tsEquipamento;
-    Left := cbProtocol.Left - 85;
-    Top := cbProtocol.Top + 3;
-    Caption := 'Protocol:';
-    Font.Style := [fsBold];
-  end;
 
   // Create tsMavlink
   tsMavlink := TTabSheet.Create(Self);
@@ -438,8 +455,25 @@ begin
   CriaAbaESP32Drone;
 
   TabSheet1.Caption := 'Cheerson CX-10W';
+  ckCX10WSimulado := CriaOpcao(TabSheet1, 8, 175, 'Simulado (conecta no simulador local 127.0.0.1)', 'ckCX10WSimulado');
+  ckCX10WSimulado.OnClick := @CX10WSimuladoClick;
 
   CarregarValoresTela;
+end;
+
+procedure Tfrmconfig.CX10WSimuladoClick(Sender: TObject);
+begin
+  MarcaAlterada(Sender);
+  if Assigned(ckCX10WSimulado) and ckCX10WSimulado.Checked then
+  begin
+    if (Trim(edIP.Text) = '') or (Trim(edIP.Text) = '172.16.10.1') then
+      edIP.Text := '127.0.0.1';
+  end
+  else
+  begin
+    if Trim(edIP.Text) = '127.0.0.1' then
+      edIP.Text := '172.16.10.1';
+  end;
 end;
 
 function Tfrmconfig.CriaCampo(AParent: TWinControl; ALeft, ATop, AWidth: Integer;
@@ -656,45 +690,133 @@ begin
   end;
 end;
 
-procedure Tfrmconfig.CarregaCatalogo;
+function Tfrmconfig.GetModelConfigPath: string;
 var
-  P: string;
+  Dir: string;
+begin
+  Dir := IncludeTrailingPathDelimiter(GetAppConfigDir(False));
+  if not DirectoryExists(Dir) then
+    ForceDirectories(Dir);
+  Result := Dir + 'drone_model.ini';
+  if not FileExists(Result) and FileExists(ExtractFilePath(Application.ExeName) + 'drone_model.ini') then
+    Result := ExtractFilePath(Application.ExeName) + 'drone_model.ini';
+end;
+
+procedure Tfrmconfig.SelecionaModeloPorProtocolo(AProtoIdx: Integer);
+var
+  I, Idx: Integer;
+  O: TJSONObject;
+  Marca, Modelo: string;
+begin
+  if not Assigned(FCatalogo) or (AProtoIdx < 0) then Exit;
+  Marca := '';
+  Modelo := '';
+  for I := 0 to FCatalogo.Count - 1 do
+  begin
+    O := FCatalogo.Objects[I];
+    Idx := O.Get('cockpit_protocol_index', -1);
+    if Idx = AProtoIdx then
+    begin
+      Marca := O.Get('brand', '');
+      Modelo := O.Get('model', '');
+      Break;
+    end;
+  end;
+  if Marca <> '' then
+  begin
+    FCarregandoModelo := True;
+    try
+      cbMarca.ItemIndex := cbMarca.Items.IndexOf(Marca);
+      cbModelo.Items.Clear;
+      for I := 0 to FCatalogo.Count - 1 do
+        if FCatalogo.Objects[I].Get('brand', '') = Marca then
+          cbModelo.Items.Add(FCatalogo.Objects[I].Get('model', ''));
+      cbModelo.ItemIndex := cbModelo.Items.IndexOf(Modelo);
+      if (cbModelo.ItemIndex < 0) and (cbModelo.Items.Count > 0) then
+        cbModelo.ItemIndex := 0;
+    finally
+      FCarregandoModelo := False;
+    end;
+    if cbModelo.ItemIndex >= 0 then
+      lblModeloStatus.Caption := 'Modelo selecionado: ' + cbMarca.Text + ' ' + cbModelo.Text;
+  end
+  else if (cbMarca.ItemIndex < 0) and (cbMarca.Items.Count > 0) then
+  begin
+    cbMarca.ItemIndex := 0;
+    MarcaAlterada(nil);
+  end;
+end;
+
+procedure Tfrmconfig.CarregaCatalogo;
+const
+  JSON_CATALOGO_FALLBACK =
+    '{"models":[' +
+    '{"brand":"Cheerson","model":"CX-10W","cockpit_protocol_index":0},' +
+    '{"brand":"Ryze","model":"Tello","cockpit_protocol_index":2},' +
+    '{"brand":"Parrot","model":"AR.Drone 2.0","cockpit_protocol_index":5},' +
+    '{"brand":"FQ777","model":"954","cockpit_protocol_index":4},' +
+    '{"brand":"Maurinsoft","model":"Drone ESP32 (CDP)","cockpit_protocol_index":6},' +
+    '{"brand":"Espressif","model":"ESP-Drone / OpenDrone","cockpit_protocol_index":3},' +
+    '{"brand":"ArduPilot / PX4","model":"MAVLink Genérico","cockpit_protocol_index":1}' +
+    ']}';
+var
+  P, BaseDir, JsonTexto: string;
   J, Models: TJSONData;
   I: Integer;
   Marca: string;
 begin
   FCatalogo := nil;
-  P := ExtractFilePath(Application.ExeName) + 'data' + PathDelim + 'drone_models.json';
+  BaseDir := ExtractFilePath(Application.ExeName);
+  P := BaseDir + 'data' + PathDelim + 'drone_models.json';
   if not FileExists(P) then
-    P := ExtractFilePath(Application.ExeName) + 'drone_models.json';
+    P := BaseDir + 'drone_models.json';
   if not FileExists(P) then
-    P := ExpandFileName(ExtractFilePath(Application.ExeName) + '..' + PathDelim + 'data' + PathDelim + 'drone_models.json');
+    P := ExpandFileName(BaseDir + '..' + PathDelim + 'data' + PathDelim + 'drone_models.json');
   if not FileExists(P) then
+    P := ExpandFileName(BaseDir + '..' + PathDelim + 'drone_models.json');
+  if not FileExists(P) then
+    P := ExpandFileName(BaseDir + '..' + PathDelim + '..' + PathDelim + 'data' + PathDelim + 'drone_models.json');
+  if not FileExists(P) then
+    P := IncludeTrailingPathDelimiter(GetAppConfigDir(False)) + 'drone_models.json';
+  if not FileExists(P) then
+    P := IncludeTrailingPathDelimiter(GetAppConfigDir(False)) + 'data' + PathDelim + 'drone_models.json';
+
+  JsonTexto := '';
+  if FileExists(P) then
   begin
-    lblModeloStatus.Caption := 'Catalogo nao encontrado: data/drone_models.json';
-    Exit;
-  end;
-  try
     with TStringList.Create do
     try
       LoadFromFile(P);
-      J := GetJSON(Text);
+      JsonTexto := Text;
     finally
       Free;
     end;
+  end
+  else
+    JsonTexto := JSON_CATALOGO_FALLBACK;
+
+  try
+    J := GetJSON(JsonTexto);
     try
-      if J.JSONType <> jtObject then Exit;
-      Models := J.FindPath('models');
-      if (Models = nil) or (Models.JSONType <> jtArray) then
-        raise Exception.Create('Campo models ausente ou invalido');
-      FCatalogo := TJSONArray(Models.Clone);
+      if J.JSONType = jtObject then
+      begin
+        Models := J.FindPath('models');
+        if (Models <> nil) and (Models.JSONType = jtArray) then
+          FCatalogo := TJSONArray(Models.Clone);
+      end;
     finally
       J.Free;
     end;
-    for I := 0 to FCatalogo.Count - 1 do
+
+    cbMarca.Items.Clear;
+    if Assigned(FCatalogo) then
     begin
-      Marca := FCatalogo.Objects[I].Get('brand', '');
-      if cbMarca.Items.IndexOf(Marca) < 0 then cbMarca.Items.Add(Marca);
+      for I := 0 to FCatalogo.Count - 1 do
+      begin
+        Marca := FCatalogo.Objects[I].Get('brand', '');
+        if (Marca <> '') and (cbMarca.Items.IndexOf(Marca) < 0) then
+          cbMarca.Items.Add(Marca);
+      end;
     end;
   except
     on E: Exception do
@@ -714,8 +836,12 @@ begin
   for I := 0 to FCatalogo.Count - 1 do
     if FCatalogo.Objects[I].Get('brand', '') = cbMarca.Text then
       cbModelo.Items.Add(FCatalogo.Objects[I].Get('model', ''));
-  cbModelo.ItemIndex := -1;
-  lblModeloStatus.Caption := 'Selecione o modelo.';
+  if (cbModelo.Items.Count > 0) and (cbModelo.ItemIndex < 0) then
+    cbModelo.ItemIndex := 0;
+  if not FCarregandoModelo and (cbModelo.ItemIndex >= 0) then
+    ModeloAlterado(nil)
+  else
+    lblModeloStatus.Caption := 'Selecione o modelo.';
 end;
 
 procedure Tfrmconfig.ModeloAlterado(Sender: TObject);
@@ -748,11 +874,17 @@ begin
     else
     begin
       cbProtocol.ItemIndex := Idx;
-      cbProtocolChange(cbProtocol);
+      if Assigned(FSetMain) then
+      begin
+        FSetMain.DroneProtocolo := Idx;
+        TipoAtivo := Idx;
+        AtualizaAbasProtocolo;
+        SalvarConfiguracoes;
+      end;
       lblModeloStatus.Caption := 'Protocolo selecionado: ' + cbProtocol.Text +
         '. Verifique compatibilidade do equipamento antes de conectar.';
     end;
-    P := ExtractFilePath(Application.ExeName) + 'drone_model.ini';
+    P := GetModelConfigPath;
     Ini := TIniFile.Create(P);
     try
       Ini.WriteString('MODEL', 'BRAND', cbMarca.Text);
@@ -769,22 +901,49 @@ var
   Ini: TIniFile;
   Marca, Modelo: string;
 begin
-  Ini := TIniFile.Create(ExtractFilePath(Application.ExeName) + 'drone_model.ini');
-  try
-    Marca := Ini.ReadString('MODEL', 'BRAND', '');
-    Modelo := Ini.ReadString('MODEL', 'NAME', '');
-  finally
-    Ini.Free;
+  Marca := '';
+  Modelo := '';
+  if FileExists(GetModelConfigPath) then
+  begin
+    Ini := TIniFile.Create(GetModelConfigPath);
+    try
+      Marca := Ini.ReadString('MODEL', 'BRAND', '');
+      Modelo := Ini.ReadString('MODEL', 'NAME', '');
+    finally
+      Ini.Free;
+    end;
   end;
-  FCarregandoModelo := True;
-  try
-    cbMarca.ItemIndex := cbMarca.Items.IndexOf(Marca);
-    MarcaAlterada(nil);
-    cbModelo.ItemIndex := cbModelo.Items.IndexOf(Modelo);
-  finally
-    FCarregandoModelo := False;
+
+  if (Marca <> '') and (cbMarca.Items.IndexOf(Marca) >= 0) then
+  begin
+    FCarregandoModelo := True;
+    try
+      cbMarca.ItemIndex := cbMarca.Items.IndexOf(Marca);
+      MarcaAlterada(nil);
+      cbModelo.ItemIndex := cbModelo.Items.IndexOf(Modelo);
+      if (cbModelo.ItemIndex < 0) and (cbModelo.Items.Count > 0) then
+        cbModelo.ItemIndex := 0;
+    finally
+      FCarregandoModelo := False;
+    end;
+    if cbModelo.ItemIndex >= 0 then
+      ModeloAlterado(nil);
+  end
+  else
+  begin
+    if Assigned(cbProtocol) and (cbProtocol.ItemIndex >= 0) then
+      SelecionaModeloPorProtocolo(cbProtocol.ItemIndex)
+    else if cbMarca.Items.Count > 0 then
+    begin
+      cbMarca.ItemIndex := 0;
+      MarcaAlterada(nil);
+      if cbModelo.Items.Count > 0 then
+      begin
+        cbModelo.ItemIndex := 0;
+        ModeloAlterado(nil);
+      end;
+    end;
   end;
-  if cbModelo.ItemIndex >= 0 then ModeloAlterado(nil);
 end;
 
 procedure Tfrmconfig.cbProtocolChange(Sender: TObject);
@@ -796,6 +955,8 @@ begin
     AtualizaAbasProtocolo;
     SalvarConfiguracoes;
   end;
+  if not FCarregandoModelo and Assigned(cbProtocol) then
+    SelecionaModeloPorProtocolo(cbProtocol.ItemIndex);
 end;
 
 procedure Tfrmconfig.Label4Click(Sender: TObject);
@@ -982,8 +1143,12 @@ begin
     cbProtocol.ItemIndex := FSetMain.DroneProtocolo;
     TipoAtivo := FSetMain.DroneProtocolo;
   end;
+  if (cbMarca.ItemIndex < 0) or (cbModelo.ItemIndex < 0) then
+    SelecionaModeloSalvo;
 
   // Aba do Cheerson CX-10W: seção própria [CX10W].
+  if Assigned(ckCX10WSimulado) then
+    ckCX10WSimulado.Checked := FSetMain.CX10W.Simulado;
   edIP.Text := FSetMain.CX10W.IP;
   edTCPPORT.Text := IntToStr(FSetMain.CX10W.PortaTCP);
   edUDPPORT.Text := IntToStr(FSetMain.CX10W.PortaUDP);
@@ -1070,7 +1235,11 @@ begin
     0:
       begin
         // Cheerson CX-10W: não altera a seção [DRONE] dos outros protocolos.
-        if Trim(edIP.Text) <> '' then
+        if Assigned(ckCX10WSimulado) then
+          FSetMain.CX10W.Simulado := ckCX10WSimulado.Checked;
+        if FSetMain.CX10W.Simulado and ((Trim(edIP.Text) = '') or (Trim(edIP.Text) = '172.16.10.1')) then
+          FSetMain.CX10W.IP := '127.0.0.1'
+        else if Trim(edIP.Text) <> '' then
           FSetMain.CX10W.IP := Trim(edIP.Text);
         if TryStrToInt(Trim(edTCPPORT.Text), Val) and (Val > 0) then
           FSetMain.CX10W.PortaTCP := Val;

@@ -14,7 +14,7 @@ class MapSources(unittest.TestCase):
         self.assertIn("procedure TfrmMap.DefineCameraSegueDrone", source)
 
     def test_google_uses_official_api(self):
-        html = (ROOT / 'web/google_maps_simulator.html').read_text(encoding='utf-8')
+        html = (ROOT / 'PHP/google_maps_simulator.html').read_text(encoding='utf-8')
         self.assertIn('maps.googleapis.com/maps/api/js', html)
         self.assertIn("if(!key)", html)
         self.assertIn("new google.maps.Map", html)

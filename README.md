@@ -25,16 +25,19 @@ Este projeto, desenvolvido em Object Pascal (Lazarus/Free Pascal), constitui uma
   Interface para configuração dos parâmetros de comunicação e seleção do joystick. Permite a visualização e teste em tempo real dos eixos e botões do controlador, integrando-se com a interface principal.
 
 - **joystick.pas**  
-  Arquivo atualmente vazio, reservado para implementações futuras relacionadas ao joystick.
+  Gerenciamento de joysticks e controles físicos (DirectInput / SDL), com leitura de eixos analógicos, mapeamento de botões, calibração e tratamento de zonas mortas em tempo real.
 
 - **gps.pas**  
   Formulário responsável pela leitura de dados GPS via porta serial, decodificação das sentenças NMEA e apresentação das informações de localização, satélites e qualidade do sinal.
 
 - **camera.pas**  
-  Formulário visual com grade customizada, imagem e etiquetas para apresentação de dados da câmera. Não possui lógica implementada atualmente.
+  Exibição e captura de vídeo ao vivo do drone (decodificação H.264 / streaming via FFmpeg) e recepção de imagens sintéticas do simulador 3D local (`cockpit_sim_camera.bmp`). Inclui retículo de mira, medição de FPS e gravação de vídeo.
 
 - **map.pas**  
-  Formulário com componente de grade para exibição de mapa ou área visual, sem lógica funcional implementada.
+  Mapeamento geoespacial interativo baseado em OpenStreetMap (MapViewer), com rastreamento da trajetória do drone em tempo real, plotagem de waypoints de rotas de voo e geocercas (geofence).
+
+- **Simulador 3D Oficial (`simulador/`)**  
+  O executável autônomo na pasta `simulador/` (`simulador.lpi`) é o simulador de voo 3D oficial do Cockpit Drone, com física 6DOF, geração de câmera sintética compartilhada e integração multiplayer. As unidades `src/simulator_*.pas` no cockpit atuam como pontes internas de telemetria e testes de protocolo.
 
 - **Protocolos dos drones**  
   Os protocolos não ficam mais no cockpit: são componentes da [Lazarus AI Suite (CHATGPT)](https://github.com/marcelomaurin/CHATGPT), pacote `openai_drone`, reaproveitáveis em outras aplicações:
@@ -114,7 +117,7 @@ Com os comandos no centro o drone paira no lugar. Ao desligar, o cockpit manda o
 
 ### Drone ESP32 (firmware Cockpit)
 
-A pasta [`firmware/esp32_drone`](firmware/esp32_drone) traz o firmware de um mini quadricóptero com ESP32 + MPU6050 + motores escovados, e o protocolo **CDP** ([PROTOCOLO.md](firmware/esp32_drone/PROTOCOLO.md)). Grave o firmware, conecte o PC na rede `CockpitDrone-XXXX` (senha `cockpit123`) e selecione **Drone ESP32 (firmware Cockpit)**.
+A pasta [`firmware/esp32_drone`](firmware/esp32_drone) traz o firmware de um mini quadricóptero com ESP32 + MPU6050 + motores escovados, e o protocolo **CDP** ([PROTOCOLO.md](firmware/esp32_drone/PROTOCOLO.md)). Grave o firmware, conecte o PC na rede `CockpitDrone-XXXX` (senha derivada do MAC `cpXXXXXXXX` impressa na serial, ou configurável em `config.h`) e selecione **Drone ESP32 (firmware Cockpit)**.
 
 Botão 3 arma (só com a aceleração no mínimo), botão 4 desarma; a janela do drone tem **CORTE DOS MOTORES** e **Calibrar**. O firmware corta os motores se perder o sinal por 500 ms (descida de 2 s) ou se o drone capotar. Leia o [README do firmware](firmware/esp32_drone/README.md) e faça o primeiro teste **sem hélices**.
 
@@ -140,16 +143,18 @@ As opções ficam na seção `[ROTA]` do `drone.cfg` e a conexão MAVLink na se�
 
 ### Funcionalidades Atuais
 
-- Interface gráfica principal para controle e monitoramento do drone e dispositivos periféricos.  
-- Visualização e configuração em tempo real dos estados do joystick.  
-- Leitura e decodificação de dados GPS via porta serial.  
-- Comunicação TCP/UDP para envio de comandos ao drone e monitoramento da conexão.  
-- Interfaces visuais básicas para câmera e mapa (sem lógica implementada).  
-- Utilitário para mapeamento linear de sinais analógicos.
+- Interface gráfica principal com laço de controle em thread dedicada desacoplada da interface de usuário.
+- Proteção contra perda de sinal, retorno suave ao pairar e tecla de corte/pânico imediato (Espaço).
+- Visualização e calibração de joystick em tempo real com mapeamento de eixos e botões.
+- Leitura e decodificação contínua de dados GPS (NMEA).
+- Comunicação TCP/UDP resiliente com tratamento de exceções para múltiplos protocolos (CX-10W, FQ777, Tello, MAVLink, AR.Drone, ESP32 CDP).
+- Câmera em tempo real com decodificação de vídeo H.264 e modo câmera sintética do simulador.
+- Mapa OpenStreetMap integrado com rastreamento de trajeto, waypoints e geocerca.
+- Simulador 3D autônomo com aerodinâmica, câmera em tempo real e multiplayer online/local.
 
 ### Avaliação do Momento Atual do Desenvolvimento
 
-O projeto está em estágio intermediário, com base do sistema e integração dos dispositivos principais funcionando. Interfaces principais e módulo de configuração operam adequadamente para joystick e comunicação de drone. GPS está parcialmente implementado com decodificação e apresentação básica. Módulos como joystick.pas e formulários de câmera e mapa carecem de código funcional. A função de mapeamento existe, porém sem tratamento robusto de erros. Recomenda-se progresso em robustez, tratamento de exceções e complementação funcional.
+O projeto possui arquitetura consolidada e foco em segurança de voo: o laço de envio de comandos roda de forma independente da UI (evitando travamentos em modais), as janelas de câmera e mapa operam com renderização contínua e telemetria sincronizada, e o ecossistema inclui simulador 3D completo e servidor multiplayer dedicado.
 
 ### Contato
 
@@ -183,16 +188,19 @@ This project, developed in Object Pascal (Lazarus/Free Pascal), is an applicatio
   Provides configuration interface for communication parameters and joystick selection. Allows real-time viewing and testing of joystick axes and buttons, integrated with the main interface.
 
 - **joystick.pas**  
-  Currently empty file, reserved for future joystick-related implementations.
+  Physical joystick and gamepad management (DirectInput / SDL), providing real-time axis polling, button mapping, calibration, and deadzone adjustment.
 
 - **gps.pas**  
   Form responsible for reading GPS data from serial port, decoding NMEA sentences, and displaying location, satellite, and signal quality information.
 
 - **camera.pas**  
-  Visual form with custom grid, image and labels for camera data display. Currently has no implemented logic.
+  Real-time video display and capture (H.264 decoding / FFmpeg streaming) and synthetic camera frames from the 3D simulator (`cockpit_sim_camera.bmp`). Features crosshair overlay, FPS tracking, and video recording.
 
 - **map.pas**  
-  Form with grid component for map or visual area display, without functional logic implemented yet.
+  Interactive geospatial mapping using OpenStreetMap (MapViewer), featuring real-time flight path tracking, waypoint navigation, and geofencing.
+
+- **Official 3D Simulator (`simulador/`)**  
+  Standalone 3D flight simulator project located in `simulador/` (`simulador.lpi`), providing 6DOF flight dynamics, shared synthetic video frames, and multiplayer support. Units `src/simulator_*.pas` serve as internal telemetry bridges.
 
 - **Drone protocols**  
   The protocols live in the [Lazarus AI Suite (CHATGPT)](https://github.com/marcelomaurin/CHATGPT) `openai_drone` package, so other applications can reuse them: `TAIDroneCX10W`, `TAIDroneMavlink`, `TAIDroneTello`, `TAIDroneESPDrone`, `TAIDroneFQ777`, `TAIDroneARDrone` and `TAIDroneCDP`. The cockpit windows (`conection*.pas`) share the base `conexaodrone.pas` and only configure their component and forward the sticks.
@@ -214,16 +222,18 @@ This project, developed in Object Pascal (Lazarus/Free Pascal), is an applicatio
 
 ### Current Features
 
-- Main GUI for drone and peripheral control and monitoring.  
-- Real-time visualization and configuration of joystick states.  
-- GPS data reading and NMEA decoding from serial port.  
-- TCP/UDP communication for sending commands and monitoring the drone.  
-- Basic camera and map visual interfaces (without implemented logic).  
-- Utility for linear mapping of analog signals.
+- Main GUI with decoupled dedicated control thread isolated from UI freezes.
+- Failsafe signal protection, auto-hover recentering, and panic/kill switch (Space bar).
+- Real-time joystick visualization, calibration, axis mapping, and deadzone configuration.
+- Serial GPS data streaming and NMEA decoding.
+- Resilient TCP/UDP communication and robust exception handling across multiple drone protocols.
+- Live camera with H.264 video decoding and shared memory synthetic simulator feed.
+- Integrated OpenStreetMap with real-time breadcrumbs, flight plan waypoints, and geofence.
+- Standalone 3D flight simulator with aerodynamic simulation and local/remote multiplayer.
 
 ### Current Development Status
 
-The project is in an intermediate phase, with basic system infrastructure and main device integrations operational. The main UI and configuration module function for joystick and drone communication. GPS functionality includes basic decoding and display. Modules like joystick.pas and camera/map forms lack functional code. The mapping function exists but lacks robust error handling. Development should focus on robustness, exception handling, and feature completion.
+The project features a mature and flight-safe architecture: control commands run on a dedicated worker thread, camera and map modules are fully operational with live data, and the platform includes a complete 3D simulator and multiplayer infrastructure.
 
 ### Contact
 
@@ -310,3 +320,20 @@ Este proyecto está bajo una licencia libre, permitiendo uso, modificación y di
 [https://maurinsoft.com.br/wp/projetos-open-source/projeto-cockpit-drone/](https://maurinsoft.com.br/wp/projetos-open-source/projeto-cockpit-drone/)
 
 ---
+
+
+## Simulador e Multiplayer (Mundo Compartilhado)
+
+O projeto conta com o **Simulador Cockpit Drone** (`simulador/simulador.exe`), um executável independente que emula os drones reais (Tello, AR.Drone 2.0, MAVLink, CX-10W, FQ777-954, drone ESP32 e ESP-Drone) utilizando os mesmos protocolos de comunicação sobre imagem de satélite do Google ou ruas do OpenStreetMap.
+
+> **IMPORTANTE — ENTRADA MULTIPLAYER:**  
+> A entrada no **Multiplayer (Mundo Compartilhado)** é feita exclusivamente através do **Simulador** (`simulador.exe`), e **NÃO no Cockpit Drone** (`drone.exe`).  
+> 
+> - **Servidor oficial de produção:** `https://maurinsoft.com.br/cockpit/`  
+> - **Como funciona:**  
+>   1. Abra o `simulador.exe`.  
+>   2. No painel **Mundo compartilhado**, aponte para o servidor oficial `https://maurinsoft.com.br/cockpit/`, informe seu **Apelido** e clique em **Entrar**.  
+>   3. O simulador sincroniza com o servidor mundial e exibe no mapa e na câmera 3D outros drones voando em um raio de até 2.000 metros (2 km).  
+>   4. O **Cockpit Drone** se conecta localmente ao simulador (`127.0.0.1`), permitindo pilotar, monitorar telemetria e visualizar os quadros da câmera.
+
+Documentação detalhada: [simulador/docs/LEIAME.md](simulador/docs/LEIAME.md).

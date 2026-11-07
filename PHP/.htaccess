@@ -1,7 +1,8 @@
 Options -Indexes
-<FilesMatch "^(config\\.php|schema\\.sql)$">
+<FilesMatch "^(config(?:_sample)?\.php|schema\.sql|composer\.(?:json|lock)|storage\.php|MultiplayerSocket\.php|ws-server\.php)$">
 Require all denied
 </FilesMatch>
 RewriteEngine On
+RewriteRule ^vendor(?:/|$) - [F,L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(connect|telemetry|nearby|events|disconnect|heartbeat|health)/?$ index.php [L,QSA]

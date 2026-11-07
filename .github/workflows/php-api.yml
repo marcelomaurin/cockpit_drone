@@ -17,6 +17,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - name: Prepare isolated configuration
+        run: cp PHP/config_sample.php PHP/config.php
       - name: Check PHP version and extensions
         run: |
           php -v
@@ -24,6 +26,15 @@ jobs:
       - name: Lint all PHP files
         run: |
           find PHP -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Test direct entrypoint and missing configuration
+        run: python3 tests/run_php_entrypoint.py "$(command -v php)"
+      - name: Install WebSocket dependencies
+        working-directory: PHP
+        run: composer install --no-interaction --no-dev --prefer-dist
+      - name: WebSocket and REST integration
+        run: |
+          python3 -m pip install 'websockets==14.1'
+          python3 tests/run_multiplayer_ws.py "$(command -v php)"
       - name: Start isolated test server
         run: |
           mkdir -p "$RUNNER_TEMP/drone-data"

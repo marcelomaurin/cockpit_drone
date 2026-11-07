@@ -2,13 +2,13 @@
 ; Compile a partir da pasta install:
 ;   makensis cockpitdrone.nsi
 ;   makensis -DEXE=caminho\drone.exe cockpitdrone.nsi   (outro executável)
-; Saída: install\win32\win_setup_043.exe
+; Saída: bin\setup_cockpit_drone_0.41.exe
 
 Unicode true
 SetCompressor /SOLID lzma
 
 !define APP_NAME      "Cockpit Drone"
-!define APP_VERSION   "0.43"
+!define APP_VERSION   "0.41"
 !define APP_PUBLISHER "Maurinsoft.com.br"
 !define APP_URL       "https://maurinsoft.com.br/wp/projetos-open-source/projeto-cockpit-drone/"
 !define APP_EXE       "drone.exe"
@@ -22,13 +22,13 @@ SetCompressor /SOLID lzma
 !include "x64.nsh"
 
 Name "${APP_NAME} ${APP_VERSION}"
-OutFile "win32\win_setup_043.exe"
+OutFile "..\bin\setup_cockpit_drone_0.41.exe"
 InstallDir "$PROGRAMFILES64\cockpit drone"
 InstallDirRegKey HKLM "${UNINST_KEY}" "InstallLocation"
 RequestExecutionLevel admin
 BrandingText "${APP_PUBLISHER}"
 
-VIProductVersion "0.43.0.0"
+VIProductVersion "0.41.0.0"
 VIAddVersionKey /LANG=1046 "ProductName" "${APP_NAME}"
 VIAddVersionKey /LANG=1046 "ProductVersion" "${APP_VERSION}"
 VIAddVersionKey /LANG=1046 "CompanyName" "${APP_PUBLISHER}"
@@ -69,6 +69,8 @@ Section "${APP_NAME} (obrigatório)" SecPrograma
   SetOverwrite on
   SetOutPath "$INSTDIR\imgs"
   File /r "${RAIZ}\src\imgs\*.*"
+  SetOutPath "$INSTDIR\data"
+  File /r "${RAIZ}\data\*.*"
   ; Decodificador de vídeo: ffmpeg (GPL, build BtbN/FFmpeg-Builds), copiado
   ; para install\redist antes de compilar o instalador (não fica no git).
   SetOutPath "$INSTDIR"
@@ -92,6 +94,14 @@ Section "${APP_NAME} (obrigatório)" SecPrograma
   WriteRegDWORD HKLM "${UNINST_KEY}" "NoRepair" 1
 SectionEnd
 
+Section "Simulador Cockpit Drone" SecSimulador
+  SetOutPath "$INSTDIR\simulador"
+  File "${RAIZ}\simulador\simulador.exe"
+  SetOutPath "$INSTDIR\simulador\config"
+  File /r "${RAIZ}\simulador\config\*.*"
+  CreateShortCut "$SMPROGRAMS\Simulador Cockpit Drone.lnk" "$INSTDIR\simulador\simulador.exe" "" "$INSTDIR\simulador\simulador.exe" 0
+SectionEnd
+
 Section "Firmware do drone ESP32" SecFirmware
   SetOutPath "$INSTDIR\firmware"
   File /r "${RAIZ}\firmware\*.*"
@@ -100,12 +110,14 @@ SectionEnd
 
 Section /o "Atalho na área de trabalho" SecDesktop
   CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${APP_EXE}"
+  CreateShortCut "$DESKTOP\Simulador Cockpit Drone.lnk" "$INSTDIR\simulador\simulador.exe"
 SectionEnd
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${SecPrograma} "O cockpit e os arquivos necessários."
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecSimulador} "Simulador de voo com emulação de drones, mapa de satélite e mundo compartilhado."
   !insertmacro MUI_DESCRIPTION_TEXT ${SecFirmware} "Código-fonte do firmware do drone ESP32 e o protocolo CDP."
-  !insertmacro MUI_DESCRIPTION_TEXT ${SecDesktop} "Cria um atalho na área de trabalho."
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecDesktop} "Cria atalhos na área de trabalho."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 Function un.onInit
@@ -121,10 +133,13 @@ Section "Uninstall"
   Delete "$INSTDIR\desinstalar.exe"
   RMDir /r "$INSTDIR\imgs"
   RMDir /r "$INSTDIR\firmware"
+  RMDir /r "$INSTDIR\simulador"
   ; Vídeos e quadros gravados pelo usuário são mantidos.
   RMDir "$INSTDIR"
   Delete "$SMPROGRAMS\${APP_NAME}.lnk"
+  Delete "$SMPROGRAMS\Simulador Cockpit Drone.lnk"
   Delete "$SMPROGRAMS\Firmware do drone ESP32.lnk"
   Delete "$DESKTOP\${APP_NAME}.lnk"
+  Delete "$DESKTOP\Simulador Cockpit Drone.lnk"
   DeleteRegKey HKLM "${UNINST_KEY}"
 SectionEnd

@@ -7,7 +7,11 @@
 
 // ---------------- Rede ----------------
 #define WIFI_PREFIXO_SSID   "CockpitDrone-"   // + 4 dígitos do MAC
-#define WIFI_SENHA          "cockpit123"      // mínimo 8 caracteres
+// Senha do AP Wi-Fi: se WIFI_SENHA_FIXA nao for definida, a senha e
+// derivada dinamicamente do MAC ("cp" + 8 digitos hex = 10 caracteres),
+// evitando que multiplos drones usem a mesma senha padrao.
+// Descomente abaixo para forcar uma senha estatica personalizada:
+// #define WIFI_SENHA_FIXA     "cockpit123"
 #define WIFI_CANAL          6
 #define UDP_PORTA           4210
 

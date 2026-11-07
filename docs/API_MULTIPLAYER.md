@@ -1,5 +1,10 @@
 # API REST JSON — Servidor Multiplayer Cockpit Drone
 
+**Servidor Oficial em Produção:** `https://maurinsoft.com.br/cockpit/`
+
+> **Nota de Arquitetura:** A entrada no modo multiplayer ocorre através do **Simulador** (`simulador.exe`), que envia a telemetria de voo e recebe os vizinhos no raio de 2 km. O Cockpit Drone conecta-se ao simulador localmente para a pilotagem.
+
+
 **Versão:** proposta v1 • **Estado:** contrato de API para implementação, ainda não homologado.
 
 ## Convenções

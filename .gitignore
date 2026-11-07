@@ -1,3 +1,31 @@
 # ffmpeg.exe (170 MB) entra só no instalador; baixe em
 # https://github.com/BtbN/FFmpeg-Builds/releases (win64-gpl) e copie para cá.
 install/redist/
+
+# Configuracao local/producao: copiar de config_sample.php.
+/PHP/config.php
+
+/PHP/vendor/
+
+# Arquivos auxiliares PIA/RIA (qualquer combinacao de maiusculas).
+*.[pP][iI][aA]
+*.[rR][iI][aA]
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Arquivos temporários e frames de simulação
+cockpit_sim_camera.bmp
+*.tmp
+
+# Saídas de compilação intermediárias do Lazarus / Free Pascal
+*.o
+*.ppu
+*.or
+*.compiled
+*.bak
+backup/
+*/backup/
+simulador/src/lib/
+*.a
+src/lib/

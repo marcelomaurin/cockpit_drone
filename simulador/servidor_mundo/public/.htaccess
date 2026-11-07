@@ -1,0 +1,3 @@
+# Apache: garante que o cabeçalho Authorization chegue ao PHP.
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+Options -Indexes

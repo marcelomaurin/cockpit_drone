@@ -11,3 +11,10 @@ CREATE TABLE IF NOT EXISTS drone_events (
  created_at BIGINT UNSIGNED NOT NULL,
  INDEX idx_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS params (
+ chave VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,
+ valor VARCHAR(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+INSERT INTO params (chave, valor) VALUES ('VERSAO', '0.01')
+ON DUPLICATE KEY UPDATE chave = chave;

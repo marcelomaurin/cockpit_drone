@@ -14,7 +14,7 @@ uses
   conexaodrone, ConectionCX10W, conectionmavlink, conectiontello,
   conectionopendrone, conectionfq777, conectionardrone, conectionesp32drone,
   aidronemavlink, protocols, rotavoo, cockpit_i18n, sitl_telemetry_bridge,
-  sitl_telemetry_state;
+  sitl_telemetry_state, cockpit_multiplayer, multiplayer_state;
 
 const
   refJoy = 127;
@@ -89,6 +89,7 @@ type
     procedure ArrowUpChangeBounds(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormDeactivate(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormKeyPress(Sender: TObject; var Key: char);
     procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -110,6 +111,10 @@ type
     procedure timerJoystickTimer(Sender: TObject);
 
   private
+    FMultiplayer: TCockpitMultiplayer;
+    FMultiplayerTimer: TTimer;
+    FMultiplayerButton: TButton;
+    FMultiplayerStatus: TLabel;
     FJoystick: TJoystickController;
     FControler: TDroneControler;
 
@@ -135,6 +140,8 @@ type
     FSitlStatus: TLabel;
     FSplashTimer: TTimer;
     FSplashInicio: QWord;
+    procedure MultiplayerToggle(Sender: TObject);
+    procedure MultiplayerTick(Sender: TObject);
     procedure SitlToggle(Sender: TObject);
     procedure SitlTick(Sender: TObject);
     procedure SplashTick(Sender: TObject);
@@ -505,8 +512,68 @@ begin
     FSitlStatus.Caption := 'SITL: sem heartbeat (sem controle)';
 end;
 
-procedure TfrmMain.FormCreate(Sender: TObject);
+procedure TfrmMain.MultiplayerToggle(Sender: TObject);
+var URL: string;
 begin
+  if Assigned(FMultiplayer) then
+  begin
+    FMultiplayerTimer.Enabled := False;
+    FreeAndNil(FMultiplayer);
+    if Assigned(frmMap) then frmMap.SetParticipants(nil);
+    if Assigned(frmCam) then frmCam.SetParticipants(nil);
+    FMultiplayerButton.Caption := 'Entrar multiplayer';
+    FMultiplayerStatus.Caption := 'Multiplayer desligado';
+    Exit;
+  end;
+  URL := 'ws://127.0.0.1:8081';
+  if not InputQuery('Multiplayer', 'Servidor multiplayer (ws/wss ou http/https):', URL) then Exit;
+  URL := Trim(URL);
+  if (Pos('http://', URL) <> 1) and (Pos('https://', URL) <> 1) and
+     (Pos('ws://', URL) <> 1) and (Pos('wss://', URL) <> 1) then
+  begin ShowMessage('Informe uma URL ws://, wss://, http:// ou https://.'); Exit end;
+  FMultiplayer := TCockpitMultiplayer.Create(URL);
+  FMultiplayerButton.Caption := 'Sair multiplayer';
+  FMultiplayerTimer.Enabled := True;
+  MultiplayerTick(nil);
+end;
+
+procedure TfrmMain.MultiplayerTick(Sender: TObject);
+var Items: TParticipants; Status: string;
+begin
+  if not Assigned(FMultiplayer) then Exit;
+  FMultiplayer.SetPosition(GlobalFlightPlan.SimulatedDroneLat,
+    GlobalFlightPlan.SimulatedDroneLon, GlobalFlightPlan.SimulatedDroneAlt,
+    GlobalFlightPlan.SimulationActive);
+  FMultiplayer.Snapshot(Items, Status);
+  if not GlobalFlightPlan.SimulationActive then Items := nil;
+  FMultiplayerStatus.Caption := Status;
+  if Assigned(frmMap) then frmMap.SetParticipants(Items);
+  if Assigned(frmCam) then frmCam.SetParticipants(Items);
+end;
+
+procedure TfrmMain.FormCreate(Sender: TObject);
+var MultiplayerPanel: TPanel;
+begin
+  OnDeactivate := @FormDeactivate;
+  MultiplayerPanel := TPanel.Create(Self);
+  MultiplayerPanel.Parent := Self;
+  MultiplayerPanel.Align := alBottom;
+  MultiplayerPanel.Height := 34;
+  FMultiplayerButton := TButton.Create(Self);
+  FMultiplayerButton.Parent := MultiplayerPanel;
+  FMultiplayerButton.Align := alLeft;
+  FMultiplayerButton.Width := 150;
+  FMultiplayerButton.Caption := 'Entrar multiplayer';
+  FMultiplayerButton.OnClick := @MultiplayerToggle;
+  FMultiplayerStatus := TLabel.Create(Self);
+  FMultiplayerStatus.Parent := MultiplayerPanel;
+  FMultiplayerStatus.Left := 160;
+  FMultiplayerStatus.Top := 9;
+  FMultiplayerStatus.Caption := 'Multiplayer desligado';
+  FMultiplayerTimer := TTimer.Create(Self);
+  FMultiplayerTimer.Enabled := False;
+  FMultiplayerTimer.Interval := 250;
+  FMultiplayerTimer.OnTimer := @MultiplayerTick;
   FSitlBridge := TSitlTelemetryBridge.Create;
   FSitlPanel := TPanel.Create(Self);
   FSitlPanel.Parent := Self;
@@ -635,6 +702,8 @@ end;
 
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
+  FMultiplayerTimer.Enabled := False;
+  FreeAndNil(FMultiplayer);
   timerJoystick.Enabled := False;
   FSitlTimer.Enabled := False;
   FreeAndNil(FSitlBridge);
@@ -893,6 +962,14 @@ procedure TfrmMain.ArrowUpChangeBounds(Sender: TObject);
 begin
 end;
 
+procedure TfrmMain.FormDeactivate(Sender: TObject);
+begin
+  LimpaTeclado;
+  CentralizaComandos;
+  if not UsaJoystick and (Z > 128) then
+    Z := 128; // Recua imediatamente para patamar de pairar ao perder o foco da janela
+end;
+
 procedure TfrmMain.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   case Key of
@@ -900,6 +977,14 @@ begin
     VK_DOWN:  FKeyDown := True;
     VK_LEFT:  FKeyLeft := True;
     VK_RIGHT: FKeyRight := True;
+    VK_SPACE:
+      begin
+        // PÂNICO / CORTE IMEDIATO DE MOTORES
+        Z := 0;
+        CentralizaComandos;
+        LimpaTeclado;
+        Key := 0;
+      end;
     VK_RETURN:
       begin
         AdvStartClick(Self);
@@ -1142,7 +1227,19 @@ begin
       Inc(Z);
   end
   else
-    Z := Byte(EnsureRange(Round(Z0), 0, 255));
+  begin
+    if UsaJoystick then
+      Z := Byte(EnsureRange(Round(Z0), 0, 255))
+    else
+    begin
+      // Teclado: ao soltar a tecla de subir, se estiver subindo forte (Z > 132),
+      // recua suavemente em direcao ao nivel de pairar (128) para nao continuar subindo descontrolado.
+      if Z > 132 then
+        Dec(Z)
+      else if (Z < 124) and (Z > 30) then
+        Inc(Z); // Se soltou descida, recupera suavemente para pairar
+    end;
+  end;
 
   AplicaTecladoNosBotoes;
   AtualizaLedsBotoes;

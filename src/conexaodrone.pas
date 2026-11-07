@@ -23,7 +23,7 @@ unit conexaodrone;
 interface
 
 uses
-  Classes, SysUtils, Math, Forms, Controls, Graphics, StdCtrls, ExtCtrls,
+  Classes, SysUtils, Math, SyncObjs, Forms, Controls, Graphics, StdCtrls, ExtCtrls,
   Dialogs, aidronebase, aih264decoder;
 
 type
@@ -37,10 +37,28 @@ type
     Apertou: array[1..6] of Boolean; // apertado agora e solto na leitura anterior
   end;
 
+  TfrmConexaoDrone = class;
+
+  { Linha de execucao dedicada para envio de comandos ao drone.
+    Desacopla o envio de pacotes UDP/TCP da interface grafica (evitando que caixas
+    de dialogo, selecao de arquivos ou mapas congelem a comunicacao com o drone). }
+  TThreadControleDrone = class(TThread)
+  private
+    FConexao: TfrmConexaoDrone;
+    FIntervaloMs: Integer;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(AConexao: TfrmConexaoDrone; AIntervaloMs: Integer);
+  end;
+
   { TfrmConexaoDrone }
 
   TfrmConexaoDrone = class(TForm)
   private
+    FLockComando: TCriticalSection;
+    FUltimoComando: TComandoManche;
+    FThreadControle: TThreadControleDrone;
     FInfo: TPanel;
     FBotoes: TPanel;
     FMemo: TMemo;
@@ -75,6 +93,8 @@ type
     procedure PreparaVideo(AAtivo: Boolean; ALargura, AAltura: Integer;
       const AFFmpeg: string);
     procedure DefineErro(const AMotivo: string);
+    procedure AtualizaComandoManche(const ACmd: TComandoManche);
+    function ObtemComandoProtegido: TComandoManche;
     { Chamado a cada mensagem (AErro = True para erros), depois do registro. }
     procedure MensagemDrone(const AMessage: string; AErro: Boolean); virtual;
 
@@ -173,11 +193,13 @@ begin
   FTimer.OnTimer := @TimerTick;
 
   FLbVideo := nil;
+  FLockComando := TCriticalSection.Create;
 end;
 
 destructor TfrmConexaoDrone.Destroy;
 begin
   Encerrar;
+  FreeAndNil(FLockComando);
   FreeAndNil(FBitmap);
   inherited Destroy;
 end;
@@ -258,13 +280,23 @@ var
   I: Integer;
 begin
   FUltimoErro := '';
-  if FTimer.Enabled then
+  Result := False;
+  if (FTimer <> nil) and FTimer.Enabled then
     Exit(True);
   for I := 1 to 6 do
     FBotoesAntes[I] := True; // botão já apertado na largada não vale como clique
   Screen.Cursor := crHourGlass;
   try
-    Result := Conectar;
+    try
+      Result := Conectar;
+    except
+      on E: Exception do
+      begin
+        Result := False;
+        FUltimoErro := Caption + ': erro ao conectar: ' + E.Message;
+        Log(FUltimoErro);
+      end;
+    end;
   finally
     Screen.Cursor := crDefault;
   end;
@@ -272,10 +304,19 @@ begin
   begin
     if FUltimoErro = '' then
       FUltimoErro := Caption + ': não foi possível conectar.';
-    Desconectar;
-    FDecoder.Stop;
-    Exit;
+    try
+      Desconectar;
+    except
+    end;
+    if Assigned(FDecoder) then
+      FDecoder.Stop;
+    Exit(False);
   end;
+
+  AtualizaComandoManche(LeComando);
+  if FThreadControle = nil then
+    FThreadControle := TThreadControleDrone.Create(Self, IntervaloMs);
+
   FTimer.Interval := IntervaloMs;
   FTimer.Enabled := True;
 end;
@@ -284,9 +325,18 @@ procedure TfrmConexaoDrone.Encerrar;
 begin
   if Assigned(FTimer) then
     FTimer.Enabled := False;
+  if Assigned(FThreadControle) then
+  begin
+    FThreadControle.Terminate;
+    FThreadControle.WaitFor;
+    FreeAndNil(FThreadControle);
+  end;
   if Assigned(FDrone) then
   begin
-    Desconectar;
+    try
+      Desconectar;
+    except
+    end;
     // Mensagens que ainda chegariam depois de a janela sumir.
     FDrone.OnVideoData := nil;
     FDrone.CancelPendingEvents;
@@ -336,9 +386,36 @@ begin
   Result := FVideoLigado and Assigned(FDrone) and FDrone.VideoStreaming;
 end;
 
+procedure TfrmConexaoDrone.AtualizaComandoManche(const ACmd: TComandoManche);
+begin
+  if Assigned(FLockComando) then
+  begin
+    FLockComando.Enter;
+    try
+      FUltimoComando := ACmd;
+    finally
+      FLockComando.Leave;
+    end;
+  end;
+end;
+
+function TfrmConexaoDrone.ObtemComandoProtegido: TComandoManche;
+begin
+  Result := Default(TComandoManche);
+  if Assigned(FLockComando) then
+  begin
+    FLockComando.Enter;
+    try
+      Result := FUltimoComando;
+    finally
+      FLockComando.Leave;
+    end;
+  end;
+end;
+
 procedure TfrmConexaoDrone.TimerTick(Sender: TObject);
 begin
-  Controle(LeComando);
+  AtualizaComandoManche(LeComando);
   if GetTickCount64 - FUltimaTela >= 250 then
   begin
     FUltimaTela := GetTickCount64;
@@ -350,6 +427,35 @@ begin
         FLbVideo.Caption := 'sem imagem';
     end;
     AtualizaPainel;
+  end;
+end;
+
+{ TThreadControleDrone }
+
+constructor TThreadControleDrone.Create(AConexao: TfrmConexaoDrone; AIntervaloMs: Integer);
+begin
+  inherited Create(False);
+  FreeOnTerminate := False;
+  FConexao := AConexao;
+  FIntervaloMs := Max(10, AIntervaloMs);
+end;
+
+procedure TThreadControleDrone.Execute;
+var
+  Cmd: TComandoManche;
+begin
+  while not Terminated do
+  begin
+    if Assigned(FConexao) then
+    begin
+      Cmd := FConexao.ObtemComandoProtegido;
+      try
+        FConexao.Controle(Cmd);
+      except
+        // Evita que erros transientes terminem a thread de controle
+      end;
+    end;
+    Sleep(FIntervaloMs);
   end;
 end;
 

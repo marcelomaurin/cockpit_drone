@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, BCGameGrid, LCLType, cockpit_i18n;
+  ExtCtrls, BCGameGrid, LCLType, cockpit_i18n, multiplayer_state;
 
 type
 
@@ -30,6 +30,7 @@ type
     procedure tmAtualizaImagemTimer(Sender: TObject);
 
   private
+    FParticipants: TLabel;
     FCameraAtiva: Boolean;
     FGridAtiva: Boolean;
     FVisaoAtiva: Boolean;
@@ -44,6 +45,7 @@ type
     procedure AtualizaDaConexao;
 
   public
+    procedure SetParticipants(const Items: TParticipants);
     procedure AtivaCamera;
     procedure DesativaCamera;
     procedure AlternaCamera;
@@ -75,6 +77,12 @@ uses
 procedure TfrmCam.FormCreate(Sender: TObject);
 begin
   KeyPreview := True;
+  FParticipants := TLabel.Create(Self);
+  FParticipants.Parent := Self;
+  FParticipants.Align := alBottom;
+  FParticipants.Font.Color := clNavy;
+  FParticipants.WordWrap := True;
+
 
   FCameraAtiva := False;
   FGridAtiva := True;
@@ -114,11 +122,25 @@ begin
   if Assigned(tmAtualizaImagem) then
   begin
     tmAtualizaImagem.Enabled := False;
-    tmAtualizaImagem.Interval := 200;
+    tmAtualizaImagem.Interval := 50;
   end;
 
   AtualizaVisualEstado;
   AjustaLayout;
+end;
+
+procedure TfrmCam.SetParticipants(const Items: TParticipants);
+var I: Integer; S: string;
+begin
+  S := '';
+  for I := 0 to High(Items) do
+  begin
+    if I >= 8 then begin S := S + ' ...'; Break end;
+    S := S + Format('%s (%.0f m; alt %.0f m)  ',
+      [Items[I].Name, Items[I].Distance, Items[I].Altitude]);
+  end;
+  FParticipants.Caption := 'Participantes proximos: ' + S;
+  FParticipants.Visible := Length(Items) > 0;
 end;
 
 procedure TfrmCam.FormResize(Sender: TObject);
@@ -129,9 +151,7 @@ end;
 procedure TfrmCam.FormShow(Sender: TObject);
 begin
   AplicarIdioma(Self);
-  if FCameraAtiva then
-    tmAtualizaImagem.Enabled := True;
-
+  AtivaCamera;
   AtualizaVisualEstado;
   AjustaLayout;
   AtualizaDaConexao;
@@ -139,9 +159,7 @@ end;
 
 procedure TfrmCam.FormHide(Sender: TObject);
 begin
-  if Assigned(tmAtualizaImagem) then
-    tmAtualizaImagem.Enabled := False;
-
+  DesativaCamera;
   Label8.Caption := 'OCULTA';
 end;
 
@@ -259,11 +277,50 @@ end;
 procedure TfrmCam.AtualizaDaConexao;
 var
   Conn: TfrmConexaoDrone;
+  SimCamFile: string;
+  SimDt: TDateTime;
+  SimFS: TFileStream;
+  BmpSim: TBitmap;
+  SimCarregado: Boolean;
 begin
   if not FCameraAtiva then
   begin
     DefineStatus('OFFLINE');
     Exit;
+  end;
+
+  // Verifica se ha fluxo recente de imagem gerado pelo simulador local
+  SimCamFile := IncludeTrailingPathDelimiter(GetTempDir) + 'cockpit_sim_camera.bmp';
+  if FileExists(SimCamFile) and FileAge(SimCamFile, SimDt) then
+  begin
+    // Se o arquivo foi atualizado nos ultimos 4 segundos
+    if (Now - SimDt) < (4.0 / 86400.0) then
+    begin
+      SimCarregado := False;
+      BmpSim := TBitmap.Create;
+      try
+        try
+          SimFS := TFileStream.Create(SimCamFile, fmOpenRead or fmShareDenyNone);
+          try
+            BmpSim.LoadFromStream(SimFS);
+            SimCarregado := True;
+          finally
+            SimFS.Free;
+          end;
+        except
+          // Se o simulador estiver gravando naquele instante, ignora e tenta no proximo tick
+        end;
+
+        if SimCarregado and (BmpSim.Width > 0) then
+        begin
+          MostraQuadro(BmpSim);
+          DefineStatus('SIMULADOR ONLINE (127.0.0.1)');
+          Exit;
+        end;
+      finally
+        BmpSim.Free;
+      end;
+    end;
   end;
 
   if not Assigned(frmMain) then

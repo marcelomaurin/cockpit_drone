@@ -1,0 +1,291 @@
+{
+  "schema_version": 2,
+  "notes": "Catalogo de plataformas com protocolo documentado. Protocolo MAVLink existente nao garante mixagem correta de comandos para aviao, helicoptero, barco ou submarino. Perfis desses veiculos ficam bloqueados ate implementacao e teste do adaptador por classe. Wi-Fi subaquatico exige ponte de superficie/tether.",
+  "models": [
+    {
+      "brand": "Cheerson",
+      "model": "CX-10W",
+      "protocol": "cx10w",
+      "cockpit_protocol_index": 0,
+      "gnss": "nao",
+      "cellular": "nao",
+      "control_status": "existing_protocol_unverified_hardware"
+    },
+    {
+      "brand": "FQ777",
+      "model": "954",
+      "protocol": "fq777",
+      "cockpit_protocol_index": 4,
+      "gnss": "nao",
+      "cellular": "nao",
+      "control_status": "existing_protocol_unverified_hardware"
+    },
+    {
+      "brand": "Ryze",
+      "model": "Tello",
+      "protocol": "tello_udp",
+      "cockpit_protocol_index": 2,
+      "gnss": "nao",
+      "cellular": "nao",
+      "control_status": "existing_protocol_unverified_hardware"
+    },
+    {
+      "brand": "Ryze",
+      "model": "Tello EDU",
+      "protocol": "tello_udp",
+      "cockpit_protocol_index": 2,
+      "gnss": "nao",
+      "cellular": "nao",
+      "control_status": "existing_protocol_unverified_hardware"
+    },
+    {
+      "brand": "Parrot",
+      "model": "AR.Drone 2.0",
+      "protocol": "parrot_at",
+      "cockpit_protocol_index": 5,
+      "gnss": "nao",
+      "cellular": "nao",
+      "control_status": "existing_protocol_unverified_hardware"
+    },
+    {
+      "brand": "Parrot",
+      "model": "ANAFI",
+      "protocol": "parrot_olympe",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "nao",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "Parrot",
+      "model": "ANAFI Thermal",
+      "protocol": "parrot_olympe",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "nao",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "Parrot",
+      "model": "ANAFI USA",
+      "protocol": "parrot_olympe",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "nao",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "Parrot",
+      "model": "ANAFI Ai",
+      "protocol": "parrot_olympe",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "4g",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "DJI",
+      "model": "Mini 3",
+      "protocol": "dji_mobile_sdk",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "nao",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "DJI",
+      "model": "Mini 3 Pro",
+      "protocol": "dji_mobile_sdk",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "nao",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "DJI",
+      "model": "Mini 4 Pro",
+      "protocol": "dji_mobile_sdk",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "nao",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "DJI",
+      "model": "Mavic 3 Enterprise",
+      "protocol": "dji_mobile_sdk",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "nao",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "DJI",
+      "model": "Matrice 30",
+      "protocol": "dji_mobile_sdk",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "opcional",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "DJI",
+      "model": "Matrice 350 RTK",
+      "protocol": "dji_mobile_sdk",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "opcional",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "DJI",
+      "model": "Matrice 4E",
+      "protocol": "dji_mobile_sdk",
+      "cockpit_protocol_index": null,
+      "gnss": "sim",
+      "cellular": "opcional",
+      "control_status": "requires_adapter"
+    },
+    {
+      "brand": "Custom",
+      "model": "ArduPilot Copter",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": 1,
+      "gnss": "configuravel",
+      "cellular": "via_modem",
+      "control_status": "existing_protocol_unverified_hardware"
+    },
+    {
+      "brand": "Custom",
+      "model": "PX4 Multicopter",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": 1,
+      "gnss": "configuravel",
+      "cellular": "via_modem",
+      "control_status": "existing_protocol_unverified_hardware"
+    },
+    {
+      "brand": "Espressif",
+      "model": "ESP-Drone",
+      "protocol": "crtp",
+      "cockpit_protocol_index": 3,
+      "gnss": "nao",
+      "cellular": "nao",
+      "control_status": "existing_protocol_unverified_hardware"
+    },
+    {
+      "brand": "Maurinsoft",
+      "model": "ESP32 Cockpit",
+      "protocol": "cdp",
+      "cockpit_protocol_index": 6,
+      "gnss": "nao",
+      "cellular": "nao",
+      "control_status": "existing_protocol_unverified_hardware"
+    },
+    {
+      "brand": "ArduPilot",
+      "model": "ArduPlane Fixed Wing",
+      "vehicle_type": "airplane",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": null,
+      "gnss": "configuravel",
+      "cellular": "via_gateway",
+      "control_status": "requires_vehicle_specific_adapter",
+      "transport": "mavlink_serial_udp_tcp_or_wifi_bridge",
+      "source": "https://docs.ardupilot.org/plane/"
+    },
+    {
+      "brand": "ArduPilot",
+      "model": "ArduPlane QuadPlane VTOL",
+      "vehicle_type": "vtol",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": null,
+      "gnss": "configuravel",
+      "cellular": "via_gateway",
+      "control_status": "requires_vehicle_specific_adapter",
+      "transport": "mavlink_serial_udp_tcp_or_wifi_bridge",
+      "source": "https://docs.ardupilot.org/plane/"
+    },
+    {
+      "brand": "ArduPilot",
+      "model": "ArduCopter Traditional Helicopter",
+      "vehicle_type": "helicopter",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": null,
+      "gnss": "configuravel",
+      "cellular": "via_gateway",
+      "control_status": "requires_vehicle_specific_adapter",
+      "transport": "mavlink_serial_udp_tcp_or_wifi_bridge",
+      "source": "https://docs.ardupilot.org/copter/"
+    },
+    {
+      "brand": "ArduPilot",
+      "model": "ArduRover Boat",
+      "vehicle_type": "boat",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": null,
+      "gnss": "configuravel",
+      "cellular": "via_gateway",
+      "control_status": "requires_vehicle_specific_adapter",
+      "transport": "mavlink_serial_udp_tcp_or_wifi_bridge",
+      "source": "https://ardupilot.ardupilot.org/rover/docs/boat-configuration.html"
+    },
+    {
+      "brand": "ArduPilot",
+      "model": "ArduRover Sailboat",
+      "vehicle_type": "sailboat",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": null,
+      "gnss": "configuravel",
+      "cellular": "via_gateway",
+      "control_status": "requires_vehicle_specific_adapter",
+      "transport": "mavlink_serial_udp_tcp_or_wifi_bridge",
+      "source": "https://docs.ardupilot.org/rover/"
+    },
+    {
+      "brand": "Blue Robotics",
+      "model": "BlueBoat",
+      "vehicle_type": "boat",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": null,
+      "gnss": "configuravel",
+      "cellular": "via_gateway",
+      "control_status": "requires_vehicle_specific_adapter",
+      "transport": "mavlink_serial_udp_tcp_or_wifi_bridge",
+      "source": "https://ardupilot.org/rover/docs/common-rtf.html"
+    },
+    {
+      "brand": "ArduPilot",
+      "model": "ArduSub Vectored ROV",
+      "vehicle_type": "submarine",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": null,
+      "gnss": "nao",
+      "cellular": "via_gateway",
+      "control_status": "requires_vehicle_specific_adapter",
+      "transport": "tether_surface_wifi_bridge",
+      "source": "https://ardupilot.org/sub/"
+    },
+    {
+      "brand": "Custom",
+      "model": "OpenHD MAVLink Bridge",
+      "vehicle_type": "transport_bridge",
+      "protocol": "mavlink",
+      "cockpit_protocol_index": null,
+      "gnss": "configuravel",
+      "cellular": "via_gateway",
+      "control_status": "requires_vehicle_specific_adapter",
+      "transport": "mavlink_serial_udp_tcp_or_wifi_bridge",
+      "source": "https://openhdfpv.org/introduction/"
+    }
+  ],
+  "sources": [
+    "https://developer.dji.com/mobile-sdk/",
+    "https://enterprise.dji.com/sdk",
+    "https://developer.parrot.com/docs/olympe/index.html",
+    "https://dl-cdn.ryzerobotics.com/downloads/Tello/Tello%20SDK%202.0%20User%20Guide.pdf",
+    "https://docs.ardupilot.org/ardupilot/docs/common-all-vehicle-types.html",
+    "https://ardupilot.org/rover/docs/common-rtf.html",
+    "https://openhdfpv.org/introduction/"
+  ]
+}

@@ -1,0 +1,41 @@
+name: Simulador
+
+on:
+  push:
+    paths: ['simulador/**', '.github/workflows/simulador.yml']
+  pull_request:
+    paths: ['simulador/**', '.github/workflows/simulador.yml']
+  workflow_dispatch:
+
+jobs:
+  servidor-php:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Testes do servidor de mundo compartilhado
+        run: php simulador/servidor_mundo/testes/teste_api.php
+
+  simulador-lazarus:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instala Lazarus e Free Pascal
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y lazarus fpc
+      - name: Compila o simulador
+        run: lazbuild simulador/src/simulador.lpi
+      - name: Compila o simulador de console
+        working-directory: simulador
+        run: fpc -Mobjfpc -Sh -Fusrc/nucleo -Fusrc/protocolos -Fusrc/mapa -Fusrc/mundo -FUtestes -FEtestes testes/sim_console.lpr
+      - name: Emuladores Tello, AR.Drone, FQ777, ESP32 e ESP-Drone
+        working-directory: simulador
+        run: |
+          set -e
+          testes/sim_console tello 13 > tello.log & sleep 1; python3 testes/cockpit_tello.py; wait
+          grep -q "Pousou." tello.log
+          for m in ardrone fq777 esp32 espdrone; do
+            testes/sim_console $m 12 > $m.log & sleep 1; python3 testes/cockpit_outros.py $m; wait
+            grep -q "Cockpit conectado\|Comandos chegando" $m.log
+          done

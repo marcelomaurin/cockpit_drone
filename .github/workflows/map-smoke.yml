@@ -4,7 +4,7 @@ on:
     branches: [master]
     paths:
       - 'src/map.pas'
-      - 'web/google_maps_simulator.html'
+      - 'PHP/google_maps_simulator.html'
       - 'tests/test_map_sources.py'
       - '.github/workflows/map-smoke.yml'
   workflow_dispatch:

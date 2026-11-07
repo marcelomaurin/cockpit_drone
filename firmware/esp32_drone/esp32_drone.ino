@@ -458,12 +458,19 @@ void setup() {
   char ssid[40];
   snprintf(ssid, sizeof(ssid), "%s%02X%02X", WIFI_PREFIXO_SSID, mac[4], mac[5]);
   WiFi.mode(WIFI_AP);
-  WiFi.softAP(ssid, WIFI_SENHA, WIFI_CANAL, 0, 1);  // 1 cliente: só o cockpit
+  char senha[32];
+#ifdef WIFI_SENHA_FIXA
+  snprintf(senha, sizeof(senha), "%s", WIFI_SENHA_FIXA);
+#else
+  // Deriva do MAC único: "cp" + 4 bytes finais hex = 10 caracteres
+  snprintf(senha, sizeof(senha), "cp%02X%02X%02X%02X", mac[2], mac[3], mac[4], mac[5]);
+#endif
+  WiFi.softAP(ssid, senha, WIFI_CANAL, 0, 1);  // 1 cliente: so o cockpit
   WiFi.setSleep(false);
   esp_wifi_set_ps(WIFI_PS_NONE);
   udp.begin(UDP_PORTA);
 
-  Serial.printf("Rede: %s  IP: %s  UDP: %d\n", ssid,
+  Serial.printf("Rede: %s  Senha: %s  IP: %s  UDP: %d\n", ssid, senha,
                 WiFi.softAPIP().toString().c_str(), UDP_PORTA);
 }
 
