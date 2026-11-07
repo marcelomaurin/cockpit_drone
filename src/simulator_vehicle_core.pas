@@ -13,6 +13,8 @@ type
     Turn: Double;      // -1..1
     Climb: Double;     // -1..1; ignored for boats and cars
     Brake: Double;     // 0..1; car brake, ignored by other vehicles
+    Roll: Double;      // -1..1; aircraft bank / helicopter cyclic lateral
+    Pitch: Double;     // -1..1; aircraft elevator / helicopter cyclic longitudinal
   end;
   TVehicleState = record
     Latitude, Longitude, AltitudeM: Double;
@@ -54,6 +56,8 @@ begin
   FControls.Turn := 0;
   FControls.Climb := 0;
   FControls.Brake := 0;
+  FControls.Roll := 0;
+  FControls.Pitch := 0;
 end;
 
 function TSimulatorVehicle.MaxSpeed: Double;
@@ -74,7 +78,7 @@ const
   EarthRadiusM = 6371000.0;
 var
   Dt, TargetSpeed, Accel, TurnRate, ClimbRate: Double;
-  NorthM, EastM, CosLat, LatRad, Steering: Double;
+  NorthM, EastM, CosLat, LatRad, Steering, LiftFactor, BankTurn: Double;
 begin
   if (ADeltaSeconds <= 0) or (ADeltaSeconds > 1) then Exit;
   if FState.BatteryPct <= 0 then Exit;
@@ -96,11 +100,32 @@ begin
   Steering := 1;
   if FKind in [vkBoat, vkCar] then
     Steering := Clamp(FState.SpeedMps / 4, 0, 1);
+  // Fixed-wing craft turn primarily by banking; rotorcraft can yaw in place.
+  BankTurn := 0;
+  if FKind = vkAirplane then
+  begin
+    LiftFactor := Clamp(FState.SpeedMps / 12, 0, 1);
+    BankTurn := Clamp(FControls.Roll, -1, 1) * 32 * LiftFactor;
+  end
+  else if FKind = vkHelicopter then
+    BankTurn := Clamp(FControls.Roll, -1, 1) * 15;
   FState.HeadingDeg := FState.HeadingDeg +
-    Clamp(FControls.Turn, -1, 1) * TurnRate * Steering * Dt;
+    (Clamp(FControls.Turn, -1, 1) * TurnRate * Steering + BankTurn) * Dt;
   FState.HeadingDeg := FState.HeadingDeg -
     Floor(FState.HeadingDeg / 360) * 360;
   FState.VerticalSpeedMps := Clamp(FControls.Climb, -1, 1) * ClimbRate;
+  if FKind = vkAirplane then
+  begin
+    // Simplified stall: insufficient airspeed causes descent, not hover.
+    LiftFactor := Clamp(FState.SpeedMps / 12, 0, 1);
+    FState.VerticalSpeedMps :=
+      Clamp(FControls.Pitch, -1, 1) * ClimbRate * LiftFactor -
+      (1 - LiftFactor) * 4;
+  end
+  else if FKind = vkHelicopter then
+    FState.VerticalSpeedMps :=
+      Clamp(FControls.Climb, -1, 1) * ClimbRate +
+      Clamp(FControls.Pitch, -1, 1) * 0.5;
   FState.AltitudeM := Max(0, FState.AltitudeM + FState.VerticalSpeedMps * Dt);
   NorthM := Cos(DegToRad(FState.HeadingDeg)) * FState.SpeedMps * Dt;
   EastM := Sin(DegToRad(FState.HeadingDeg)) * FState.SpeedMps * Dt;
