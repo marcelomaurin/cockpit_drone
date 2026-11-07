@@ -11,7 +11,7 @@ import socket
 import struct
 import time
 
-CRC_EXTRA = {0: 50, 1: 124, 24: 24, 30: 39, 33: 104, 76: 152, 77: 143}
+CRC_EXTRA = {70: 124, 0: 50, 1: 124, 24: 24, 30: 39, 33: 104, 76: 152, 77: 143}
 MAV_CMD_COMPONENT_ARM_DISARM = 400
 MAV_CMD_REQUEST_MESSAGE = 512
 
@@ -26,11 +26,15 @@ def crc_x25(data):
 
 
 class Endpoint:
-    def __init__(self, port, state_port, system_id):
+    def __init__(self, port, state_port, system_id, physics_port=None, host='127.0.0.1'):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.bind(("0.0.0.0", port))
+        self.sock.bind((host, port))
         self.state_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.state_sock.bind(("127.0.0.1", state_port))
+        self.physics_port = physics_port
+        self.physics_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.controls = dict(throttle=0., turn=0., climb=0., brake=0., roll=0., pitch=0.)
+        self.last_control = 0.
         self.peer = None
         self.system_id = system_id
         self.sequence = 0
@@ -68,6 +72,11 @@ class Endpoint:
         self.send(1, struct.pack("<IIIHHhHHHHHHb", 0, 0, 0, 0, 0, 0,
                                  0, 0, 0, 0, 0, 0, int(max(0, min(100, s["battery_pct"])))))
 
+    def send_controls(self):
+        if self.physics_port is not None:
+            self.physics_sock.sendto(json.dumps(self.controls).encode('utf-8'),
+                                     ('127.0.0.1', self.physics_port))
+
     def receive(self, data, address):
         # Validate complete MAVLink v1 frame before acting on commands.
         if len(data) < 8 or data[0] != 0xFE:
@@ -90,12 +99,33 @@ class Endpoint:
             result = 3  # MAV_RESULT_UNSUPPORTED by default
             if command == MAV_CMD_COMPONENT_ARM_DISARM:
                 self.armed = params[0] >= 0.5
+                if not self.armed:
+                    self.controls = dict.fromkeys(self.controls, 0.)
+                    self.send_controls()
                 result = 0
             elif command == MAV_CMD_REQUEST_MESSAGE:
                 if int(params[0]) == 0:
                     self.heartbeat()
                     result = 0
             self.send(77, struct.pack("<HB", command, result))
+        elif msgid == 70 and length >= 18:
+            # RC_CHANNELS_OVERRIDE: eight uint16 channels + target system/component.
+            channels = struct.unpack_from('<8H', data, 6)
+            target_system, target_component = struct.unpack_from('<BB', data, 22)
+            if target_system not in (0, self.system_id) or target_component not in (0, 1):
+                return
+            if not self.armed:
+                return
+            def axis(v):
+                return max(-1., min(1., (v - 1500) / 500.))
+            if any(v in (0, 65535) for v in channels[:4]):
+                return
+            self.controls.update(roll=axis(channels[0]), pitch=axis(channels[1]),
+                                 throttle=max(0., min(1., (channels[2] - 1000) / 1000.)),
+                                 turn=axis(channels[3]),
+                                 climb=axis(channels[2]), brake=0.)
+            self.last_control = time.monotonic()
+            self.send_controls()
 
     def update_state(self, data):
         try:
@@ -114,6 +144,10 @@ class Endpoint:
         next_telemetry = 0.
         while True:
             now = time.monotonic()
+            if self.last_control and now - self.last_control > 0.5:
+                self.controls = dict.fromkeys(self.controls, 0.)
+                self.send_controls()
+                self.last_control = 0.
             if now >= next_heartbeat:
                 self.heartbeat()
                 next_heartbeat = now + 1.
@@ -132,9 +166,11 @@ class Endpoint:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=14550)
+    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--physics-port", type=int, default=None)
     parser.add_argument("--state-port", type=int, default=14560)
     parser.add_argument("--system-id", type=int, default=1)
     args = parser.parse_args()
     if not (1 <= args.system_id <= 255):
         parser.error("system-id must be between 1 and 255")
-    Endpoint(args.port, args.state_port, args.system_id).run()
+    Endpoint(args.port, args.state_port, args.system_id, args.physics_port, args.host).run()
