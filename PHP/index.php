@@ -192,6 +192,10 @@ try {
         }
         reply(200,['participants'=>$out,'radius_m'=>$config['radius_m']]);
     }
+    if ($route==='heartbeat' && $method==='POST') {
+        $store->put($key,$self,(int)$config['session_ttl']);
+        reply(200,['status'=>'ok','expires_in'=>(int)$config['session_ttl']]);
+    }
     if ($route==='events' && $method==='POST') {
         if ($self['lat']===null) reply(409,['error'=>'send_telemetry_first']);
         $v=body(); $v['lat']=$self['lat']; $v['lon']=$self['lon'];
