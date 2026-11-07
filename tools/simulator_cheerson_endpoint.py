@@ -1,0 +1,104 @@
+#!/usr/bin/env python3
+"""Cheerson CX-10W / FQ777-954 protocol emulator for Cockpit Drone.
+
+The Cockpit's aidronecx10w is derived from aidronefq777: TCP 8888
+initialization and UDP 8895 8-byte stick packets. Video is not emulated.
+Use --host 127.0.0.1 for local development; real drone AP IP is 172.16.10.1.
+"""
+import argparse
+import json
+import math
+import select
+import socket
+import time
+
+
+class CheersonEndpoint:
+    def __init__(self, host, tcp_port, udp_port, state_port):
+        self.tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.tcp.bind((host, tcp_port))
+        self.tcp.listen(5)
+        self.tcp.setblocking(False)
+        self.udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.udp.bind((host, udp_port))
+        self.state_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.state_socket.bind(("127.0.0.1", state_port))
+        self.connections = {}
+        self.state = dict(roll=0., pitch=0., throttle=0., yaw=0.,
+                          battery_pct=100., altitude_m=0.)
+        self.last_command = 0.
+
+    def command(self, data):
+        if len(data) != 8 or data[0] != 0xCC or data[7] != 0x33:
+            return
+        checksum = 0
+        for b in data[1:6]:
+            checksum ^= b
+        if checksum != data[6]:
+            return
+        self.state.update(roll=(data[1] - 127) / 128,
+                          pitch=(data[2] - 127) / 128,
+                          throttle=data[3] / 255,
+                          yaw=(data[4] - 127) / 128)
+        self.last_command = time.monotonic()
+
+    def update_state(self, data):
+        try:
+            obj = json.loads(data)
+            if not isinstance(obj, dict):
+                return
+            for key in ("battery_pct", "altitude_m"):
+                if key in obj:
+                    value = float(obj[key])
+                    if math.isfinite(value):
+                        self.state[key] = value
+        except (ValueError, TypeError, UnicodeDecodeError):
+            pass
+
+    def run(self):
+        while True:
+            watched = [self.tcp, self.udp, self.state_socket] + list(self.connections)
+            readable, _, _ = select.select(watched, [], [], 0.05)
+            for sock in readable:
+                if sock is self.tcp:
+                    client, _ = sock.accept()
+                    client.setblocking(False)
+                    self.connections[client] = bytearray()
+                elif sock is self.udp:
+                    data, _ = sock.recvfrom(2048)
+                    self.command(data)
+                elif sock is self.state_socket:
+                    data, _ = sock.recvfrom(4096)
+                    self.update_state(data)
+                else:
+                    try:
+                        data = sock.recv(4096)
+                        if not data:
+                            raise ConnectionError("client disconnected")
+                        buf = self.connections[sock]
+                        buf.extend(data)
+                        if len(buf) > 16384:
+                            raise ConnectionError("handshake too long")
+                        # TCP initialization packets are 106 bytes and start ITd.
+                        while len(buf) >= 106:
+                            packet = bytes(buf[:106])
+                            del buf[:106]
+                            if not packet.startswith(b"ITd"):
+                                raise ConnectionError("invalid handshake")
+                        # Keep all three TCP channels open (control and video).
+                    except (OSError, ConnectionError):
+                        self.connections.pop(sock, None)
+                        sock.close()
+            if self.last_command and time.monotonic() - self.last_command > 0.5:
+                self.state.update(roll=0., pitch=0., throttle=0., yaw=0.)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--tcp-port", type=int, default=8888)
+    parser.add_argument("--udp-port", type=int, default=8895)
+    parser.add_argument("--state-port", type=int, default=14562)
+    args = parser.parse_args()
+    CheersonEndpoint(args.host, args.tcp_port, args.udp_port, args.state_port).run()
