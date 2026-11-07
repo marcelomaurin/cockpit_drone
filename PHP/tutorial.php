@@ -70,13 +70,13 @@ footer{padding:30px 0 44px;color:var(--muted);font-size:14px;border-top:1px soli
     <nav aria-label="Navegação principal">
       <a class="brand" href="index.php">Cockpit<span>Drone</span> / tutorial</a>
       <div class="links">
-        <a href="index.php">Início / Servidor</a>
-        <a href="#download">Onde Baixar</a>
-        <a href="#joystick-vs-teclado">Joystick vs Teclado</a>
-        <a href="#mapa-teclas">Mapa de Teclas</a>
-        <a href="#passo-a-passo">Passo a Passo</a>
-        <a href="#multiplayer">Mundo Compartilhado</a>
-        <a href="https://github.com/marcelomaurin/cockpit_drone/tree/master/bin" target="_blank" rel="noopener">GitHub bin/</a>
+        <a href="index.php" data-i18n="tut_nav_home">Início / Servidor</a>
+        <a href="#download" data-i18n="tut_nav_download">Onde Baixar</a>
+        <a href="#joystick-vs-teclado" data-i18n="tut_nav_joy">Joystick vs Teclado</a>
+        <a href="#mapa-teclas" data-i18n="tut_nav_keys">Mapa de Teclas</a>
+        <a href="#passo-a-passo" data-i18n="tut_nav_steps">Passo a Passo</a>
+        <a href="#multiplayer" data-i18n="tut_nav_multi">Mundo Compartilhado</a>
+        <a href="https://github.com/marcelomaurin/cockpit_drone/tree/master/bin" target="_blank" rel="noopener" data-i18n="tut_nav_gh_bin">GitHub bin/</a>
       </div>
     <div class="lang-picker">
 <label for="lang-select" title="Idioma / Language">🌐</label>
@@ -111,194 +111,194 @@ footer{padding:30px 0 44px;color:var(--muted);font-size:14px;border-top:1px soli
   </div>
 
   <section id="download">
-    <div class="eyebrow">1. Instalação</div>
+    <div class="eyebrow" data-i18n="tut_sec1_eyebrow">1. Instalação</div>
     <h2 data-i18n="tut_sec1_title">Onde Baixar a Simulação e o Cockpit</h2>
-    <p>Todos os binários compilados, instaladores e arquivos de suporte estão disponíveis na pasta oficial <code>bin/</code> do repositório no GitHub:</p>
+    <p data-i18n="tut_sec1_intro">Todos os binários compilados, instaladores e arquivos de suporte estão disponíveis na pasta oficial <code>bin/</code> do repositório no GitHub:</p>
     
     <div class="grid">
       <div class="card">
-        <h3>📦 Instalador Completo para Windows</h3>
-        <p>A forma mais rápida de começar. O instalador configura o Cockpit Drone, o Simulador e todos os recursos necessários:</p>
-        <p><strong>Arquivo:</strong> <code>setup_cockpit_drone_0.41.exe</code></p>
-        <p><a class="button primary" href="https://github.com/marcelomaurin/cockpit_drone/raw/master/bin/setup_cockpit_drone_0.41.exe" target="_blank" rel="noopener">Baixar Instalador Oficial (.exe)</a></p>
-        <p class="muted" style="font-size:13px">Localizado dentro da pasta <code>bin/</code> no GitHub.</p>
+        <h3 data-i18n="tut_card_setup_title">📦 Instalador Completo para Windows</h3>
+        <p data-i18n="tut_card_setup_desc">A forma mais rápida de começar. O instalador configura o Cockpit Drone, o Simulador e todos os recursos necessários:</p>
+        <p><strong data-i18n="tut_card_setup_file">Arquivo:</strong> <code>setup_cockpit_drone_0.41.exe</code></p>
+        <p><a class="button primary" href="https://github.com/marcelomaurin/cockpit_drone/raw/master/bin/setup_cockpit_drone_0.41.exe" target="_blank" rel="noopener" data-i18n="tut_card_setup_btn">Baixar Instalador Oficial (.exe)</a></p>
+        <p class="muted" style="font-size:13px" data-i18n="tut_card_setup_note">Localizado dentro da pasta <code>bin/</code> no GitHub.</p>
       </div>
 
       <div class="card">
-        <h3>📁 Pasta bin/ no GitHub</h3>
-        <p>Você pode navegar diretamente pela pasta de binários e documentação do projeto:</p>
+        <h3 data-i18n="tut_card_bin_title">📁 Pasta bin/ no GitHub</h3>
+        <p data-i18n="tut_card_bin_desc">Você pode navegar diretamente pela pasta de binários e documentação do projeto:</p>
         <ul>
-          <li><strong>drone.exe:</strong> Aplicativo principal do Cockpit com instrumentos de voo, HUD tático e GPS duplo.</li>
-          <li><strong>simulador.exe:</strong> Simulador de física e modelo de dinâmica de voo.</li>
-          <li><strong>data/:</strong> Catálogo de modelos de drones e rotas.</li>
+          <li data-i18n="tut_card_bin_drone"><strong>drone.exe:</strong> Aplicativo principal do Cockpit com instrumentos de voo, HUD tático e GPS duplo.</li>
+          <li data-i18n="tut_card_bin_sim"><strong>simulador.exe:</strong> Simulador de física e modelo de dinâmica de voo.</li>
+          <li data-i18n="tut_card_bin_data"><strong>data/:</strong> Catálogo de modelos de drones e rotas.</li>
         </ul>
-        <p><a class="button" href="https://github.com/marcelomaurin/cockpit_drone/tree/master/bin" target="_blank" rel="noopener">Acessar pasta bin/ no GitHub</a></p>
+        <p><a class="button" href="https://github.com/marcelomaurin/cockpit_drone/tree/master/bin" target="_blank" rel="noopener" data-i18n="tut_card_bin_btn">Acessar pasta bin/ no GitHub</a></p>
       </div>
     </div>
   </section>
 
   <section id="joystick-vs-teclado">
-    <div class="eyebrow">2. Experiência de Controle</div>
+    <div class="eyebrow" data-i18n="tut_sec2_eyebrow">2. Experiência de Controle</div>
     <h2 data-i18n="tut_sec2_title">Joystick vs. Teclado: Qual Usar?</h2>
     
-    <div class="note">
+    <div class="note" data-i18n="tut_tip_desc">
       <strong>💡 Dica de Pilotagem:</strong> O simulador opera com <strong>resposta contínua nos 4 eixos de voo</strong> (arfagem, rolagem, guinada e aceleração vertical). Por essa razão, <strong>o simulador é melhor rodado com um joystick analógico</strong>, permitindo modulação precisa e voo suave, <em>apesar de também poder ser perfeitamente pilotado via teclado</em>.
     </div>
 
     <div class="grid">
       <div class="card">
-        <h3><span class="badge badge-joy">Recomendado</span> Pilotando com Joystick</h3>
-        <p>Utilize qualquer controle analógico compatível com Windows:</p>
+        <h3><span class="badge badge-joy" data-i18n="tut_joy_badge">Recomendado</span> <span data-i18n="tut_joy_title">Pilotando com Joystick</span></h3>
+        <p data-i18n="tut_joy_desc">Utilize qualquer controle analógico compatível com Windows:</p>
         <ul>
-          <li><strong>Manches de Voo (Flight Sticks):</strong> Ideal para resposta realista dos eixos.</li>
-          <li><strong>Controles de Videogame (Xbox, PlayStation, etc.):</strong> Sticks analógicos proporcionam controle milimétrico do acelerador e curvas.</li>
-          <li><strong>Rádios Transmissores RC (via USB / VJoy):</strong> Excelente para quem já pilota drones de corrida (FPV) ou aeromodelos.</li>
+          <li data-i18n="tut_joy_li1"><strong>Manches de Voo (Flight Sticks):</strong> Ideal para resposta realista dos eixos.</li>
+          <li data-i18n="tut_joy_li2"><strong>Controles de Videogame (Xbox, PlayStation, etc.):</strong> Sticks analógicos proporcionam controle milimétrico do acelerador e curvas.</li>
+          <li data-i18n="tut_joy_li3"><strong>Rádios Transmissores RC (via USB / VJoy):</strong> Excelente para quem já pilota drones de corrida (FPV) ou aeromodelos.</li>
         </ul>
-        <p class="muted">Basta conectar o controle USB e ativar a opção <em>Joystick</em> nas Configurações do Cockpit.</p>
+        <p class="muted" data-i18n="tut_joy_note">Basta conectar o controle USB e ativar a opção <em>Joystick</em> nas Configurações do Cockpit.</p>
       </div>
 
       <div class="card">
-        <h3><span class="badge badge-key">Acessível</span> Pilotando com Teclado</h3>
-        <p>Se você não tiver um joystick conectado, pode pilotar normalmente pelo teclado:</p>
+        <h3><span class="badge badge-key" data-i18n="tut_key_badge">Acessível</span> <span data-i18n="tut_key_title">Pilotando com Teclado</span></h3>
+        <p data-i18n="tut_key_desc">Se você não tiver um joystick conectado, pode pilotar normalmente pelo teclado:</p>
         <ul>
-          <li><strong>Retorno Seguro:</strong> Ao soltar a tecla de subir, o sistema recua suavemente em direção ao patamar de pairar (<em>hover</em>), evitando que o drone suba descontrolado.</li>
-          <li><strong>Corte Imediato de Pânico:</strong> A tecla <code>Espaço</code> zera o motor imediatamente em qualquer emergência.</li>
-          <li><strong>Tecla de Centralização:</strong> A tecla <code>R</code> ou <code>5</code> centraliza arfagem e rolagem na posição neutra.</li>
+          <li data-i18n="tut_key_li1"><strong>Retorno Seguro:</strong> Ao soltar a tecla de subir, o sistema recua suavemente em direção ao patamar de pairar (<em>hover</em>), evitando que o drone suba descontrolado.</li>
+          <li data-i18n="tut_key_li2"><strong>Corte Imediato de Pânico:</strong> A tecla <code>Espaço</code> zera o motor imediatamente em qualquer emergência.</li>
+          <li data-i18n="tut_key_li3"><strong>Tecla de Centralização:</strong> A tecla <code>R</code> ou <code>5</code> centraliza arfagem e rolagem na posição neutra.</li>
         </ul>
-        <p class="muted">Consulte a aba <strong>Teclado</strong> na janela de Configurações para praticar com o teste de teclas em tempo real.</p>
+        <p class="muted" data-i18n="tut_key_note">Consulte a aba <strong>Teclado</strong> na janela de Configurações para praticar com o teste de teclas em tempo real.</p>
       </div>
     </div>
   </section>
 
   <section id="mapa-teclas">
-    <div class="eyebrow">3. Referência de Comandos</div>
+    <div class="eyebrow" data-i18n="tut_sec3_eyebrow">3. Referência de Comandos</div>
     <h2 data-i18n="tut_sec3_title">Mapa Completo de Teclas</h2>
-    <p>Mapeamento de teclas implementado no Cockpit Drone para orientação durante a navegação e pilotagem:</p>
+    <p data-i18n="tut_sec3_desc">Mapeamento de teclas implementado no Cockpit Drone para orientação durante a navegação e pilotagem:</p>
 
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>Comando / Função</th>
-            <th>Tecla Principal</th>
-            <th>Tecla Alternativa</th>
-            <th>Efeito na Aeronave</th>
+            <th data-i18n="tut_tbl_cmd">Comando / Função</th>
+            <th data-i18n="tut_tbl_key1">Tecla Principal</th>
+            <th data-i18n="tut_tbl_key2">Tecla Alternativa</th>
+            <th data-i18n="tut_tbl_effect">Efeito na Aeronave</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><strong>Frente (Pitch +)</strong></td>
+            <td data-i18n="tut_cmd_pitch_p"><strong>Frente (Pitch +)</strong></td>
             <td><code>W</code></td>
-            <td><code>Seta Acima</code></td>
-            <td>Inclina o drone para a frente (arfagem)</td>
+            <td data-i18n="tut_key_up"><code>Seta Acima</code></td>
+            <td data-i18n="tut_eff_pitch_p">Inclina o drone para a frente (arfagem)</td>
           </tr>
           <tr>
-            <td><strong>Trás (Pitch -)</strong></td>
+            <td data-i18n="tut_cmd_pitch_m"><strong>Trás (Pitch -)</strong></td>
             <td><code>S</code></td>
-            <td><code>Seta Abaixo</code></td>
-            <td>Inclina o drone para trás</td>
+            <td data-i18n="tut_key_down"><code>Seta Abaixo</code></td>
+            <td data-i18n="tut_eff_pitch_m">Inclina o drone para trás</td>
           </tr>
           <tr>
-            <td><strong>Esquerda (Roll -)</strong></td>
+            <td data-i18n="tut_cmd_roll_m"><strong>Esquerda (Roll -)</strong></td>
             <td><code>A</code></td>
-            <td><code>Seta Esquerda</code></td>
-            <td>Inclina o drone para a esquerda (rolagem)</td>
+            <td data-i18n="tut_key_left"><code>Seta Esquerda</code></td>
+            <td data-i18n="tut_eff_roll_m">Inclina o drone para a esquerda (rolagem)</td>
           </tr>
           <tr>
-            <td><strong>Direita (Roll +)</strong></td>
+            <td data-i18n="tut_cmd_roll_p"><strong>Direita (Roll +)</strong></td>
             <td><code>D</code></td>
-            <td><code>Seta Direita</code></td>
-            <td>Inclina o drone para a direita</td>
+            <td data-i18n="tut_key_right"><code>Seta Direita</code></td>
+            <td data-i18n="tut_eff_roll_p">Inclina o drone para a direita</td>
           </tr>
           <tr>
-            <td><strong>Subir (Throttle +)</strong></td>
+            <td data-i18n="tut_cmd_throt_p"><strong>Subir (Throttle +)</strong></td>
             <td><code>E</code></td>
             <td><code>Page Up</code></td>
-            <td>Aumenta aceleração dos motores e altitude</td>
+            <td data-i18n="tut_eff_throt_p">Aumenta aceleração dos motores e altitude</td>
           </tr>
           <tr>
-            <td><strong>Descer (Throttle -)</strong></td>
+            <td data-i18n="tut_cmd_throt_m"><strong>Descer (Throttle -)</strong></td>
             <td><code>Q</code></td>
             <td><code>Page Down</code></td>
-            <td>Reduz aceleração e desce o drone</td>
+            <td data-i18n="tut_eff_throt_m">Reduz aceleração e desce o drone</td>
           </tr>
           <tr>
-            <td><strong>Girar Esquerda (Yaw -)</strong></td>
+            <td data-i18n="tut_cmd_yaw_m"><strong>Girar Esquerda (Yaw -)</strong></td>
             <td><code>1</code></td>
             <td><code>Z</code></td>
-            <td>Gira no próprio eixo à esquerda (Botão 1)</td>
+            <td data-i18n="tut_eff_yaw_m">Gira no próprio eixo à esquerda (Botão 1)</td>
           </tr>
           <tr>
-            <td><strong>Girar Direita (Yaw +)</strong></td>
+            <td data-i18n="tut_cmd_yaw_p"><strong>Girar Direita (Yaw +)</strong></td>
             <td><code>2</code></td>
             <td><code>X</code></td>
-            <td>Gira no próprio eixo à direita (Botão 2)</td>
+            <td data-i18n="tut_eff_yaw_p">Gira no próprio eixo à direita (Botão 2)</td>
           </tr>
           <tr>
-            <td><strong>Decolar / Armar</strong></td>
+            <td data-i18n="tut_cmd_takeoff"><strong>Decolar / Armar</strong></td>
             <td><code>3</code></td>
             <td><code>Insert</code></td>
-            <td>Arma motores ou decolagem automática (Botão 3)</td>
+            <td data-i18n="tut_eff_takeoff">Arma motores ou decolagem automática (Botão 3)</td>
           </tr>
           <tr>
-            <td><strong>Pousar / Desarmar</strong></td>
+            <td data-i18n="tut_cmd_land"><strong>Pousar / Desarmar</strong></td>
             <td><code>4</code></td>
             <td><code>Delete</code></td>
-            <td>Inicia pouso automático ou desarma (Botão 4)</td>
+            <td data-i18n="tut_eff_land">Inicia pouso automático ou desarma (Botão 4)</td>
           </tr>
           <tr>
-            <td><strong>Pairar / Centralizar</strong></td>
+            <td data-i18n="tut_cmd_hover"><strong>Pairar / Centralizar</strong></td>
             <td><code>5</code></td>
             <td><code>R</code> ou <code>Home</code></td>
-            <td>Zera inclinações e mantém voo estabilizado (Botão 5)</td>
+            <td data-i18n="tut_eff_hover">Zera inclinações e mantém voo estabilizado (Botão 5)</td>
           </tr>
           <tr>
-            <td><strong>Manobra / Flip 360°</strong></td>
+            <td data-i18n="tut_cmd_flip"><strong>Manobra / Flip 360°</strong></td>
             <td><code>6</code></td>
             <td><code>F</code></td>
-            <td>Acrobacia aérea ou função especial (Botão 6)</td>
+            <td data-i18n="tut_eff_flip">Acrobacia aérea ou função especial (Botão 6)</td>
           </tr>
           <tr>
-            <td><strong>PÂNICO / Corte Imediato</strong></td>
-            <td><code>Barra de Espaço</code></td>
+            <td data-i18n="tut_cmd_panic"><strong>PÂNICO / Corte Imediato</strong></td>
+            <td data-i18n="tut_key_space"><code>Barra de Espaço</code></td>
             <td>—</td>
-            <td>Corte total e imediato dos motores (Z = 0)</td>
+            <td data-i18n="tut_eff_panic">Corte total e imediato dos motores (Z = 0)</td>
           </tr>
           <tr>
-            <td><strong>Iniciar / Parar Conexão</strong></td>
+            <td data-i18n="tut_cmd_conn"><strong>Iniciar / Parar Conexão</strong></td>
             <td><code>Enter</code></td>
             <td>—</td>
-            <td>Liga/desliga a comunicação (Start / Stop)</td>
+            <td data-i18n="tut_eff_conn">Liga/desliga a comunicação (Start / Stop)</td>
           </tr>
           <tr>
-            <td><strong>Alternar HUD Tático</strong></td>
+            <td data-i18n="tut_cmd_hud"><strong>Alternar HUD Tático</strong></td>
             <td><code>T</code></td>
             <td>—</td>
-            <td>Exibe ou oculta o Head-Up Display (visão militar)</td>
+            <td data-i18n="tut_eff_hud">Exibe ou oculta o Head-Up Display (visão militar)</td>
           </tr>
           <tr>
-            <td><strong>Alternar Janela Câmera</strong></td>
+            <td data-i18n="tut_cmd_cam"><strong>Alternar Janela Câmera</strong></td>
             <td><code>C</code></td>
             <td>—</td>
-            <td>Abre/fecha o feed de vídeo em tempo real</td>
+            <td data-i18n="tut_eff_cam">Abre/fecha o feed de vídeo em tempo real</td>
           </tr>
           <tr>
-            <td><strong>Alternar Janela Mapa</strong></td>
+            <td data-i18n="tut_cmd_map"><strong>Alternar Janela Mapa</strong></td>
             <td><code>M</code></td>
             <td>—</td>
-            <td>Abre/fecha o mapa tático de navegação</td>
+            <td data-i18n="tut_eff_map">Abre/fecha o mapa tático de navegação</td>
           </tr>
           <tr>
-            <td><strong>Alternar Janela GPS</strong></td>
+            <td data-i18n="tut_cmd_gps"><strong>Alternar Janela GPS</strong></td>
             <td><code>G</code></td>
             <td>—</td>
-            <td>Exibe o painel de telemetria GPS da Central e do Drone</td>
+            <td data-i18n="tut_eff_gps">Exibe o painel de telemetria GPS da Central e do Drone</td>
           </tr>
           <tr>
-            <td><strong>Sair</strong></td>
+            <td data-i18n="tut_cmd_exit"><strong>Sair</strong></td>
             <td><code>Esc</code></td>
             <td>—</td>
-            <td>Fecha a janela do cockpit</td>
+            <td data-i18n="tut_eff_exit">Fecha a janela do cockpit</td>
           </tr>
         </tbody>
       </table>
@@ -306,55 +306,55 @@ footer{padding:30px 0 44px;color:var(--muted);font-size:14px;border-top:1px soli
   </section>
 
   <section id="passo-a-passo">
-    <div class="eyebrow">4. Operação Prática</div>
+    <div class="eyebrow" data-i18n="tut_sec4_eyebrow">4. Operação Prática</div>
     <h2 data-i18n="tut_sec4_title">Passo a Passo: Como Rodar a Simulação</h2>
 
     <div class="grid-3">
       <div class="card">
-        <h3>1. Abra o Simulador</h3>
-        <p>Inicie o <code>simulador.exe</code>. Na janela do simulador:</p>
+        <h3 data-i18n="tut_step1_h3">1. Abra o Simulador</h3>
+        <p data-i18n="tut_step1_p">Inicie o <code>simulador.exe</code>. Na janela do simulador:</p>
         <ul>
-          <li>Selecione o drone desejado (ex: Cheerson CX-10W, DJI Tello, MAVLink).</li>
-          <li>Verifique que o status de escuta de rede local está ativo (endereço <code>127.0.0.1</code>).</li>
+          <li data-i18n="tut_step1_li1">Selecione o drone desejado (ex: Cheerson CX-10W, DJI Tello, MAVLink).</li>
+          <li data-i18n="tut_step1_li2">Verifique que o status de escuta de rede local está ativo (endereço <code>127.0.0.1</code>).</li>
         </ul>
       </div>
 
       <div class="card">
-        <h3>2. Configure o Cockpit</h3>
-        <p>Inicie o <code>drone.exe</code> e clique no botão <strong>Config</strong>:</p>
+        <h3 data-i18n="tut_step2_h3">2. Configure o Cockpit</h3>
+        <p data-i18n="tut_step2_p">Inicie o <code>drone.exe</code> e clique no botão <strong>Config</strong>:</p>
         <ul>
-          <li>Na aba <em>Tipo Equipamento</em>, selecione o mesmo modelo/protocolo escolhido no simulador.</li>
-          <li>Ative a opção <strong>Simulado (127.0.0.1)</strong>.</li>
-          <li>Verifique seu dispositivo na aba <em>Joystick</em> ou consulte a aba <em>Teclado</em>.</li>
+          <li data-i18n="tut_step2_li1">Na aba <em>Tipo Equipamento</em>, selecione o mesmo modelo/protocolo escolhido no simulador.</li>
+          <li data-i18n="tut_step2_li2">Ative a opção <strong>Simulado (127.0.0.1)</strong>.</li>
+          <li data-i18n="tut_step2_li3">Verifique seu dispositivo na aba <em>Joystick</em> ou consulte a aba <em>Teclado</em>.</li>
         </ul>
       </div>
 
       <div class="card">
-        <h3>3. Voe!</h3>
-        <p>Volte à tela principal e clique no botão <strong>Start</strong> (ou tecle <code>Enter</code>):</p>
+        <h3 data-i18n="tut_step3_h3">3. Voe!</h3>
+        <p data-i18n="tut_step3_p">Volte à tela principal e clique no botão <strong>Start</strong> (ou tecle <code>Enter</code>):</p>
         <ul>
-          <li>Os LEDs acenderão confirmando o fluxo de telemetria.</li>
-          <li>Decole pressionando <code>3</code> ou acelerando suavemente em <code>E</code>.</li>
-          <li>Abra o HUD Tático teclando <code>T</code> e o Mapa teclando <code>M</code>.</li>
+          <li data-i18n="tut_step3_li1">Os LEDs acenderão confirmando o fluxo de telemetria.</li>
+          <li data-i18n="tut_step3_li2">Decole pressionando <code>3</code> ou acelerando suavemente em <code>E</code>.</li>
+          <li data-i18n="tut_step3_li3">Abra o HUD Tático teclando <code>T</code> e o Mapa teclando <code>M</code>.</li>
         </ul>
       </div>
     </div>
   </section>
 
   <section id="multiplayer">
-    <div class="eyebrow">5. Conectividade Online</div>
+    <div class="eyebrow" data-i18n="tut_sec5_eyebrow">5. Conectividade Online</div>
     <h2 data-i18n="tut_sec5_title">Mundo Compartilhado (Multiplayer)</h2>
-    <p>O Cockpit Drone suporta o compartilhamento de espaço aéreo em tempo real. Vários pilotos podem se conectar ao mesmo servidor para visualizar os drones uns dos outros no mapa e nas telas de telemetria.</p>
+    <p data-i18n="tut_sec5_desc">O Cockpit Drone suporta o compartilhamento de espaço aéreo em tempo real. Vários pilotos podem se conectar ao mesmo servidor para visualizar os drones uns dos outros no mapa e nas telas de telemetria.</p>
     
     <div class="card">
-      <h3>Configuração da API de Mundo</h3>
-      <p>Tanto o simulador quanto o cockpit podem apontar para o servidor oficial de simulação:</p>
+      <h3 data-i18n="tut_multi_h3">Configuração da API de Mundo</h3>
+      <p data-i18n="tut_multi_p1">Tanto o simulador quanto o cockpit podem apontar para o servidor oficial de simulação:</p>
       <pre><code>URL da API de Mundo: https://maurinsoft.com.br/cockpit/api.php</code></pre>
-      <p>Quando ativado:</p>
+      <p data-i18n="tut_multi_p2">Quando ativado:</p>
       <ul>
-        <li>Drones em um raio de até <strong>2 km</strong> da sua posição geográfica aparecem automaticamente marcados no seu mapa tático.</li>
-        <li>Informações de altitude, rumo e velocidade de cada participante são sincronizadas.</li>
-        <li>O servidor conta com proteção automática de limites de sessão e persistência de dados.</li>
+        <li data-i18n="tut_multi_li1">Drones em um raio de até <strong>2 km</strong> da sua posição geográfica aparecem automaticamente marcados no seu mapa tático.</li>
+        <li data-i18n="tut_multi_li2">Informações de altitude, rumo e velocidade de cada participante são sincronizadas.</li>
+        <li data-i18n="tut_multi_li3">O servidor conta com proteção automática de limites de sessão e persistência de dados.</li>
       </ul>
     </div>
   </section>
@@ -362,8 +362,8 @@ footer{padding:30px 0 44px;color:var(--muted);font-size:14px;border-top:1px soli
 
 <footer>
   <div class="wrap">
-    <p>Cockpit Drone &bull; Projeto de código aberto para telemetria, simulação e pilotagem de drones.</p>
-    <p class="muted">Disponível no GitHub: <a href="https://github.com/marcelomaurin/cockpit_drone" target="_blank" rel="noopener">github.com/marcelomaurin/cockpit_drone</a></p>
+    <p data-i18n="tut_footer_p1">Cockpit Drone &bull; Projeto de código aberto para telemetria, simulação e pilotagem de drones.</p>
+    <p class="muted"><span data-i18n="tut_footer_p2">Disponível no GitHub:</span> <a href="https://github.com/marcelomaurin/cockpit_drone" target="_blank" rel="noopener">github.com/marcelomaurin/cockpit_drone</a></p>
   </div>
 </footer>
 <script src="i18n.js"></script>
