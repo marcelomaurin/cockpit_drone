@@ -1,0 +1,42 @@
+name: PHP multiplayer API checks
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'PHP/**'
+      - '.github/workflows/php-api.yml'
+  pull_request:
+    paths:
+      - 'PHP/**'
+      - '.github/workflows/php-api.yml'
+  workflow_dispatch:
+
+jobs:
+  php-api:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check PHP version and extensions
+        run: |
+          php -v
+          php -m | grep -i '^curl$'
+      - name: Lint all PHP files
+        run: |
+          find PHP -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Start isolated test server
+        run: |
+          mkdir -p "$RUNNER_TEMP/drone-data"
+          DRONE_STORAGE=files DRONE_DATA_DIR="$RUNNER_TEMP/drone-data" php -S 127.0.0.1:8765 -t PHP PHP/index.php >"$RUNNER_TEMP/drone-php.log" 2>&1 &
+          echo $! >"$RUNNER_TEMP/drone-php.pid"
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8765/health >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/drone-php.log"
+          exit 1
+      - name: Run API smoke tests
+        run: php PHP/tests/smoke.php http://127.0.0.1:8765
+      - name: Show server logs on failure
+        if: failure()
+        run: cat "$RUNNER_TEMP/drone-php.log" || true
