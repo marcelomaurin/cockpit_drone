@@ -70,14 +70,18 @@ class ESPDroneEndpoint:
             now = time.monotonic()
             if self.last_packet and now - self.last_packet > 0.5:
                 self.controls.update(roll=0., pitch=0., yaw=0., throttle=0.)
-            self.step_physics(now - self.last_step)
+            if self.physics_port is None:
+                self.step_physics(now - self.last_step)
             self.last_step = now
             if self.peer and now >= next_reply:
                 # Cockpit marks the link alive after receiving any datagram.
                 self.sock.sendto(b"\x3c\x3c", self.peer)
                 next_reply = now + 0.2
             if self.physics_port is not None:
-                self.physics.sendto(json.dumps(dict(controls=self.controls, state=self.position)).encode("utf-8"),
+                normalized = dict(throttle=self.controls['throttle'], turn=self.controls['yaw'],
+                                  climb=max(-1., min(1., (self.controls['throttle'] - 0.45) / 0.55)),
+                                  brake=0., roll=self.controls['roll'], pitch=self.controls['pitch'])
+                self.physics.sendto(json.dumps(normalized).encode("utf-8"),
                                     ("127.0.0.1", self.physics_port))
             ready, _, _ = select.select([self.sock], [], [], 0.02)
             if ready:
