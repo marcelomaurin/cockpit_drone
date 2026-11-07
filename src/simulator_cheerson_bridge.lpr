@@ -3,7 +3,7 @@ program simulator_cheerson_bridge;
 {$mode objfpc}{$H+}
 
 uses
-  SysUtils, Sockets, BaseUnix, Unix, fpjson, jsonparser,
+  SysUtils, Sockets, BaseUnix, Unix, fpjson, jsonparser, Math,
   simulator_vehicle_core, simulator_protocol_bridge;
 
 var
@@ -19,6 +19,7 @@ var
   LastTick, NowTick, Dt: Double;
   ReadSet: TFDSet;
   WaitTime: TTimeVal;
+  FormatUS: TFormatSettings;
 
 function TimeSeconds: Double;
 begin
@@ -49,6 +50,8 @@ begin
   DestAddr.sin_addr.s_addr := htonl($7F000001);
   Vehicle := TSimulatorVehicle.Create(vkMultirotor, -21.17, -47.81, 0);
   Bridge := TSimulatorProtocolBridge.Create(Vehicle, 0.5);
+  FormatUS := DefaultFormatSettings;
+  FormatUS.DecimalSeparator := '.';
   try
     LastTick := TimeSeconds;
     while True do
@@ -74,7 +77,7 @@ begin
                 Command := Format(
                   '{"throttle":%.6f,"turn":%.6f,"climb":%.6f,"brake":0,"roll":%.6f,"pitch":%.6f}',
                   [NumberOrZero(Obj, 'throttle'), NumberOrZero(Obj, 'yaw'),
-                   NumberOrZero(Obj, 'throttle') * 2 - 1,
+                   Max(0, (NumberOrZero(Obj, 'throttle') - 0.45) / 0.55),
                    NumberOrZero(Obj, 'roll'), NumberOrZero(Obj, 'pitch')],
                   DefaultFormatSettings);
                 Bridge.ApplyCommand(Command);
