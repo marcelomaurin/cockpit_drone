@@ -22,6 +22,13 @@ Aplicação completa desenvolvida em Object Pascal (Lazarus / Free Pascal) para 
 
 ---
 
+## Manuais e documentação ilustrada
+
+- **[Manual ilustrado de treinamento para profissionais do SUS — versão 0.46](docs/GUIA_SUS_0.46.md)** — objetivos, primeiro voo simulado, controles Xbox 360, protocolos, mundo compartilhado e **três imagens reais exportadas do simulador**.
+- [Guia de pilotagem e joystick](docs/CONTROLES_0.46.md) · [Protocolos e limitações](docs/PROTOCOLOS_0.46.md) · [Simulador e cenário urbano](simulador/docs/SIMULADOR_0.46.md) · [Dependências de instalação](docs/DEPENDENCIAS_0.46.md).
+
+---
+
 ## Finalidade: capacitação e apoio à vigilância em saúde no SUS
 
 O **Cockpit Drone** é um projeto de código aberto para **treinamento de pilotagem no simulador** e **operação/monitoramento de drones compatíveis por notebook**. Uma aplicação proposta é apoiar equipes municipais do **Sistema Único de Saúde (SUS)**, especialmente a **Vigilância Ambiental em Saúde** e os profissionais envolvidos na prevenção e controle das arboviroses transmitidas pelo *Aedes aegypti*.
