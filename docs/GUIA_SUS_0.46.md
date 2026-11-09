@@ -72,6 +72,16 @@ O [guia ilustrado das telas](TELAS_0.46.md) mostra todas as abas de configuraç�
 
 Em **Mapa**, selecione **OpenStreetMap (ruas)**, ative **Construções 3D no OpenStreetMap** e **Simular casas nos terrenos**, depois clique **Aplicar mapa**. Para treinar sem perda simulada de rádio, marque **Simulação → Sinal infinito (treinamento)**. Com a opção desativada, o Cheerson e o FQ777 têm alcance simulado de **30 metros**, incluindo a altura. Após uma queda, aguarde cerca de **1,5 segundo**; no Cheerson, retorne o acelerador ao mínimo antes de tentar novamente.
 
+## Exercício: inspeção de quintais com possíveis criadouros
+
+O simulador pode gerar um bairro em que parte dos quintais tem **vasos com prato com água, piscina verde, caixa d'água destampada, pneus, tanque de peixes abandonado ou baldes com água**, e os demais quintais têm os mesmos objetos em situação segura. O aluno sobrevoa o bairro com a **câmera de inspeção** (60° para baixo) e aponta as casas que precisariam de visita; o instrutor confere pelo **gabarito** salvo pelo simulador.
+
+![Caixa d'água destampada vista pela câmera de inspeção do simulador](img/simulador-inspecao-caixa-destampada.png)
+
+*Figura 7 — Câmera de inspeção a 14 m: caixa d'água destampada com a tampa no chão e baldes emborcados. Recurso do código publicado em 09/11/2026; requer recompilar o simulador.*
+
+Passo a passo, tabela de objetos e gabarito: [quintais e criadouros do Aedes](../simulador/docs/QUINTAIS_AEDES.md). Os quintais são fictícios: o exercício treina o olhar, não substitui a visita domiciliar.
+
 ## Interação pelo site: mundo compartilhado
 
 No `simulador.exe`, abra **Mundo compartilhado**, informe **https://maurinsoft.com.br/cockpit/** e um **apelido**, e clique **Entrar**. A documentação informa visualização de outros participantes em um raio de até **2 km**. O Cockpit continua conectado ao simulador local. **O multiplayer é de simulação**, não autoriza comandar drones físicos de terceiros. A disponibilidade do site não foi verificada em tempo real.

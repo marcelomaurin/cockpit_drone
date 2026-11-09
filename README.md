@@ -25,6 +25,7 @@ Aplicação completa desenvolvida em Object Pascal (Lazarus / Free Pascal) para 
 ## Manuais e documentação ilustrada
 
 - **[Manual ilustrado de treinamento para profissionais do SUS — versão 0.46](docs/GUIA_SUS_0.46.md)** — objetivos, primeiro voo simulado, controles Xbox 360, protocolos, mundo compartilhado e **capturas reais do Cockpit e do Simulador**.
+- **[Treinamento de inspeção de quintais (Aedes aegypti)](simulador/docs/QUINTAIS_AEDES.md)** — casas em proporção real com lote e quintal; vasos, piscinas, caixas d'água, pneus, tanques de peixe e baldes em versão segura e com água parada; câmera de inspeção e gabarito para o instrutor (código de 09/11/2026, requer recompilar o simulador).
 - **[Guia ilustrado das telas — versão 0.46](docs/TELAS_0.46.md)** — 17 capturas reais do Cockpit e do Simulador: janela principal, todas as abas de configuração, rota de voo e as vistas do simulador.
 - [Guia de pilotagem e joystick](docs/CONTROLES_0.46.md) · [Protocolos e limitações](docs/PROTOCOLOS_0.46.md) · [Simulador e cenário urbano](simulador/docs/SIMULADOR_0.46.md) · [Dependências de instalação](docs/DEPENDENCIAS_0.46.md).
 

@@ -17,7 +17,7 @@ interface
 uses
   Classes, SysUtils, Math, Forms, Controls, Graphics, StdCtrls, ExtCtrls, ComCtrls,
   Spin, IniFiles, LCLType, LCLIntf, Dialogs,
-  simtipos, simgeo, simsimulacao, simemulador, simmavlink, simmapa, simmundo, simvisao, simedificios_cache,simedificios,simrastercache;
+  simtipos, simgeo, simsimulacao, simemulador, simmavlink, simmapa, simmundo, simvisao, simedificios_cache,simedificios,simrastercache,simquintais;
 
 type
 
@@ -33,7 +33,8 @@ type
     FEdificios:TGerenciadorEdificios;
     FRaster:TGerenciadorRaster;
     FEdServidorEdificios:TEdit;FArquivoEdificios:string;
-    FCkEdificios,FCkTerrenos:TCheckBox;
+    FCkEdificios,FCkTerrenos,FCkCriadouros:TCheckBox;
+    FUltimoResumoLotes:string;
     FLbEdificios:TLabel;
     FMundo: TClienteMundo;
     FIni: TIniFile;
@@ -57,7 +58,7 @@ type
     FBtMundo: TButton;
     FLbMundo: TLabel;
     // Falhas
-    FCkSinal, FCkGPS, FCkSinalInfinito: TCheckBox;
+    FCkSinal, FCkGPS, FCkSinalInfinito, FCkCameraInspecao: TCheckBox;
     FTbVento: TTrackBar;
     FSpVentoRumo: TSpinEdit;
     FLbVento: TLabel;
@@ -88,6 +89,8 @@ type
     procedure BtLigarClick(Sender: TObject);
     procedure BtAplicarMapaClick(Sender: TObject);
     procedure BtImportarEdificios(Sender:TObject);
+    procedure BtGabaritoClick(Sender:TObject);
+    function CenaAtiva:TCenaEdificios;
     procedure BtInternetEdificios(Sender:TObject);
     procedure BtMundoClick(Sender: TObject);
     procedure BtEnviarClick(Sender: TObject);
@@ -310,7 +313,7 @@ begin
   FLbPortas.Width := 297;
   FLbPortas.Height := 40;
 
-  Gb := NovoGrupo('Mapa', 410);
+  Gb := NovoGrupo('Mapa', 470);
   Rotulo(Gb, 'Fonte:');
   FCbFonte := TComboBox.Create(Self);
   FCbFonte.Parent := Gb;
@@ -342,8 +345,15 @@ begin
   FCkTerrenos.SetBounds(8,273,300,24);FCkTerrenos.Checked:=True;
   FCkTerrenos.Caption:='Simular casas nos terrenos';
   FCkTerrenos.Hint:='Completa areas residenciais respeitando vias. Use Aplicar mapa.';FCkTerrenos.ShowHint:=True;
+  FCkCriadouros:=TCheckBox.Create(Self);FCkCriadouros.Parent:=Gb;
+  FCkCriadouros.SetBounds(8,301,300,24);FCkCriadouros.Checked:=True;
+  FCkCriadouros.Caption:='Quintais com criadouros (Aedes)';
+  FCkCriadouros.Hint:='Casas simuladas ganham lote com muro e quintal; parte deles tem vasos com prato, piscina verde, '+
+    'caixa d''agua destampada, pneus, tanque de peixes abandonado ou baldes com agua. Use Aplicar mapa.';
+  FCkCriadouros.ShowHint:=True;
   FLbEdificios:=TLabel.Create(Self);FLbEdificios.Parent:=Gb;
-  FLbEdificios.AutoSize:=False;FLbEdificios.WordWrap:=True;FLbEdificios.SetBounds(8,303,300,80);
+  FLbEdificios.AutoSize:=False;FLbEdificios.WordWrap:=True;FLbEdificios.SetBounds(8,329,300,64);
+  Y:=397;Botao(Gb,8,200,'Salvar gabarito dos quintais...',@BtGabaritoClick);
   FLbFonte := TLabel.Create(Self);
   FLbFonte.Parent := Gb;
   FLbFonte.Left := 135;
@@ -409,7 +419,7 @@ begin
   FCbAtraso.ItemIndex := 0;
   FCbAtraso.OnChange := @AtualizaFalhas;
 
-  Gb := NovoGrupo('Simulação', 105);
+  Gb := NovoGrupo('Simulação', 133);
   FCkSinalInfinito := TCheckBox.Create(Self);
   FCkSinalInfinito.Parent := Gb;
   FCkSinalInfinito.SetBounds(8, Y, 297, 24);
@@ -417,6 +427,15 @@ begin
   FCkSinalInfinito.Hint := 'Mantem o sinal simulado em qualquer distancia e altura.';
   FCkSinalInfinito.ShowHint := True;
   FCkSinalInfinito.OnChange := @AtualizaFalhas;
+  Inc(Y, 28);
+  FCkCameraInspecao := TCheckBox.Create(Self);
+  FCkCameraInspecao.Parent := Gb;
+  FCkCameraInspecao.SetBounds(8, Y, 297, 24);
+  FCkCameraInspecao.Caption := 'Camera de inspecao (60 graus para baixo)';
+  FCkCameraInspecao.Hint := 'Inclina a camera do drone para olhar quintais e telhados, como na inspecao de criadouros. '+
+    'Vale para a imagem enviada ao cockpit.';
+  FCkCameraInspecao.ShowHint := True;
+  FCkCameraInspecao.OnChange := @AtualizaFalhas;
   Inc(Y, 28);
   FBtPausar := Botao(Gb, 8, 145, 'Pausar', @BtPausarClick);
   Botao(Gb, 160, 145, 'Reiniciar na partida', @BtReiniciarClick);
@@ -513,6 +532,7 @@ begin
   end;
   FCkEdificios.Checked:=FIni.ReadBool('mapa','edificios_3d',True);
   FCkTerrenos.Checked:=FIni.ReadBool('mapa','simular_terrenos',True);
+  FCkCriadouros.Checked:=FIni.ReadBool('treinamento','criadouros_aedes',True);
   FEdServidorEdificios.Text:=FIni.ReadString('mapa','servidor_edificios',SERVIDOR_EDIFICIOS_PADRAO);
   FArquivoEdificios:=FIni.ReadString('mapa','arquivo_edificios','');
   if (FArquivoEdificios<>'') and not ValidaArquivoOSM(FArquivoEdificios,Erro) then begin
@@ -532,6 +552,7 @@ begin
   FSpMavPortaLocal.Value := FIni.ReadInteger('mavlink', 'porta_local', MAV_PORTA_LOCAL);
   CbModeloChange(nil);
   FCkSinalInfinito.Checked := FIni.ReadBool('treinamento', 'sinal_infinito', False);
+  FCkCameraInspecao.Checked := FIni.ReadBool('treinamento', 'camera_inspecao', False);
   AtualizaFalhas(nil);
 end;
 
@@ -541,11 +562,13 @@ const
 begin
   try
     FIni.WriteBool('treinamento', 'sinal_infinito', FCkSinalInfinito.Checked);
+    FIni.WriteBool('treinamento', 'camera_inspecao', FCkCameraInspecao.Checked);
     FIni.WriteString('mapa', 'chave_google', Trim(FEdChave.Text));
     FIni.WriteString('mapa', 'fonte_mapa', FONTES[EnsureRange(FCbFonte.ItemIndex, 0, 2)]);
     FIni.WriteString('mapa', 'servidor_osm', Trim(FEdOSM.Text));
     FIni.WriteBool('mapa','edificios_3d',FCkEdificios.Checked);
     FIni.WriteBool('mapa','simular_terrenos',FCkTerrenos.Checked);
+    FIni.WriteBool('treinamento','criadouros_aedes',FCkCriadouros.Checked);
     FIni.WriteString('mapa','servidor_edificios',Trim(FEdServidorEdificios.Text));
     FIni.WriteString('mapa','arquivo_edificios',FArquivoEdificios);
     FIni.WriteString('mundo', 'url', Trim(FEdUrl.Text));
@@ -572,6 +595,28 @@ begin
     if D.Execute then begin
       if not ValidaArquivoOSM(D.FileName,Erro) then begin MessageDlg('Arquivo de construcoes invalido',Erro,mtError,[mbOK],0);Exit;end;
       FArquivoEdificios:=D.FileName;BtAplicarMapaClick(nil);end;
+  finally D.Free;end;
+end;
+function TFrmPrincipal.CenaAtiva:TCenaEdificios;
+begin
+  Result:=Default(TCenaEdificios);
+  if Assigned(FEdificios) then Result:=FEdificios.Cena;
+  if (Length(Result.Itens)=0) and Assigned(FRaster) then Result:=FRaster.Cena;
+end;
+procedure TFrmPrincipal.BtGabaritoClick(Sender:TObject);
+var D:TSaveDialog;Cena:TCenaEdificios;NLotes,NRisco,NItens:Integer;
+begin
+  Cena:=CenaAtiva;ContaLotes(Cena,NLotes,NRisco,NItens);
+  if NLotes=0 then begin
+    MessageDlg('Ainda nao ha quintais simulados nesta regiao. Marque "Simular casas nos terrenos" e '+
+      '"Quintais com criadouros", clique Aplicar mapa e aguarde o carregamento.',mtInformation,[mbOK],0);Exit;end;
+  D:=TSaveDialog.Create(Self);
+  try
+    D.Title:='Gabarito dos quintais (uso do instrutor)';D.FileName:='gabarito_criadouros.csv';
+    D.Filter:='Planilha CSV (*.csv)|*.csv';D.DefaultExt:='csv';D.Options:=D.Options+[ofOverwritePrompt];
+    if not D.Execute then Exit;
+    SalvaGabarito(Cena,D.FileName);
+    Log(Format('Gabarito salvo: %s (%d quintais, %d com criadouro).',[D.FileName,NLotes,NRisco]));
   finally D.Free;end;
 end;
 procedure TFrmPrincipal.BtInternetEdificios(Sender:TObject);
@@ -601,6 +646,7 @@ begin
   finally
     Screen.Cursor := crDefault;
   end;
+  GerarCriadouros:=FCkCriadouros.Checked;
   FEdificios:=TGerenciadorEdificios.Create(PastaConfig+'cache_edificios',Trim(FEdServidorEdificios.Text),FArquivoEdificios,FCkTerrenos.Checked);
   FRaster:=TGerenciadorRaster.Create(FGer,FCkTerrenos.Checked);
   FVisao := TVisao.Create(FGer,1,FEdificios,FRaster);
@@ -650,6 +696,8 @@ var
   F: TFalhas;
 begin
   F.SinalInfinito := FCkSinalInfinito.Checked;
+  if Assigned(FCkCameraInspecao) and FCkCameraInspecao.Checked then InclinacaoInspecaoGraus := 60
+  else InclinacaoInspecaoGraus := -1;
   FCkSinal.Enabled := not F.SinalInfinito;
   F.PerdaSinal := FCkSinal.Checked and not F.SinalInfinito;
   F.PerdaGPS := FCkGPS.Checked;
@@ -870,6 +918,8 @@ procedure TFrmPrincipal.Tick(Sender: TObject);
 var
   S: string;
   E: TEstadoVoo;
+  Cena: TCenaEdificios;
+  NLotes, NRisco, NItens: Integer;
 begin
   if Assigned(FSim.Emulador) then
     while FSim.Emulador.ProximaMensagem(S) do
@@ -891,8 +941,16 @@ begin
     if not FSim.Ligado then begin E.Lat:=FOrigem.Lat;E.Lon:=FOrigem.Lon;end;
     FEdificios.Atualiza(E.Lat,E.Lon,FCkEdificios.Checked and not FGer.EhSatelite);
     FRaster.Atualiza(E.Lat,E.Lon,FCkEdificios.Checked and not FGer.EhSatelite);
-    if Length(FEdificios.Cena.Itens)>0 then FLbEdificios.Caption:=FEdificios.Status
-    else FLbEdificios.Caption:=FRaster.Status;
+    if Length(FEdificios.Cena.Itens)>0 then S:=FEdificios.Status else S:=FRaster.Status;
+    Cena:=CenaAtiva;ContaLotes(Cena,NLotes,NRisco,NItens);
+    if NLotes>0 then begin
+      S:=S+LineEnding+Format('Quintais: %d; com criadouro: %d (%d itens com agua parada)',[NLotes,NRisco,NItens]);
+      if S<>FUltimoResumoLotes then begin
+        Log(Format('Treinamento Aedes: %d quintais, %d com criadouro. O gabarito fica em Mapa > Salvar gabarito.',[NLotes,NRisco]));
+        FUltimoResumoLotes:=S;
+      end;
+    end;
+    FLbEdificios.Caption:=S;
   end;
   if Assigned(FMundo) then
   begin

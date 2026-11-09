@@ -10,7 +10,7 @@ $argsBuild=@('-Cr','-Co','-Ci','-gl',('-FU'+$units),('-FE'+$BuildDirectory))
 foreach($folder in @('src','src/compat','simulador/src/nucleo','simulador/src/protocolos','simulador/src/mapa','simulador/src/visao')){
  $argsBuild+=('-Fu'+(Join-Path $repo $folder))
 }
-foreach($name in @('test_crash_recovery','test_buildings_3d','test_buildings_loader','test_infinite_signal','test_urban_terrain','test_vehicle_physics','test_real_map_raster')){
+foreach($name in @('test_crash_recovery','test_buildings_3d','test_buildings_loader','test_infinite_signal','test_urban_terrain','test_vehicle_physics','test_real_map_raster','test_criadouros')){
  & $Compiler @argsBuild (Join-Path $repo ('tests/'+$name+'.pas')) *> (Join-Path $BuildDirectory ($name+'-build.log'))
  if($LASTEXITCODE -ne 0){Get-Content (Join-Path $BuildDirectory ($name+'-build.log')) -Tail 20;throw "Build failed: $name"}
 }
@@ -18,6 +18,8 @@ foreach($name in @('test_crash_recovery','test_buildings_3d','test_buildings_loa
 if($LASTEXITCODE -ne 0){throw 'Vehicle physics test failed'}
 & (Join-Path $BuildDirectory 'test_real_map_raster.exe') (Join-Path $repo 'tests/fixtures/osm_tiles17') (Join-Path $repo 'tests/fixtures/not_osm_project.json') (Join-Path $BuildDirectory 'real-map.png')
 if($LASTEXITCODE -ne 0){throw 'Real map raster test failed'}
+& (Join-Path $BuildDirectory 'test_criadouros.exe') (Join-Path $repo 'tests/fixtures/osm_tiles17') $BuildDirectory
+if($LASTEXITCODE -ne 0){throw 'Aedes breeding-site yards test failed'}
 & (Join-Path $BuildDirectory 'test_infinite_signal.exe')
 if($LASTEXITCODE -ne 0){throw 'Infinite signal test failed'}
 & (Join-Path $BuildDirectory 'test_urban_terrain.exe') (Join-Path $repo 'tests/fixtures/osm_terrain.json')

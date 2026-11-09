@@ -3,7 +3,7 @@ unit simurbanismo;
   areas and mapped buildings have priority over generated houses. }
 {$mode objfpc}{$H+}
 interface
-uses Classes,SysUtils,Math,fpjson,jsonparser,simgeo,simedificios;
+uses Classes,SysUtils,Math,fpjson,jsonparser,simgeo,simedificios,simquintais;
 type
   TViaTerreno=TViaEdificio;
   TViasTerreno=TViasEdificio;
@@ -20,6 +20,14 @@ begin
  if L<1e-12 then Exit(Hypot(P.X-A.X,P.Y-A.Y));
  T:=EnsureRange(((P.X-A.X)*DX+(P.Y-A.Y)*DY)/L,0.0,1.0);
  Result:=Hypot(P.X-A.X-T*DX,P.Y-A.Y-T*DY);
+end;
+function PontoMaisProximo(const P,A,B:TPontoEdificio):TPontoEdificio;
+var DX,DY,T,L:Double;
+begin
+ DX:=B.X-A.X;DY:=B.Y-A.Y;L:=Sqr(DX)+Sqr(DY);
+ if L<1e-12 then Exit(A);
+ T:=EnsureRange(((P.X-A.X)*DX+(P.Y-A.Y)*DY)/L,0.0,1.0);
+ Result.X:=A.X+T*DX;Result.Y:=A.Y+T*DY;
 end;
 function Cruzam(const A,B,C,D:TPontoEdificio):Boolean;
 var X1,X2,Y1,Y2:Double;
@@ -52,12 +60,12 @@ begin
  Result:=True;
 end;
 procedure GeraConstrucoesNosTerrenos(const Texto:string;const Origem:TPontoGeo;var Cena:TCenaEdificios);
-const PassoLat=0.00022;PassoLon=0.00025;
+const PassoLat=0.00005;PassoLon=0.00005; // ~5 m: lotes encostados ao longo da rua
 var Root:TJSONData;Elements,Members,Geometry:TJSONArray;Obj,Tags,Member:TJSONObject;
  I,J,K,Q,ILat,ILon,Lat0,Lat1,Lon0,Lon1,Hash,RealCount,Attempts:Integer;
  Zones:TZonasTerreno;Roads:TViasTerreno;Zone:TZonaTerreno;Road:TViaTerreno;
  Outer,Inner:TAneisEdificio;Ring:TAnelEdificio;E:TEdificio;
- Kind,TypeName:string;Width,Best,Angle,CX,CY,LX,LY,Lat,Lon,HalfW,HalfD:Double;
+ Kind,TypeName,Id:string;Width,Best,FX,FY,CX,CY,LX,LY,Lat,Lon:Double;Lot:TEdificio;Lote:TLote;Near:TPontoEdificio;
  FS:TFormatSettings;Allowed,Excluded,Free:Boolean;Center:TPontoEdificio;
  function Tag(const Key:string):string;
  begin if Assigned(Tags) then Result:=Tags.Get(Key,'') else Result:='';end;
@@ -154,36 +162,47 @@ begin
    LocalParaGeo(Origem,Min(800,Zones[I].Forma.MaxX),Min(800,Zones[I].Forma.MaxY),Lat,Lon);
    Lat1:=Ceil(Lat/PassoLat);Lon1:=Ceil(Lon/PassoLon);
    for ILat:=Lat0 to Lat1 do for ILon:=Lon0 to Lon1 do begin
-    Inc(Attempts);if (Attempts>12000) or (Length(Cena.Itens)>=Min(4000,RealCount+1800)) then Exit;
+    Inc(Attempts);if (Attempts>250000) or (Length(Cena.Itens)>=Min(4000,RealCount+1800)) then Exit;
     GeoParaLocal(Origem,(ILat+0.5)*PassoLat,(ILon+0.5)*PassoLon,CX,CY);
     if Hypot(CX,CY)>780 then Continue;
     if not DentroEdificio(CX,CY,Zones[I].Forma) then Continue;
-    Center.X:=CX;Center.Y:=CY;Best:=1e30;Angle:=0;
+    Center.X:=CX;Center.Y:=CY;Best:=1e30;FX:=0;FY:=1;
     for J:=0 to High(Roads) do for K:=1 to High(Roads[J].Pontos) do begin
      Width:=DistanciaSegmento(Center,Roads[J].Pontos[K-1],Roads[J].Pontos[K]);
-     if Width<Best then begin Best:=Width;Angle:=ArcTan2(Roads[J].Pontos[K].Y-Roads[J].Pontos[K-1].Y,
-       Roads[J].Pontos[K].X-Roads[J].Pontos[K-1].X);end;
+     if Width<Best then begin Best:=Width;
+       Near:=PontoMaisProximo(Center,Roads[J].Pontos[K-1],Roads[J].Pontos[K]);
+       if Width>0.01 then begin FX:=(Near.X-CX)/Width;FY:=(Near.Y-CY)/Width;end;
+     end;
     end;
     if Best>90 then Continue; // model blocks along known streets, not arbitrary wilderness
     Hash:=((Abs(ILat) mod 97)*53+(Abs(ILon) mod 193)*31) mod 13;
-    E:=Default(TEdificio);E.Procedural:=True;E.Estimada:=True;
-    E.Id:='sim/'+IntToStr(ILat)+'/'+IntToStr(ILon);E.Tipo:='house';HalfW:=4.5;HalfD:=5.5;E.Altura:=5+Hash mod 3;
-    if Zones[I].Apartamentos or (Hash mod 5=0) then begin E.Tipo:='apartments';HalfW:=6;HalfD:=7;E.Altura:=15+(Hash mod 4)*3;end;
-    SetLength(E.Contorno,4);
-    for Q:=0 to 3 do begin
-     if (Q=0) or (Q=3) then LX:=-HalfW else LX:=HalfW;
-     if Q<2 then LY:=-HalfD else LY:=HalfD;
-     E.Contorno[Q].X:=CX+LX*Cos(Angle)-LY*Sin(Angle);
-     E.Contorno[Q].Y:=CY+LX*Sin(Angle)+LY*Cos(Angle);
-    end;
-    Bounds(E);if not Inside(E,Zones[I].Forma) or not RuaLivre(E,Roads) then Continue;
+    Id:='sim/'+IntToStr(ILat)+'/'+IntToStr(ILon);
+    // O lote inteiro (muro, quintal e casa) precisa caber no terreno e fora da rua/calcada.
+    Lot:=FormaLote(CX,CY,FX,FY);
+    if not Inside(Lot,Zones[I].Forma) or not RuaLivre(Lot,Roads) then Continue;
     Free:=True;
-    for J:=0 to High(Zones) do if not Zones[J].Permitida and Overlap(E,Zones[J].Forma) then begin Free:=False;Break;end;
+    for J:=0 to High(Zones) do if not Zones[J].Permitida and Overlap(Lot,Zones[J].Forma) then begin Free:=False;Break;end;
     if not Free then Continue;
-    for J:=0 to High(Cena.Itens) do if Overlap(E,Cena.Itens[J]) then begin Free:=False;Break;end;
+    for J:=0 to High(Cena.Itens) do if Overlap(Lot,Cena.Itens[J]) then begin Free:=False;Break;end;
     if not Free then Continue;
-    E.Parede:=$C5B79D;if Hash mod 3=0 then E.Parede:=$D4C6AC;
-    E.Telhado:=$A36952;if E.Tipo='apartments' then E.Telhado:=$858C91;
+    for J:=0 to High(Cena.Lotes) do if not ((Lot.MaxX+1<Cena.Lotes[J].MinX) or (Lot.MinX-1>Cena.Lotes[J].MaxX) or
+      (Lot.MaxY+1<Cena.Lotes[J].MinY) or (Lot.MinY-1>Cena.Lotes[J].MaxY)) then begin Free:=False;Break;end;
+    if not Free then Continue;
+    Lote:=Default(TLote);
+    if Zones[I].Apartamentos or (Hash=0) then begin
+     // Predio residencial raro (4 a 6 andares), sem quintal.
+     E:=Default(TEdificio);E.Procedural:=True;E.Estimada:=True;E.Id:=Id;E.Tipo:='apartments';
+     SetLength(E.Contorno,4);
+     for Q:=0 to 3 do begin
+      if (Q=0) or (Q=3) then LX:=-6 else LX:=6;
+      if Q<2 then LY:=-7 else LY:=7;
+      E.Contorno[Q].X:=CX+LX*FY+LY*FX;E.Contorno[Q].Y:=CY-LX*FX+LY*FY;
+     end;
+     Bounds(E);E.Altura:=12+Abs(ILat+ILon) mod 3*3;E.Parede:=$D4C6AC;E.Telhado:=$858C91;
+    end else begin
+     MontaLote(Id,CX,CY,FX,FY,Origem,E,Lote);
+     if Length(Lote.Id)>0 then begin SetLength(Cena.Lotes,Length(Cena.Lotes)+1);Cena.Lotes[High(Cena.Lotes)]:=Lote;end;
+    end;
     SetLength(Cena.Itens,Length(Cena.Itens)+1);Cena.Itens[High(Cena.Itens)]:=E;
    end;
   end;

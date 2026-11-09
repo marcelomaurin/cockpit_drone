@@ -1,3 +1,11 @@
+# Em desenvolvimento — 2026-11-09 (código-fonte; executáveis 0.46 ainda não recompilados)
+
+- Proporções do cenário: casas simuladas térreas (~3 m) ou sobrados (~6 m) com telhado de quatro águas; prédios simulados raros e só fora do modo de mapa em cache; construções do mapa sem altura passam a ser casa térrea, comércio de 6 m ou galpão de 8 m conforme a área, em vez de prédios de 15 m.
+- Lotes de 13 × 20 m encostados ao longo das ruas, com muro, portão, garagem e quintal.
+- Treinamento de inspeção do *Aedes aegypti*: vasos com/sem prato, piscina verde/tratada, caixa d'água destampada/tampada, pneus, tanque de peixes abandonado/com peixes e baldes destampados/emborcados, com sorteio fixo por lugar; opção "Quintais com criadouros (Aedes)", contagem no painel e gabarito CSV para o instrutor.
+- Opção "Câmera de inspeção (60 graus para baixo)" no simulador, aplicada também à imagem enviada ao cockpit.
+- Novo teste `tests/test_criadouros.pas` incluído em `tools/test_simulator.ps1`. Guia: [quintais e criadouros](simulador/docs/QUINTAIS_AEDES.md).
+
 # Versão 0.46 — 2026-11-08
 
 - Câmera com construções do OSM e casas/prédios de treinamento nos terrenos; fallback de blocos OSM-Carto reais em cache e rejeição de arquivos de projeto usados por engano como dados OSM.

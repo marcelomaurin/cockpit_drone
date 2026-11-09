@@ -1,5 +1,7 @@
 # Simulador 0.46 — treinamento e cenário urbano
 
+> **Atualização de 09/11/2026 (código-fonte, requer recompilar o simulador):** casas térreas em proporção real, lotes com muro e quintal e o treinamento de inspeção de criadouros do *Aedes aegypti*, com gabarito para o instrutor. Veja [quintais e criadouros](QUINTAIS_AEDES.md). Os números de construções citados abaixo descrevem o executável 0.46.
+
 ![Simulador 0.46 com mapa OpenStreetMap](../../docs/img/simulador-mapa.png)
 
 *Simulador 0.46 na vista Mapa de cima, no ponto padrão, com 172 construções (captura de tela real). Outras vistas no [guia ilustrado das telas](../../docs/TELAS_0.46.md).*

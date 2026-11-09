@@ -18,7 +18,7 @@ begin Result:=(LongWord(Round(((C shr 16) and 255)*F)) shl 16) or
  (LongWord(Round(((C shr 8) and 255)*F)) shl 8) or LongWord(Round((C and 255)*F));end;
 procedure DesenhaEdificios(const Cena:TCenaEdificios; OffsetX,OffsetY:Double;
   const Cam:TCamera3D; W,H:Integer;var Pixels:TPixelsCidade;var Depth:TProfundidadeCidade);
-var E:TEdificio; I,J:Integer; Face:TFace; L,Light:Double;RoadSurface:Boolean;
+var E:TEdificio; I,J:Integer; Face:TFace; L,Light:Double;RoadSurface:Boolean;Lote:TLote;
   function Vertex(X,Y,Z,U,V:Double):TVert;
   var DX,DY,DZ:Double;
   begin DX:=X+OffsetX-Cam.Pos.X;DY:=Y+OffsetY-Cam.Pos.Y;DZ:=Z-Cam.Pos.Z;
@@ -89,6 +89,145 @@ var E:TEdificio; I,J:Integer; Face:TFace; L,Light:Double;RoadSurface:Boolean;
       Polygon(Face,4,False,Shade(E.Parede,Light));
     end;
   end;
+  { Superficie plana qualquer (sem recorte pelo contorno). }
+  procedure Surface(const P:array of TVert;Color:LongWord);
+  var Q:Integer;F:TFace;
+  begin
+    if Length(P)>8 then Exit;
+    for Q:=0 to High(P) do F[Q]:=P[Q];
+    RoadSurface:=True;Polygon(F,Length(P),True,Color);RoadSurface:=False;
+  end;
+  function Light3(AX,AY,AZ,BX,BY,BZ,CX,CY,CZ:Double):Double;
+  var NX,NY,NZ,NL:Double;
+  begin
+    NX:=(BY-AY)*(CZ-AZ)-(BZ-AZ)*(CY-AY);NY:=(BZ-AZ)*(CX-AX)-(BX-AX)*(CZ-AZ);NZ:=(BX-AX)*(CY-AY)-(BY-AY)*(CX-AX);
+    NL:=Sqrt(NX*NX+NY*NY+NZ*NZ);if NL<1e-9 then Exit(0.8);
+    Result:=EnsureRange(0.55+0.45*Abs(NX*0.35-NY*0.45+NZ*0.82)/NL,0.45,1.0);
+  end;
+  procedure Tri3(AX,AY,AZ,BX,BY,BZ,CX,CY,CZ:Double;Color:LongWord);
+  begin
+    Surface([Vertex(AX,AY,AZ,0,0),Vertex(BX,BY,BZ,0,0),Vertex(CX,CY,CZ,0,0)],
+      Shade(Color,Light3(AX,AY,AZ,BX,BY,BZ,CX,CY,CZ)));
+  end;
+  procedure Quad3(AX,AY,AZ,BX,BY,BZ,CX,CY,CZ,DX,DY,DZ:Double;Color:LongWord);
+  begin
+    Surface([Vertex(AX,AY,AZ,0,0),Vertex(BX,BY,BZ,0,0),Vertex(CX,CY,CZ,0,0),Vertex(DX,DY,DZ,0,0)],
+      Shade(Color,Light3(AX,AY,AZ,BX,BY,BZ,CX,CY,CZ)));
+  end;
+  { Telhado de quatro aguas sobre contorno retangular. }
+  procedure HipRoof;
+  var P:array[0..3] of TPontoEdificio;A,B,CX,CY,UX,UY,K,H,Z:Double;R0,R1:TPontoEdificio;S:Integer;
+  begin
+    for S:=0 to 3 do P[S]:=E.Contorno[S];
+    A:=Hypot(P[1].X-P[0].X,P[1].Y-P[0].Y);B:=Hypot(P[2].X-P[1].X,P[2].Y-P[1].Y);
+    if B>A then begin // gira para que P0-P1 seja o lado maior
+      R0:=P[0];P[0]:=P[1];P[1]:=P[2];P[2]:=P[3];P[3]:=R0;K:=A;A:=B;B:=K;
+    end;
+    if (A<0.5) or (B<0.5) then Exit;
+    CX:=(P[0].X+P[1].X+P[2].X+P[3].X)/4;CY:=(P[0].Y+P[1].Y+P[2].Y+P[3].Y)/4;
+    UX:=(P[1].X-P[0].X)/A;UY:=(P[1].Y-P[0].Y)/A;K:=(A-B)/2;
+    R0.X:=CX-UX*K;R0.Y:=CY-UY*K;R1.X:=CX+UX*K;R1.Y:=CY+UY*K;
+    H:=E.Altura;Z:=E.Altura+E.Cumeeira;
+    Quad3(P[0].X,P[0].Y,H,P[1].X,P[1].Y,H,R1.X,R1.Y,Z,R0.X,R0.Y,Z,E.Telhado);
+    Quad3(P[2].X,P[2].Y,H,P[3].X,P[3].Y,H,R0.X,R0.Y,Z,R1.X,R1.Y,Z,E.Telhado);
+    Tri3(P[1].X,P[1].Y,H,P[2].X,P[2].Y,H,R1.X,R1.Y,Z,E.Telhado);
+    Tri3(P[3].X,P[3].Y,H,P[0].X,P[0].Y,H,R0.X,R0.Y,Z,E.Telhado);
+  end;
+  { Caixa orientada: centro (X,Y), eixo F = (FX,FY), S = (FY,-FX). }
+  procedure Box(X,Y,FX,FY,Larg,Comp,Z0,Z1:Double;Side,Top:LongWord);
+  var C:array[0..3] of TPontoEdificio;Q,R:Integer;SX,SY,HS,HF:Double;
+  begin
+    SX:=FY;SY:=-FX;HS:=Larg/2;HF:=Comp/2;
+    C[0].X:=X-HS*SX-HF*FX;C[0].Y:=Y-HS*SY-HF*FY;C[1].X:=X+HS*SX-HF*FX;C[1].Y:=Y+HS*SY-HF*FY;
+    C[2].X:=X+HS*SX+HF*FX;C[2].Y:=Y+HS*SY+HF*FY;C[3].X:=X-HS*SX+HF*FX;C[3].Y:=Y-HS*SY+HF*FY;
+    if Z1-Z0>0.001 then for Q:=0 to 3 do begin R:=(Q+1) mod 4;
+      Quad3(C[Q].X,C[Q].Y,Z0,C[R].X,C[R].Y,Z0,C[R].X,C[R].Y,Z1,C[Q].X,C[Q].Y,Z1,Side);end;
+    Surface([Vertex(C[0].X,C[0].Y,Z1,0,0),Vertex(C[1].X,C[1].Y,Z1,0,0),Vertex(C[2].X,C[2].Y,Z1,0,0),
+      Vertex(C[3].X,C[3].Y,Z1,0,0)],Top);
+  end;
+  { Cilindro aproximado por octogono. }
+  procedure Cylinder(X,Y,Raio,Z0,Z1:Double;Side,Top:LongWord;ComTopo:Boolean=True);
+  var Q,R:Integer;PX,PY:array[0..7] of Double;
+  begin
+    for Q:=0 to 7 do begin PX[Q]:=X+Raio*Cos(Q*Pi/4+Pi/8);PY[Q]:=Y+Raio*Sin(Q*Pi/4+Pi/8);end;
+    if Z1-Z0>0.001 then for Q:=0 to 7 do begin R:=(Q+1) mod 8;
+      Quad3(PX[Q],PY[Q],Z0,PX[R],PY[R],Z0,PX[R],PY[R],Z1,PX[Q],PY[Q],Z1,Side);end;
+    if ComTopo then
+      Surface([Vertex(PX[0],PY[0],Z1,0,0),Vertex(PX[1],PY[1],Z1,0,0),Vertex(PX[2],PY[2],Z1,0,0),
+        Vertex(PX[3],PY[3],Z1,0,0),Vertex(PX[4],PY[4],Z1,0,0),Vertex(PX[5],PY[5],Z1,0,0),
+        Vertex(PX[6],PY[6],Z1,0,0),Vertex(PX[7],PY[7],Z1,0,0)],Top);
+  end;
+  procedure DrawObject(const O:TObjetoQuintal);
+  const AguaParada=$3A4A45;AguaVerde=$5B7A2E;AguaLimpa=$3AA7D0;
+  var FX,FY:Double;K:Integer;
+  begin
+    FX:=Cos(O.Angulo);FY:=Sin(O.Angulo);
+    case O.Tipo of
+      oqVaso:begin
+        if O.Criadouro then Cylinder(O.X,O.Y,0.30,0,0.05,$9C5A3A,AguaParada);
+        Cylinder(O.X,O.Y,0.18,0,O.Altura,O.Cor,$5A3D2B);
+        Cylinder(O.X,O.Y,0.22,O.Altura,O.Altura+0.28,$4F7F35,$5E9440);
+      end;
+      oqPiscina:begin
+        Box(O.X,O.Y,FX,FY,O.Largura+1.2,O.Comprimento+1.2,0,0.045,$D8D2C4,$D8D2C4);
+        if O.Criadouro then Box(O.X,O.Y,FX,FY,O.Largura,O.Comprimento,0,0.055,AguaVerde,AguaVerde)
+        else Box(O.X,O.Y,FX,FY,O.Largura,O.Comprimento,0,0.055,AguaLimpa,AguaLimpa);
+      end;
+      oqCaixaDagua:begin
+        if O.Criadouro then begin
+          Cylinder(O.X,O.Y,O.Largura/2,0,O.Altura,O.Cor,O.Cor,False);
+          Cylinder(O.X,O.Y,O.Largura/2-0.06,O.Altura-0.12,O.Altura-0.11,AguaParada,AguaParada);
+          Cylinder(O.X,O.Y,O.Largura/2,O.Altura-0.01,O.Altura,O.Cor,O.Cor,False);
+          // tampa largada ao lado
+          Cylinder(O.X-FY*1.0,O.Y+FX*1.0,O.Largura/2+0.05,0,0.06,$3C7DC4,$3C7DC4);
+        end else begin
+          Cylinder(O.X,O.Y,O.Largura/2,0,O.Altura,O.Cor,O.Cor);
+          Cylinder(O.X,O.Y,O.Largura/2+0.05,O.Altura,O.Altura+0.08,$3C7DC4,$3C7DC4);
+        end;
+      end;
+      oqPneu:begin
+        Cylinder(O.X,O.Y,O.Largura/2,0,O.Altura,O.Cor,O.Cor);
+        Cylinder(O.X,O.Y,O.Largura/4,O.Altura,O.Altura+0.005,AguaParada,AguaParada);
+      end;
+      oqTanquePeixe:begin
+        Box(O.X,O.Y,FX,FY,O.Largura,O.Comprimento,0,O.Altura,O.Cor,O.Cor);
+        if O.Criadouro then Box(O.X,O.Y,FX,FY,O.Largura-0.24,O.Comprimento-0.24,O.Altura,O.Altura+0.01,AguaVerde,AguaVerde)
+        else begin
+          Box(O.X,O.Y,FX,FY,O.Largura-0.24,O.Comprimento-0.24,O.Altura,O.Altura+0.01,$2F7F86,$2F7F86);
+          for K:=0 to 3 do
+            Box(O.X+FX*(K*0.45-0.65)+FY*((K mod 2)*0.4-0.2),O.Y+FY*(K*0.45-0.65)-FX*((K mod 2)*0.4-0.2),
+              FX,FY,0.12,0.28,O.Altura+0.01,O.Altura+0.02,$F08A24,$F08A24);
+        end;
+      end;
+      oqBalde:begin
+        if O.Criadouro then begin
+          Cylinder(O.X,O.Y,O.Largura/2,0,O.Altura,O.Cor,O.Cor,False);
+          Cylinder(O.X,O.Y,O.Largura/2-0.02,O.Altura-0.06,O.Altura-0.05,AguaParada,AguaParada);
+        end else Cylinder(O.X,O.Y,O.Largura/2-0.03,0,O.Altura,O.Cor,O.Cor);
+      end;
+    end;
+  end;
+  procedure DrawLot;
+  var Q,R:Integer;A,B,G0,G1:TPontoEdificio;Dist:Double;
+  begin
+    Dist:=Hypot((Lote.MinX+Lote.MaxX)/2+OffsetX-Cam.Pos.X,(Lote.MinY+Lote.MaxY)/2+OffsetY-Cam.Pos.Y);
+    if Dist>700 then Exit;
+    for Q:=0 to High(Lote.Pisos) do with Lote.Pisos[Q] do
+      Surface([Vertex(Canto[0].X,Canto[0].Y,0.03,0,0),Vertex(Canto[1].X,Canto[1].Y,0.03,0,0),
+        Vertex(Canto[2].X,Canto[2].Y,0.03,0,0),Vertex(Canto[3].X,Canto[3].Y,0.03,0,0)],Cor);
+    // Muro: canto 2->3 e a frente; o portao ocupa o trecho [PortaoInicio,PortaoFim] a partir do canto 2.
+    for Q:=0 to 3 do begin R:=(Q+1) mod 4;A:=Lote.Canto[Q];B:=Lote.Canto[R];
+      if Q=2 then begin
+        G0.X:=A.X+(B.X-A.X)*Lote.PortaoInicio;G0.Y:=A.Y+(B.Y-A.Y)*Lote.PortaoInicio;
+        G1.X:=A.X+(B.X-A.X)*Lote.PortaoFim;G1.Y:=A.Y+(B.Y-A.Y)*Lote.PortaoFim;
+        Quad3(G0.X,G0.Y,0,G1.X,G1.Y,0,G1.X,G1.Y,Lote.MuroAltura-0.1,G0.X,G0.Y,Lote.MuroAltura-0.1,$5A5F66);
+        Quad3(G1.X,G1.Y,0,B.X,B.Y,0,B.X,B.Y,Lote.MuroAltura,G1.X,G1.Y,Lote.MuroAltura,$BDB6A8);
+      end else
+        Quad3(A.X,A.Y,0,B.X,B.Y,0,B.X,B.Y,Lote.MuroAltura,A.X,A.Y,Lote.MuroAltura,$BDB6A8);
+    end;
+    if Dist>320 then Exit;
+    for Q:=0 to High(Lote.Objetos) do DrawObject(Lote.Objetos[Q]);
+  end;
   procedure Roads;
   var Pass,Q,R:Integer;A,B:TPontoEdificio;NX,NY,Width,Z:Double;Color:LongWord;
   begin
@@ -116,11 +255,15 @@ begin
     if Hypot((E.MinX+E.MaxX)/2+OffsetX-Cam.Pos.X,(E.MinY+E.MaxY)/2+OffsetY-Cam.Pos.Y)>1400 then Continue;
     Walls(E.Contorno);
     for J:=0 to High(E.Patios) do Walls(E.Patios[J]);
+    if (E.Cumeeira>0) and (Length(E.Contorno)=4) and (Length(E.Patios)=0) then HipRoof
+    else begin
     Face[0]:=Vertex(E.MinX,E.MinY,E.Altura,E.MinX,E.MinY);
     Face[1]:=Vertex(E.MaxX,E.MinY,E.Altura,E.MaxX,E.MinY);
     Face[2]:=Vertex(E.MaxX,E.MaxY,E.Altura,E.MaxX,E.MaxY);
     Face[3]:=Vertex(E.MinX,E.MaxY,E.Altura,E.MinX,E.MaxY);
     Polygon(Face,4,True,E.Telhado);
+    end;
   end;
+  for I:=0 to High(Cena.Lotes) do begin Lote:=Cena.Lotes[I];DrawLot;end;
 end;
 end.

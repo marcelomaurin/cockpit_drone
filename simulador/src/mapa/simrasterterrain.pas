@@ -4,7 +4,7 @@ unit simrasterterrain;
   residential fill or small land blocks enclosed by streets, with a setback. }
 {$mode objfpc}{$H+}
 interface
-uses SysUtils,Math,simgeo,simedificios;
+uses SysUtils,Math,simgeo,simedificios,simquintais;
 type TRasterPixels=array of LongWord;
 function CenaDoMapaRaster(const Pixels:TRasterPixels;W,H,Z,TileX,TileY:Integer;
  const Origem:TPontoGeo;CompletarTerrenos:Boolean):TCenaEdificios;
@@ -19,7 +19,8 @@ function CenaDoMapaRaster(const Pixels:TRasterPixels;W,H,Z,TileX,TileY:Integer;
 var Kind,Seen,Eligible:TByteMask;Queue,Heads:TInts;Edges:TEdges;Rings:TAneisEdificio;
  I,J,K,P,X,Y,N,Q,Area,StartEdge,Current,NextEdge,Best,Score,Steps,Count,MainRing,ResidentialPixels:Integer;
  X0,Y0,X1,Y1,Step,HalfW,HalfH,Margin,GX,GY,Hash,MaxN:Integer;Touched,Residential,Good,Closed:Boolean;
- OriginX,OriginY,Mpp,A,MaxArea:Double;Ring:TAnelEdificio;E:TEdificio;
+ OriginX,OriginY,Mpp,A,MaxArea:Double;Ring:TAnelEdificio;E:TEdificio;Lote:TLote;C:TPontoEdificio;Dir,Gap:Integer;Occupied:TByteMask;
+const DirX:array[0..3] of Integer=(0,0,1,-1);DirY:array[0..3] of Integer=(-1,1,0,0);
  function Point(AX,AY:Double):TPontoEdificio;
  begin Result.X:=(TileX*256+AX-OriginX)*Mpp;Result.Y:=(OriginY-TileY*256-AY)*Mpp;end;
  function Index(AX,AY:Integer):Integer;begin Result:=AY*W+AX;end;
@@ -101,12 +102,12 @@ begin
    for K:=0 to High(Rings[J]) do A:=A+Rings[J][K].X*Rings[J][(K+1) mod Length(Rings[J])].Y-Rings[J][(K+1) mod Length(Rings[J])].X*Rings[J][K].Y;
    if Abs(A)>MaxArea then begin MaxArea:=Abs(A);MainRing:=J;end;
   end;
-  E:=Default(TEdificio);E.Contorno:=Rings[MainRing];E.Tipo:='house';E.Altura:=6;
-  if Area*Mpp*Mpp>200 then begin E.Tipo:='apartments';E.Altura:=15;end;
+  E:=Default(TEdificio);E.Contorno:=Rings[MainRing];E.Tipo:='yes';
+  E.Parede:=$C5B79D;E.Telhado:=$A36952;AlturaPelaArea(E);
   for J:=0 to High(Rings) do if (J<>MainRing) and (Length(Rings[J])>=3) then begin
    SetLength(E.Patios,Length(E.Patios)+1);E.Patios[High(E.Patios)]:=Rings[J];end;
   E.Id:='raster/'+IntToStr(Z)+'/'+IntToStr(TileX*256+I mod W)+'/'+IntToStr(TileY*256+I div W);
-  E.Estimada:=True;E.Parede:=$C5B79D;E.Telhado:=$A36952;FinishBuilding;
+  E.Estimada:=True;FinishBuilding;
  end;
  if not CompletarTerrenos then Exit;
  for I:=0 to High(Pixels) do if (Kind[I]=2) and (Seen[I]=0) then begin
@@ -114,26 +115,42 @@ begin
   if ((not Touched) or Residential) and (N*Mpp*Mpp>=300) and (N*Mpp*Mpp<=80000) then
    for J:=0 to N-1 do Eligible[Queue[J]]:=1;
  end;
- Step:=Max(12,Round(24/Mpp));HalfW:=Max(2,Round(4/Mpp));HalfH:=Max(2,Round(5/Mpp));Margin:=Max(2,Ceil(3/Mpp));
+ // Lotes de 13 x 20 m (casa terrea com quintal), alinhados a rua mais proxima.
+ SetLength(Occupied,W*H);
+ Step:=Max(3,Round(4/Mpp));Margin:=Max(2,Ceil(2/Mpp));Gap:=Max(1,Round(1/Mpp));
  Y0:=Step-((TileY*256) mod Step);
  for Y:=Y0 to H-1 do if ((Y-Y0) mod Step)=0 then begin
   X0:=Step-((TileX*256) mod Step);
   for X:=X0 to W-1 do if ((X-X0) mod Step)=0 then begin
+   if (Eligible[Index(X,Y)]=0) or (Occupied[Index(X,Y)]<>0) then Continue;
+   // Frente do lote: direcao com a borda do terreno (rua) mais proxima.
+   Best:=MaxInt;Dir:=0;
+   for K:=0 to 3 do begin
+    J:=1;
+    while J<60 do begin
+     GX:=X+DirX[K]*J;GY:=Y+DirY[K]*J;
+     if (GX<0) or (GY<0) or (GX>=W) or (GY>=H) or (Eligible[Index(GX,GY)]=0) then Break;
+     Inc(J);
+    end;
+    if J<Best then begin Best:=J;Dir:=K;end;
+   end;
+   if DirX[Dir]=0 then begin HalfW:=Ceil(LOTE_LARGURA/2/Mpp);HalfH:=Ceil(LOTE_PROFUNDIDADE/2/Mpp);end
+   else begin HalfW:=Ceil(LOTE_PROFUNDIDADE/2/Mpp);HalfH:=Ceil(LOTE_LARGURA/2/Mpp);end;
    if (X-HalfW-Margin<0) or (Y-HalfH-Margin<0) or (X+HalfW+Margin>=W) or (Y+HalfH+Margin>=H) then Continue;
    Good:=True;
    for J:=Y-HalfH-Margin to Y+HalfH+Margin do begin
     for K:=X-HalfW-Margin to X+HalfW+Margin do if Eligible[Index(K,J)]=0 then begin Good:=False;Break;end;
+    if Good then for K:=X-HalfW to X+HalfW do if Occupied[Index(K,J)]<>0 then begin Good:=False;Break;end;
     if not Good then Break;
    end;
    if not Good then Continue;
-   GX:=TileX*256+X;GY:=TileY*256+Y;Hash:=((GX mod 113)*31+(GY mod 97)*17) mod 13;
-   E:=Default(TEdificio);SetLength(E.Contorno,4);
-   E.Contorno[0]:=Point(X-HalfW,Y-HalfH);E.Contorno[1]:=Point(X+HalfW,Y-HalfH);
-   E.Contorno[2]:=Point(X+HalfW,Y+HalfH);E.Contorno[3]:=Point(X-HalfW,Y+HalfH);
-   E.Tipo:='house';E.Altura:=5+Hash mod 3;if Hash mod 5=0 then begin E.Tipo:='apartments';E.Altura:=15+(Hash mod 4)*3;end;
-   E.Procedural:=True;E.Estimada:=True;E.Id:='raster-terreno/'+IntToStr(GX)+'/'+IntToStr(GY);
-   E.Parede:=$C5B79D;E.Telhado:=$A36952;if E.Tipo='apartments' then E.Telhado:=$858C91;
+   for J:=Max(0,Y-HalfH-Gap) to Min(H-1,Y+HalfH+Gap) do for K:=Max(0,X-HalfW-Gap) to Min(W-1,X+HalfW+Gap) do Occupied[Index(K,J)]:=1;
+   GX:=TileX*256+X;GY:=TileY*256+Y;
+   C:=Point(X,Y);
+   MontaLote('raster-terreno/'+IntToStr(GX)+'/'+IntToStr(GY),C.X,C.Y,DirX[Dir],-DirY[Dir],Origem,E,Lote);
+   if Length(Result.Itens)>=3000 then Exit;
    FinishBuilding;
+   if Length(Lote.Id)>0 then begin SetLength(Result.Lotes,Length(Result.Lotes)+1);Result.Lotes[High(Result.Lotes)]:=Lote;end;
   end;
  end;
 end;

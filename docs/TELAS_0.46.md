@@ -108,6 +108,8 @@ O planejador abre junto a janela **Mapa**, onde os pontos são marcados. Ela nã
 
 *Figura 17 — Vista **Terceira pessoa**, com o Cheerson CX-10W ligado. As construções são desenhadas em 3D, mas na 0.46 ainda não têm colisão física.*
 
+Estas figuras mostram o executável 0.46, ainda com as proporções antigas das construções. O código publicado em 09/11/2026 corrige as proporções e acrescenta lotes com quintal e o treinamento de criadouros do Aedes: veja [quintais e criadouros](../simulador/docs/QUINTAIS_AEDES.md).
+
 As vistas disponíveis são **Câmera do drone**, **Terceira pessoa** e **Mapa de cima**. A imagem enviada ao Cockpit é sempre a da câmera do drone, qualquer que seja a vista escolhida no simulador. Detalhes de cenário, sinal infinito e recuperação estão em [simulador 0.46](../simulador/docs/SIMULADOR_0.46.md).
 
 ## 5. Limites desta documentação

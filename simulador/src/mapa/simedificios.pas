@@ -14,11 +14,42 @@ type
     Estimada,Procedural:Boolean;
     Parede,Telhado:LongWord;
     MinX,MinY,MaxX,MaxY:Double;
+    { Altura da cumeeira acima das paredes; >0 desenha telhado de quatro aguas
+      em contornos retangulares (4 vertices). }
+    Cumeeira:Double;
   end;
   TEdificios=array of TEdificio;
   TViaEdificio=record Pontos:TAnelEdificio;RaioLivre:Double;end;
   TViasEdificio=array of TViaEdificio;
-  TCenaEdificios=record Origem:TPontoGeo; Itens:TEdificios; Vias:TViasEdificio; Ignorados:Integer; end;
+  { Objetos de quintal para o treinamento de vigilancia do Aedes aegypti.
+    Medidas em metros, eixo local do lote (S = lateral, F = frente para a rua). }
+  TTipoObjetoQuintal=(oqVaso,oqPiscina,oqCaixaDagua,oqPneu,oqTanquePeixe,oqBalde);
+  TObjetoQuintal=record
+    Tipo:TTipoObjetoQuintal;
+    X,Y,Z:Double;          // centro no plano da cena; Z = base
+    Angulo:Double;         // rumo do eixo F do lote, radianos
+    Largura,Comprimento,Altura:Double;
+    Criadouro:Boolean;     // agua parada exposta (ponto de risco)
+    Cor:LongWord;
+  end;
+  TObjetosQuintal=array of TObjetoQuintal;
+  TPisoLote=record Canto:array[0..3] of TPontoEdificio;Cor:LongWord;end;
+  TLote=record
+    Id:string;
+    Lat,Lon:Double;        // centro do lote, para o gabarito do instrutor
+    Canto:array[0..3] of TPontoEdificio; // perimetro do muro
+    MuroAltura:Double;
+    PortaoInicio,PortaoFim:Double;        // trecho do muro frontal (0..1) com portao
+    Pisos:array of TPisoLote;
+    Objetos:TObjetosQuintal;
+    Criadouros:Integer;
+    MinX,MinY,MaxX,MaxY:Double;
+  end;
+  TLotes=array of TLote;
+  TCenaEdificios=record Origem:TPontoGeo; Itens:TEdificios; Vias:TViasEdificio; Ignorados:Integer; Lotes:TLotes; end;
+var
+  { Gera lotes com quintal e criadouros simulados do Aedes nas casas procedurais. }
+  GerarCriadouros:Boolean=True;
 function PontoNoAnel(X,Y:Double; const Anel:TAnelEdificio):Boolean;
 function DentroEdificio(X,Y:Double; const E:TEdificio):Boolean;
 function ValidaArquivoOSM(const Arquivo:string;out Erro:string):Boolean;
@@ -26,7 +57,38 @@ function LePontosOSM(A:TJSONArray;const Origem:TPontoGeo):TAnelEdificio;
 function FechaAnel(var R:TAnelEdificio):Boolean;
 procedure UneAneis(var Rings:TAneisEdificio);
 function LeCenaOSM(const Texto:string; const Origem:TPontoGeo):TCenaEdificios;
+function AreaAnel(const R:TAnelEdificio):Double;
+procedure AlturaPelaArea(var E:TEdificio);
+const
+  { Proporcoes de referencia: pe-direito residencial de ~2,8 m mais laje. }
+  ALTURA_TERREA=3.1;
+  ALTURA_SOBRADO=6.0;
+  CUMEEIRA_CASA=1.4;
 implementation
+function AreaAnel(const R:TAnelEdificio):Double;
+var Q:Integer;
+begin
+  Result:=0;
+  for Q:=0 to High(R) do Result:=Result+R[Q].X*R[(Q+1) mod Length(R)].Y-R[(Q+1) mod Length(R)].X*R[Q].Y;
+  Result:=Abs(Result)/2;
+end;
+{ Construcao sem altura nem andares no mapa: casas pequenas sao terreas;
+  areas medias sao comercio/galpao baixo; grandes, galpao. Nada vira predio
+  sem informacao, para nao criar torres onde nao existem. }
+procedure AlturaPelaArea(var E:TEdificio);
+var A:Double;
+begin
+  A:=AreaAnel(E.Contorno);
+  if A<=260 then begin
+    E.Tipo:='house';E.Altura:=ALTURA_TERREA;
+    if Length(E.Contorno)=4 then E.Cumeeira:=CUMEEIRA_CASA;
+  end else if A<=1500 then begin
+    E.Altura:=6;E.Telhado:=$9DA0A2;
+  end else begin
+    E.Tipo:='warehouse';E.Altura:=8;E.Telhado:=$AEB1B3;
+  end;
+  E.Estimada:=True;
+end;
 function ValidaArquivoOSM(const Arquivo:string;out Erro:string):Boolean;
 var Stream:TFileStream;Text:TStringList;Root:TJSONData;
 begin
@@ -141,7 +203,7 @@ end;
 function LeCenaOSM(const Texto:string; const Origem:TPontoGeo):TCenaEdificios;
 var Root:TJSONData; Elements:TJSONArray; I,J:Integer; Obj,Tags,Member:TJSONObject;
   Geometry,Members:TJSONArray; Used:TStringList; Outers,Inners:TAneisEdificio;
-  E:TEdificio; Levels,Roof,Value:Double; Ring:TAnelEdificio;
+  E:TEdificio; Levels,Roof,Value:Double; Ring:TAnelEdificio; PorArea:Boolean;
   function Tag(const Name:string):string;
   begin if Assigned(Tags) then Result:=Tags.Get(Name,'') else Result:=''; end;
   procedure AddBuilding(const R:TAnelEdificio);
@@ -153,6 +215,8 @@ var Root:TJSONData; Elements:TJSONArray; I,J:Integer; Obj,Tags,Member:TJSONObjec
     E.MinX:=R[0].X;E.MaxX:=E.MinX;E.MinY:=R[0].Y;E.MaxY:=E.MinY;
     for Q:=1 to High(R) do begin E.MinX:=Min(E.MinX,R[Q].X);E.MaxX:=Max(E.MaxX,R[Q].X);
       E.MinY:=Min(E.MinY,R[Q].Y);E.MaxY:=Max(E.MaxY,R[Q].Y); end;
+    if PorArea then AlturaPelaArea(E)
+    else if E.Estimada and (E.Altura<=ALTURA_TERREA+0.01) and (Length(R)=4) then E.Cumeeira:=CUMEEIRA_CASA;
     SetLength(Result.Itens,Length(Result.Itens)+1);Result.Itens[High(Result.Itens)]:=E;
   end;
 begin
@@ -185,10 +249,11 @@ begin
         if Medida(Tag('building:levels'),Levels) and (Levels>0) then begin
           Roof:=0;Medida(Tag('roof:height'),Roof); E.Altura:=Levels*3+Roof;
         end else if E.Tipo='apartments' then E.Altura:=15
-        else if (E.Tipo='house') or (E.Tipo='detached') or (E.Tipo='terrace') or (E.Tipo='semidetached_house') then E.Altura:=6
-        else E.Altura:=9;
+        else if (E.Tipo='house') or (E.Tipo='detached') or (E.Tipo='terrace') or (E.Tipo='semidetached_house') then E.Altura:=ALTURA_TERREA
+        else E.Altura:=-1; // definida pela area do contorno em AddBuilding
       end;
-      E.Altura:=EnsureRange(E.Altura,1.0,1000.0);
+      PorArea:=E.Altura<0;
+      if PorArea then E.Altura:=ALTURA_TERREA else E.Altura:=EnsureRange(E.Altura,1.0,1000.0);
       if not Medida(Tag('min_height'),E.Base) then begin
         if Medida(Tag('building:min_level'),Value) then E.Base:=Value*3 else E.Base:=0;
       end;

@@ -88,6 +88,11 @@ type
     procedure GeraQuadroCamera(const AD:TDadosVista;W,H:Integer;const Arquivo:string);
   end;
 
+var
+  { Inclinacao fixa da camera do drone para inspecao (graus para baixo);
+    negativo usa a camera do modelo. Vale para a vista e para o cockpit. }
+  InclinacaoInspecaoGraus: Double = -1;
+
 function Vet(AX, AY, AZ: Double): TVetor; inline;
 
 implementation
@@ -319,7 +324,10 @@ begin
   else
   begin
     // A câmera acompanha a inclinação do drone (nariz para baixo = olha para baixo).
-    Teta := DegToRad(AD.Param.InclinacaoCameraGraus + E.Arfagem);
+    if InclinacaoInspecaoGraus >= 0 then
+      Teta := DegToRad(InclinacaoInspecaoGraus + E.Arfagem)
+    else
+      Teta := DegToRad(AD.Param.InclinacaoCameraGraus + E.Arfagem);
     Fi := DegToRad(E.Rolagem);
     AC := Vet(E.X, E.Y, E.Z + 0.08);
   end;
