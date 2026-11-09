@@ -1,7 +1,7 @@
 unit cockpit_binary_link;
 {$mode objfpc}{$H+}
 interface
-uses Classes,SysUtils,Sockets,SyncObjs{$IFDEF WINDOWS},Windows{$ENDIF};
+uses Classes,SysUtils,Sockets,SyncObjs{$IFDEF WINDOWS},Windows{$ENDIF}{$IFDEF UNIX},BaseUnix{$ENDIF};
 type
  TBinaryLink=class
   function Write(const B:TBytes):Boolean;virtual;abstract;
