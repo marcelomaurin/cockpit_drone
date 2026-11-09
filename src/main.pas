@@ -6,19 +6,19 @@ interface
 
 uses
   Classes, SysUtils, Math, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, Arrow, Menus, acs_mixer, CADSys4, SdpoJoystick, A3nalogGauge,
+  StdCtrls, Arrow, Menus, CADSys4, SdpoJoystick, A3nalogGauge,
   IndLed, LedNumber, AdvLed, BCGameGrid, BCSVGViewer, gpssignalplot, gpsskyplot,
   gpstarget, nmeadecode, gpsportconnected, about,
   config, camera, map, funcs, GPS,
-  joystick, LCLType, uplaysound, controler, setmain, tacticalhud, flightplan,
+  joystick, LCLType, controler, setmain, tacticalhud, flightplan,
   conexaodrone, ConectionCX10W, conectionmavlink, conectiontello,
-  conectionopendrone, conectionfq777, conectionardrone, conectionesp32drone,
+  conectionbinaryrc,conectionopendrone, conectionfq777, conectionardrone, conectionesp32drone,
   aidronemavlink, protocols, rotavoo, cockpit_i18n, sitl_telemetry_bridge,
-  sitl_telemetry_state, cockpit_multiplayer, multiplayer_state;
+  sitl_telemetry_state, cockpit_multiplayer, multiplayer_state, cockpit_runtime_paths;
 
 const
   refJoy = 127;
-  versao = 0.43;
+  versao = 0.46;
 
 type
 
@@ -27,7 +27,6 @@ type
   TfrmMain = class(TForm)
 // ... (trimmed fields)
     A3nalogGauge1: TA3nalogGauge;
-    AcsMixer1: TAcsMixer;
     AdvCamera: TAdvLed;
     AdvJoyB2: TAdvLed;
     AdvJoyB3: TAdvLed;
@@ -68,7 +67,6 @@ type
     MenuItem3: TMenuItem;
     NMEADecode1: TNMEADecode;
     Panel1: TPanel;
-    playsound1: Tplaysound;
     pnBaterry: TPanel;
     pnScreens: TPanel;
     pnNAV: TPanel;
@@ -179,6 +177,7 @@ type
     frmConnection: TForm;
     { Conversão do manche em comandos de voo (usada pelas janelas de conexão). }
     property Controler: TDroneControler read FControler;
+    property JoystickController: TJoystickController read FJoystick;
     procedure AtivaJoystick;
     procedure DesativaJoystick;
     procedure ConfiguraJoy;
@@ -514,15 +513,8 @@ begin
     FSitlStatus.Caption := 'SITL: desligado (somente leitura)';
     Exit;
   end;
-  ScriptPath := ExpandFileName('tools' + DirectorySeparator + 'sitl_heartbeat_monitor.py');
-  if not FileExists(ScriptPath) then
-    ScriptPath := ExpandFileName(ExtractFilePath(ParamStr(0)) +
-      'tools' + DirectorySeparator + 'sitl_heartbeat_monitor.py');
-  {$IFDEF WINDOWS}
-  PythonExe := 'python';
-  {$ELSE}
-  PythonExe := 'python3';
-  {$ENDIF}
+  ScriptPath := ResolveCockpitToolPath('sitl_heartbeat_monitor.py', ParamStr(0));
+  PythonExe := CockpitPythonExecutable;
   if not FSitlBridge.Start(PythonExe, ScriptPath) then
   begin
     FSitlStatus.Caption := 'SITL: erro - ' + FSitlBridge.LastError;
@@ -865,6 +857,7 @@ begin
       AdvJoystick.Blink := False;
       timerJoystick.Enabled := True;
       CentralizaComandos;
+      Z := 0; // Starting a controller must not preload half throttle.
     end
     else
     begin
@@ -904,6 +897,8 @@ begin
 
   if Assigned(frmConfig.cbDevice) then
   begin
+    FJoystick.Settings := FSetMain.FlightJoystick;
+    FControler.ZonaMorta := FSetMain.FlightJoystick.DeadZone;
     FJoystick.ConfigureDevice(frmConfig.cbDevice.ItemIndex);
     if Assigned(FSetMain) then
       FSetMain.JoystickDeviceIndex := frmConfig.cbDevice.ItemIndex;
@@ -930,6 +925,7 @@ begin
   end;
 
   case frmConfig.TipoAtivo of
+    PROTOCOLO_WIFI8K,PROTOCOLO_MSP1,PROTOCOLO_MSP2,PROTOCOLO_CRSF,PROTOCOLO_SBUS,PROTOCOLO_IBUS:Conn:=TfrmConectionBinaryRC.Create(Self);
     PROTOCOLO_CX10W: Conn := TfrmConectionCX10W.Create(Self);
     PROTOCOLO_MAVLINK: Conn := TfrmConectionMavlink.Create(Self);
     PROTOCOLO_TELLO: Conn := TfrmConectionTello.Create(Self);
@@ -978,6 +974,7 @@ procedure TfrmMain.AdvStartClick(Sender: TObject);
 begin
   if AdvStart.State = lsOff then
   begin
+    EnsureConfig;
     AdvStart.State := lsOn;
     AdvStart.Blink := True;
 
@@ -986,6 +983,17 @@ begin
 
     ConfiguraJoy;
     AtivaJoystick;
+    // Sample the real sticks before the connection's first SetSticks call.
+    // An artificial zero from a reset must not release the throttle arm lock.
+    timerJoystickTimer(Self);
+    if UsaJoystick and (not FJoystick.Active or not FJoystick.Available) then
+    begin
+      AdvStart.State:=lsOff; AdvStart.Blink:=False;
+      FControler.Ativo:=False; FControler.Reset;
+      DesativaJoystick; AtualizaRotorDisplay;
+      ShowMessage('Joystick indisponivel. Verifique a conexao e o dispositivo em Configuracao.');
+      Exit;
+    end;
     AtivaDrone;
   end
   else
@@ -1088,7 +1096,8 @@ begin
       end;
     VK_SPACE:
       begin
-        // PÂNICO / CORTE IMEDIATO DE MOTORES
+        if Assigned(frmConnection) and (frmConnection is TfrmConectionBinaryRC) then TfrmConectionBinaryRC(frmConnection).Emergency;
+      // PÂNICO / CORTE IMEDIATO DE MOTORES
         Z := 0;
         CentralizaComandos;
         LimpaTeclado;
@@ -1279,12 +1288,13 @@ end;
 
 procedure TfrmMain.timerJoystickTimer(Sender: TObject);
 var
-  X0, Y0, Z0: Double;
+  X0, Y0, Z0, Yaw0: Double;
   JoyDisponivel: Boolean;
 begin
   X0 := refJoy;
   Y0 := refJoy;
   Z0 := Z;
+  Yaw0 := 2.0; // sentinel: legacy digital yaw
 
   JoyDisponivel := UsaJoystick and Assigned(FJoystick) and FJoystick.Active;
   if JoyDisponivel then
@@ -1295,6 +1305,7 @@ begin
     X0 := FJoystick.State.X;
     Y0 := FJoystick.State.Y;
     Z0 := FJoystick.State.Z;
+    if FJoystick.State.HasYaw then Yaw0 := FJoystick.State.Yaw;
 
     B1 := FJoystick.State.Buttons.B1;
     B2 := FJoystick.State.Buttons.B2;
@@ -1383,7 +1394,7 @@ begin
   if X < refJoy then ArrowRigth.ArrowColor := clRed;
 
   if Assigned(FControler) then
-    FControler.Atualiza(X, Y, Z, B1, B2, B3, B4, B5, B6);
+    FControler.Atualiza(X, Y, Z, B1, B2, B3, B4, B5, B6, Yaw0);
 
   AtualizaRotorDisplay;
 

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG><ProjectOptions><Version Value="12"/><General><MainUnit Value="0"/><ResourceType Value="res"/></General>
+<RequiredPackages Count="13">
+      <Item1>
+        <PackageName Value="lazMapViewerPkg"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="SdpoSerialLaz"/>
+      </Item2>
+      <Item3>
+        <PackageName Value="LazSerialPort"/>
+      </Item3>
+      <Item4>
+        <PackageName Value="opengpsx"/>
+      </Item4>
+      <Item5>
+        <PackageName Value="bgracontrols"/>
+      </Item5>
+      <Item6>
+        <PackageName Value="cadsys"/>
+      </Item6>
+      <Item7>
+        <PackageName Value="bgragames"/>
+      </Item7>
+      <Item8>
+        <PackageName Value="industrial"/>
+      </Item8>
+      <Item9>
+        <PackageName Value="LCL"/>
+      </Item9>
+      <Item10>
+        <PackageName Value="openai_input"/>
+      </Item10>
+      <Item11>
+        <PackageName Value="openai_hardware"/>
+      </Item11>
+      <Item12>
+        <PackageName Value="openai_video"/>
+      </Item12>
+      <Item13>
+        <PackageName Value="openai_drone"/>
+      </Item13>
+    </RequiredPackages>
+<Units Count="1"><Unit0><Filename Value="test_config_046.pas"/><IsPartOfProject Value="True"/></Unit0></Units></ProjectOptions>
+<CompilerOptions><Version Value="11"/><Target><Filename Value="../build-diagnostics/config046/test_config_046"/></Target>
+<SearchPaths><OtherUnitFiles Value="../src;../src/compat;../simulador/src/nucleo;../simulador/src/protocolos"/><UnitOutputDirectory Value="../build-diagnostics/config046/units/$(TargetCPU)-$(TargetOS)"/></SearchPaths>
+<CodeGeneration><Checks><IOChecks Value="True"/><RangeChecks Value="True"/><OverflowChecks Value="True"/></Checks></CodeGeneration>
+<Linking><Debugging><GenerateDebugInfo Value="True"/></Debugging></Linking></CompilerOptions></CONFIG>

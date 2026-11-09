@@ -5,7 +5,7 @@ unit joystick;
 interface
 
 uses
-  Classes, SysUtils, SdpoJoystick, funcs;
+  Classes, SysUtils, SdpoJoystick, funcs, aijoystick, cockpit_joystick_mapping;
 
 const
   JOY_REF        = 127;
@@ -30,6 +30,8 @@ type
     X: Byte;
     Y: Byte;
     Z: Byte;
+    Yaw: Double;
+    HasYaw: Boolean;
     Buttons: TJoystickButtons;
   end;
 
@@ -40,19 +42,29 @@ type
     FJoystick: TSdpoJoystick;
     FState: TJoystickState;
     FActive: Boolean;
+    FNativeJoystick: TAIJoystick;
+    FOwnsNativeJoystick: Boolean;
+    FUseXInput: Boolean;
+    FDeviceIndex: Integer;
+    FSettings: TFlightJoystickSettings;
+    FAvailable: Boolean;
+    function ReadXInput(out AState: TJoystickState): Boolean;
 
     procedure SetActive(const AValue: Boolean);
     function MapAxisToByte(const AValue: Double): Byte;
     function GetButtonValue(const AIndex: Integer): Byte;
 
   public
-    constructor Create(AJoystick: TSdpoJoystick);
+    constructor Create(AJoystick: TSdpoJoystick; ANativeJoystick: TAIJoystick = nil);
+    destructor Destroy; override;
     procedure ResetState;
     function ConfigureDevice(const ADeviceIndex: Integer): Boolean;
     function Activate: Boolean;
     procedure Deactivate;
     function UpdateState: Boolean; // True = leitura bem-sucedida, mesmo sem mudancas
 
+    property Settings: TFlightJoystickSettings read FSettings write FSettings;
+    property Available: Boolean read FAvailable;
     property Active: Boolean read FActive write SetActive;
     property State: TJoystickState read FState;
   end;
@@ -61,12 +73,25 @@ implementation
 
 { TJoystickController }
 
-constructor TJoystickController.Create(AJoystick: TSdpoJoystick);
+constructor TJoystickController.Create(AJoystick: TSdpoJoystick; ANativeJoystick: TAIJoystick);
 begin
   inherited Create;
+  FSettings := DefaultFlightJoystickSettings;
   FJoystick := AJoystick;
+  FNativeJoystick := ANativeJoystick;
+  FOwnsNativeJoystick := not Assigned(ANativeJoystick);
+  if FOwnsNativeJoystick then FNativeJoystick := TAIJoystick.Create(nil);
+  FDeviceIndex := 0;
+  FNativeJoystick.DeviceID := 'xinput:0';
   FActive := False;
   ResetState;
+end;
+
+destructor TJoystickController.Destroy;
+begin
+  Deactivate;
+  if FOwnsNativeJoystick then FNativeJoystick.Free;
+  inherited Destroy;
 end;
 
 procedure TJoystickController.SetActive(const AValue: Boolean);
@@ -79,9 +104,11 @@ end;
 
 procedure TJoystickController.ResetState;
 begin
+  FAvailable := False;
+  FState := Default(TJoystickState);
   FState.X := JOY_REF;
   FState.Y := JOY_REF;
-  FState.Z := JOY_REF;
+  FState.Z := 0;
 
   FState.Buttons.B1 := 0;
   FState.Buttons.B2 := 0;
@@ -93,55 +120,72 @@ end;
 
 function TJoystickController.ConfigureDevice(const ADeviceIndex: Integer): Boolean;
 begin
-  Result := False;
-
-  if not Assigned(FJoystick) then
-    Exit;
-
-  try
-    FJoystick.Active := False;
-
-    if ADeviceIndex = 0 then
-      FJoystick.DeviceWin := dwJoystickID1
-    else
-      FJoystick.DeviceWin := dwJoystickID2;
-
-    Result := True;
-  except
-    Result := False;
-  end;
+  Deactivate;
+  Result := ADeviceIndex in [0..3];
+  if not Result then Exit;
+  FDeviceIndex := ADeviceIndex;
+  FNativeJoystick.DeviceID := 'xinput:' + IntToStr(FDeviceIndex);
+  if Assigned(FJoystick) and (FDeviceIndex<2) then
+    if FDeviceIndex = 0 then FJoystick.DeviceWin := dwJoystickID1
+    else FJoystick.DeviceWin := dwJoystickID2;
 end;
 
 function TJoystickController.Activate: Boolean;
+var InitialState: TJoystickState;
 begin
+  Deactivate;
+  // Prefer the native Xbox controller in the selected slot. Generic devices
+  // retain their existing Sdpo mapping; never switch devices during a flight.
+  FUseXInput := False;
+  try
+    if FSettings.Profile<>jpLegacy then FUseXInput := ReadXInput(InitialState);
+  except ResetState; Exit(False); end;
+  if FUseXInput then
+  begin
+    FActive := True;
+    FState := InitialState;
+    FAvailable := True;
+    Exit(True);
+  end;
   Result := False;
-
-  if not Assigned(FJoystick) then
-    Exit;
-
+  if not Assigned(FJoystick) or (FDeviceIndex>1) then Exit;
   try
     FJoystick.Active := True;
     FActive := True;
-    ResetState;
-    Result := True;
+    Result := UpdateState;
+    if not Result then Deactivate;
   except
-    FActive := False;
-    Result := False;
+    Deactivate;
   end;
 end;
 
 procedure TJoystickController.Deactivate;
 begin
-  if not Assigned(FJoystick) then
-    Exit;
-
-  try
-    FJoystick.Active := False;
-  except
-  end;
-
   FActive := False;
+  FUseXInput := False;
+  if Assigned(FJoystick) then
+    try FJoystick.Active := False; except end;
   ResetState;
+end;
+
+function TJoystickController.ReadXInput(out AState: TJoystickState): Boolean;
+var S: TAIJoystickState; M:TFlightJoystickSettings; B:array[1..6] of Byte; I:Integer;
+begin
+  AState := Default(TJoystickState);
+  Result := FNativeJoystick.Poll;
+  if not Result then Exit;
+  S := FNativeJoystick.State;
+  Result := S.Connected and (Copy(S.DeviceID, 1, 7) = 'xinput:');
+  if not Result then Exit;
+  MapFlightJoystick(S.Axes, True, FSettings,
+    AState.X, AState.Y, AState.Z, AState.Yaw, AState.HasYaw);
+  M:=EffectiveFlightJoystickSettings(FSettings,True);
+  for I:=1 to 6 do
+    if (M.Button[I]>=1) and (M.Button[I]<=AIJoystickControls) then
+      B[I]:=Ord(S.Controls[M.Button[I]])*255 else B[I]:=0;
+  AState.Buttons.B1:=B[1]; AState.Buttons.B2:=B[2];
+  AState.Buttons.B3:=B[3]; AState.Buttons.B4:=B[4];
+  AState.Buttons.B5:=B[5]; AState.Buttons.B6:=B[6];
 end;
 
 function TJoystickController.MapAxisToByte(const AValue: Double): Byte;
@@ -169,27 +213,63 @@ end;
 function TJoystickController.UpdateState: Boolean;
 var
   NewState: TJoystickState;
+  Axes: array[0..5] of Integer;
+  CanonicalAxes: TFlightAxes;
+  M: TFlightJoystickSettings;
+  B: array[1..6] of Byte;
+  I: Integer;
+  Buttons: array[0..31] of Integer;
 begin
   Result := False;
-
-  if (not Assigned(FJoystick)) or (not FActive) then
-    Exit;
-
+  if not FActive then Exit;
   try
-    NewState.X := MapAxisToByte(FJoystick.Axis[0].ToDouble);
-    NewState.Y := MapAxisToByte(FJoystick.Axis[1].ToDouble);
-    NewState.Z := MapAxisToByte(FJoystick.Axis[2].ToDouble);
-
-    NewState.Buttons.B1 := GetButtonValue(0);
-    NewState.Buttons.B2 := GetButtonValue(1);
-    NewState.Buttons.B3 := GetButtonValue(2);
-    NewState.Buttons.B4 := GetButtonValue(3);
-    NewState.Buttons.B5 := GetButtonValue(4);
-    NewState.Buttons.B6 := GetButtonValue(5);
-
+    if FUseXInput then
+    begin
+      if not ReadXInput(NewState) then
+      begin
+        FActive:=False;
+        ResetState;
+        Exit;
+      end;
+    end
+    else
+    begin
+      if not Assigned(FJoystick) or not FJoystick.Active then
+      begin
+        FActive:=False;
+        ResetState;
+        Exit;
+      end;
+      // Read raises on a failed WinMM poll. Individual Axis getters can
+      // otherwise return the last sample even after the device disappears.
+      FJoystick.Read(Axes, Buttons);
+      if FSettings.Profile in [jpAutomatic,jpLegacy] then
+      begin
+        // Preserve the legacy byte mapping for generic controllers exactly.
+        NewState:=Default(TJoystickState);
+        NewState.X := MapAxisToByte(Axes[0]);
+        NewState.Y := MapAxisToByte(Axes[1]);
+        NewState.Z := MapAxisToByte(Axes[2]);
+        for I:=1 to 6 do B[I]:=Ord(Buttons[I-1]<>0)*255;
+      end else begin
+        for I:=0 to 5 do CanonicalAxes[I]:=2*Axes[I]/65535.0-1;
+        CanonicalAxes[1]:=-CanonicalAxes[1];
+        MapFlightJoystick(CanonicalAxes,False,FSettings,
+          NewState.X,NewState.Y,NewState.Z,NewState.Yaw,NewState.HasYaw);
+        M:=EffectiveFlightJoystickSettings(FSettings,False);
+        for I:=1 to 6 do
+          if (M.Button[I]>=1) and (M.Button[I]<=32) then
+            B[I]:=Ord(Buttons[M.Button[I]-1]<>0)*255 else B[I]:=0;
+      end;
+      NewState.Buttons.B1:=B[1]; NewState.Buttons.B2:=B[2];
+      NewState.Buttons.B3:=B[3]; NewState.Buttons.B4:=B[4];
+      NewState.Buttons.B5:=B[5]; NewState.Buttons.B6:=B[6];
+    end;
     FState := NewState;
+    FAvailable := True;
     Result := True;
   except
+    FActive:=False;
     ResetState;
     Result := False;
   end;

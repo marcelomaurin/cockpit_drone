@@ -49,6 +49,7 @@ type
     procedure Processa(ACanal: Integer; const ABuf: TBytes; const ADe: TEndereco); override;
     procedure Periodico(AAgora: QWord); override;
   public
+    procedure ReiniciaEstado; override;
     function MontaComando(const AE: TEstadoVoo): TComandoVoo; override;
     function Descricao: string; override;
     class function TextoEstado(const AE: TEstadoVoo): string;
@@ -61,6 +62,7 @@ type
     FCanal: Integer;
     FUltimaSeq: LongWord;
     FVoar: Boolean;
+    FAguardaPousar:Boolean;
     FEmergencia: Boolean;
     FBitEmergenciaAnterior: Boolean;
     FPcmdAtivo: Boolean;
@@ -75,6 +77,7 @@ type
     procedure Processa(ACanal: Integer; const ABuf: TBytes; const ADe: TEndereco); override;
     procedure Periodico(AAgora: QWord); override;
   public
+    procedure ReiniciaEstado; override;
     function MontaComando(const AE: TEstadoVoo): TComandoVoo; override;
     function Descricao: string; override;
   end;
@@ -88,12 +91,14 @@ type
     FEixos: array[0..3] of Byte;  // rolagem, arfagem, aceleração, guinada
     FUltimoPacote: QWord;
     FAvisouSinal: Boolean;
+    FAguardaMinimo:Boolean;
   protected
     function AbreCanais: Boolean; override;
     procedure Processa(ACanal: Integer; const ABuf: TBytes; const ADe: TEndereco); override;
     procedure Encerra; override;
   public
     destructor Destroy; override;
+    procedure ReiniciaEstado; override;
     function MontaComando(const AE: TEstadoVoo): TComandoVoo; override;
     function Descricao: string; override;
   end;
@@ -122,6 +127,7 @@ type
     procedure Processa(ACanal: Integer; const ABuf: TBytes; const ADe: TEndereco); override;
     procedure Periodico(AAgora: QWord); override;
   public
+    procedure ReiniciaEstado; override;
     function MontaComando(const AE: TEstadoVoo): TComandoVoo; override;
     function Descricao: string; override;
   end;
@@ -141,6 +147,7 @@ type
     procedure Processa(ACanal: Integer; const ABuf: TBytes; const ADe: TEndereco); override;
     procedure Periodico(AAgora: QWord); override;
   public
+    procedure ReiniciaEstado; override;
     function MontaComando(const AE: TEstadoVoo): TComandoVoo; override;
     function Descricao: string; override;
   end;
@@ -275,6 +282,13 @@ begin
     EnviaTexto(FCanal, TextoEstado(Estado), Peer.IP, TELLO_PORTA_ESTADO);
 end;
 
+procedure TEmuladorTello.ReiniciaEstado;
+begin
+  FLock.Enter;
+  try inherited ReiniciaEstado; FillChar(FRc,SizeOf(FRc),0); FUltimoComando:=0;
+  finally FLock.Leave; end;
+end;
+
 function TEmuladorTello.MontaComando(const AE: TEstadoVoo): TComandoVoo;
 begin
   FLock.Enter;
@@ -378,6 +392,10 @@ begin
     end;
     FBitEmergenciaAnterior := Bit;
     FVoar := (Ref and AR_REF_DECOLAR) <> 0;
+    if FAguardaPousar then begin
+      if not FVoar then FAguardaPousar:=False;
+      FVoar:=False;
+    end;
     if FVoar and not FEmergencia then
       Decolar
     else if not FVoar then
@@ -496,6 +514,13 @@ begin
   Envia(FCanal, B, SizeOf(B), Peer.IP, ARDRONE_PORTA_NAVDATA);
 end;
 
+procedure TEmuladorARDrone.ReiniciaEstado;
+begin
+  FLock.Enter;
+  try inherited ReiniciaEstado; FEmergencia:=False; FVoar:=False; FAguardaPousar:=True; FPcmdAtivo:=False; FillChar(FPcmd,SizeOf(FPcmd),0);
+  finally FLock.Leave; end;
+end;
+
 function TEmuladorARDrone.MontaComando(const AE: TEstadoVoo): TComandoVoo;
 begin
   FLock.Enter;
@@ -582,13 +607,21 @@ begin
     FPeer := ADe;
     FEixos[0] := ABuf[1];
     FEixos[1] := ABuf[2];
-    FEixos[2] := ABuf[3];
+    if FAguardaMinimo and (ABuf[3]<=16) then FAguardaMinimo:=False;
+    if FAguardaMinimo then FEixos[2]:=0 else FEixos[2] := ABuf[3];
     FEixos[3] := ABuf[4];
     FUltimoPacote := Agora;
     FAvisouSinal := False;
   finally
     FLock.Leave;
   end;
+end;
+
+procedure TEmuladorFQ777.ReiniciaEstado;
+begin
+  FLock.Enter;
+  try inherited ReiniciaEstado; FEixos[0]:=127; FEixos[1]:=127; FEixos[2]:=0; FEixos[3]:=127; FUltimoPacote:=0; FAguardaMinimo:=True; FAvisouSinal:=False;
+  finally FLock.Leave; end;
 end;
 
 function TEmuladorFQ777.MontaComando(const AE: TEstadoVoo): TComandoVoo;
@@ -703,6 +736,13 @@ begin
   finally
     FLock.Leave;
   end;
+end;
+
+procedure TEmuladorCDP.ReiniciaEstado;
+begin
+  FLock.Enter;
+  try inherited ReiniciaEstado; FArmado:=False; FCorteTravado:=False; FEstadoCdp:=0; FSinais:=0; FAcel:=0; FUltimoControle:=0; FPerdaInicio:=0;
+  finally FLock.Leave; end;
 end;
 
 function TEmuladorCDP.MontaComando(const AE: TEstadoVoo): TComandoVoo;
@@ -954,6 +994,13 @@ begin
   B[0] := $FF;
   B[1] := $FF;
   Envia(FCanal, B, 2, Peer.IP, Peer.Porta);
+end;
+
+procedure TEmuladorESPDrone.ReiniciaEstado;
+begin
+  FLock.Enter;
+  try inherited ReiniciaEstado; FDestravado:=False; FEmpuxo:=0; FUltimoComando:=0; FRol:=0; FArf:=0; FGuiTaxa:=0;
+  finally FLock.Leave; end;
 end;
 
 function TEmuladorESPDrone.MontaComando(const AE: TEstadoVoo): TComandoVoo;

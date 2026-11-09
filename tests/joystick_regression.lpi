@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG><ProjectOptions><Version Value="12"/><General><MainUnit Value="0"/><ResourceType Value="res"/></General>
+<RequiredPackages Count="3"><Item1><PackageName Value="LCL"/></Item1>
+<Item2><PackageName Value="bgragames"/></Item2>
+<Item3><PackageName Value="openai_drone"/></Item3></RequiredPackages>
+<Units Count="1"><Unit0><Filename Value="test_xbox_cheerson.pas"/><IsPartOfProject Value="True"/></Unit0></Units></ProjectOptions>
+<CompilerOptions><Version Value="11"/><Target><Filename Value="../build-diagnostics/joystick/test_xbox_cheerson"/></Target>
+<SearchPaths><OtherUnitFiles Value="../src;../src/compat;../simulador/src/nucleo;../simulador/src/protocolos"/>
+<UnitOutputDirectory Value="../build-diagnostics/joystick/units/$(TargetCPU)-$(TargetOS)"/></SearchPaths>
+<CodeGeneration><Checks><IOChecks Value="True"/><RangeChecks Value="True"/><OverflowChecks Value="True"/></Checks></CodeGeneration>
+<Linking><Debugging><GenerateDebugInfo Value="True"/></Debugging></Linking></CompilerOptions></CONFIG>

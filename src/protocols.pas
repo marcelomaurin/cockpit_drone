@@ -16,6 +16,8 @@ const
   PROTOCOLO_FQ777 = 4;
   PROTOCOLO_ARDRONE = 5;
   PROTOCOLO_ESP32DRONE = 6;
+  PROTOCOLO_WIFI8K = 7;
+  PROTOCOLO_MSP1=8;PROTOCOLO_MSP2=9;PROTOCOLO_CRSF=10;PROTOCOLO_SBUS=11;PROTOCOLO_IBUS=12;
 
 { Nome do drone/protocolo para mensagens. }
 function NomeProtocolo(AIndice: Integer): string;
@@ -35,6 +37,9 @@ begin
     PROTOCOLO_OPENDRONE: Result := 'ESP-Drone / OpenDrone';
     PROTOCOLO_FQ777: Result := 'FQ777-954';
     PROTOCOLO_ARDRONE: Result := 'Parrot AR.Drone 2.0';
+    PROTOCOLO_MSP1:Result:='MSP v1 RC';PROTOCOLO_MSP2:Result:='MSP v2 RC';
+    PROTOCOLO_CRSF:Result:='CRSF RC';PROTOCOLO_SBUS:Result:='SBUS RC';PROTOCOLO_IBUS:Result:='iBUS RC';
+    PROTOCOLO_WIFI8K: Result := 'WIFI_8K (experimental: Wi-Fi)';
     PROTOCOLO_ESP32DRONE: Result := 'Drone ESP32 (firmware Cockpit)';
   else
     Result := 'protocolo ' + IntToStr(AIndice);

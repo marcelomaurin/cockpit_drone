@@ -65,10 +65,9 @@ function TfrmConectionTello.Conectar: Boolean;
 begin
   with FSetMain.Tello do
   begin
-    if Trim(IP) <> '' then
-      FTello.Host := Trim(IP);
-    FTello.VideoEnabled := Video;
-    PreparaVideo(Video, TELLO_VIDEO_WIDTH, TELLO_VIDEO_HEIGHT, FFmpeg);
+    FTello.Host := FSetMain.TargetHost(IP,'192.168.10.1');
+    FTello.VideoEnabled := Video and not FSetMain.SimulationMode;
+    PreparaVideo(Video and not FSetMain.SimulationMode, TELLO_VIDEO_WIDTH, TELLO_VIDEO_HEIGHT, FFmpeg);
   end;
   FTello.LandOnDisconnect := True;
   FTello.Connect;

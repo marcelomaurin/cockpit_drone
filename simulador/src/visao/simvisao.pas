@@ -19,14 +19,12 @@ interface
 
 uses
   Classes, SysUtils, Math, Graphics, IntfGraphics, GraphType, LCLType, FPImage,
-  simtipos, simgeo, simmapa, simmundo, simsimulacao;
+  simtipos, simgeo, simmapa, simmundo, simsimulacao, simedificios, simedificios_cache, simcidade3d,simrastercache;
 
 type
   TTipoVista = (tvCamera, tvTerceiraPessoa, tvMapa);
 
-  TVetor = record
-    X, Y, Z: Double;
-  end;
+  TVetor = TVetor3D;
 
   { TAmostrador: cor do chão num ponto, com cache de blocos por quadro. }
 
@@ -69,6 +67,8 @@ type
   private
     FAmostrador: TAmostrador;
     FGer: TGerenciadorBlocos;
+    FEdificios:TGerenciadorEdificios;
+    FRaster:TGerenciadorRaster;
     FImg: TLazIntfImage;
     FBmp: TBitmap;
     FCredito: string;
@@ -77,7 +77,7 @@ type
       out AC, AFrente, ADireita, ACima: TVetor; out AFocal: Double);
     procedure DesenhaMapaPixels(const AD: TDadosVista; AW, AH: Integer);
   public
-    constructor Create(AGer: TGerenciadorBlocos; APrioridade: Integer = 1);
+    constructor Create(AGer: TGerenciadorBlocos; APrioridade: Integer = 1; AEdificios:TGerenciadorEdificios=nil;ARaster:TGerenciadorRaster=nil);
     destructor Destroy; override;
     { Desenha a vista no canvas de destino (ARect). AEscala = resolução interna. }
     procedure Desenha(ACanvas: TCanvas; const ARect: TRect; ATipo: TTipoVista;
@@ -85,6 +85,7 @@ type
     property Credito: string read FCredito write FCredito;
     { Salva o último quadro renderizado em arquivo BMP }
     procedure SalvaQuadro(const ACaminho: string);
+    procedure GeraQuadroCamera(const AD:TDadosVista;W,H:Integer;const Arquivo:string);
   end;
 
 function Vet(AX, AY, AZ: Double): TVetor; inline;
@@ -153,10 +154,12 @@ end;
 function TAmostrador.Bloco(AZ, ATx, ATy: Integer; APedir: Boolean): TBloco;
 var
   K: Int64;
+  HashValue:QWord;
   H, I: Integer;
 begin
   K := (Int64(AZ) shl 56) or (Int64(ATx and $FFFFFFF) shl 28) or Int64(ATy and $FFFFFFF);
-  H := Integer(((K * 2654435761) shr 7) and 1023);
+  HashValue:=(QWord(K) xor (QWord(K) shr 28) xor (QWord(K) shr 56)) and $FFFFFFFF;
+  H := Integer(((HashValue * QWord(2654435761)) shr 7) and 1023);
   for I := 0 to 15 do
   begin
     if not FUsadas[H] then
@@ -222,10 +225,11 @@ end;
 
 { TVisao }
 
-constructor TVisao.Create(AGer: TGerenciadorBlocos; APrioridade: Integer);
+constructor TVisao.Create(AGer: TGerenciadorBlocos; APrioridade: Integer; AEdificios:TGerenciadorEdificios;ARaster:TGerenciadorRaster);
 begin
   inherited Create;
   FGer := AGer;
+  FEdificios:=AEdificios;FRaster:=ARaster;
   FAmostrador := TAmostrador.Create(AGer);
   FAmostrador.Prioridade := APrioridade;
   FBmp := TBitmap.Create;
@@ -241,19 +245,38 @@ end;
 
 procedure TVisao.SalvaQuadro(const ACaminho: string);
 var
-  Tmp: string;
+  Tmp,TextoCredito:string;
 begin
   if (FBmp = nil) or (FBmp.Width <= 0) or (FBmp.Height <= 0) then
     Exit;
   Tmp := ACaminho + '.tmp';
   try
-    FBmp.SaveToFile(Tmp);
+    TextoCredito:=FCredito;
+    if (Assigned(FEdificios) and (Length(FEdificios.Cena.Itens)>0)) or
+       (Assigned(FRaster) and (Length(FRaster.Cena.Itens)>0)) then
+      TextoCredito:=TextoCredito+' | OSM + construcoes simuladas/alturas aproximadas';
+    if TextoCredito<>'' then begin
+      FBmp.Canvas.Font.Size:=7;FBmp.Canvas.Font.Color:=clWhite;FBmp.Canvas.Brush.Color:=clBlack;
+      FBmp.Canvas.TextOut(3,Max(0,FBmp.Height-16),TextoCredito);
+    end;
+  FBmp.SaveToFile(Tmp);
     if FileExists(ACaminho) then
       DeleteFile(ACaminho);
     RenameFile(Tmp, ACaminho);
   except
     // Ignora conflitos momentaneos de concorrencia
   end;
+end;
+
+procedure TVisao.GeraQuadroCamera(const AD:TDadosVista;W,H:Integer;const Arquivo:string);
+var C,Fr,Di,Ci:TVetor;Focal,Lat,Lon:Double;
+begin
+  Prepara(W,H);FAmostrador.NovoQuadro(AD.Origem);
+  DesenhaChao(AD,False,W,H,C,Fr,Di,Ci,Focal);
+  FBmp.LoadFromIntfImage(FImg);
+  LocalParaGeo(AD.Origem,AD.Estado.X,AD.Estado.Y,Lat,Lon);
+  FCredito:=FGer.Credito(Lat+0.01,Lon-0.01,Lat-0.01,Lon+0.01,16);
+  SalvaQuadro(Arquivo);
 end;
 
 procedure TVisao.Prepara(AW, AH: Integer);
@@ -280,8 +303,12 @@ var
   Cor, Ceu, CeuAlto, Neb: LongWord;
   Px, Py: Double;
   D0, Dv, Du: TVetor;
+  Pixels:TPixelsCidade;Depth:TProfundidadeCidade;
+  Cena:TCenaEdificios;Cam:TCamera3D;OffsetX,OffsetY:Double;
 begin
+  SetLength(Pixels,AW*AH);SetLength(Depth,AW*AH);
   E := AD.Estado;
+  if AD.Param.Classe='submarine' then E.Z:=E.Z+30;
   Psi := DegToRad(E.Rumo);
   if ATerceira then
   begin
@@ -307,6 +334,7 @@ begin
   Ceu := $0087B5DE;
   CeuAlto := $004A7EC2;
   Neb := $00B9C9D6;
+  if AD.Param.Classe='submarine' then begin Ceu:=$001B5B7A;CeuAlto:=$000A2030;Neb:=$00234857;end;
 
   for V := 0 to AH - 1 do
   begin
@@ -329,10 +357,12 @@ begin
     end;
     for U := 0 to AW - 1 do
     begin
+      Depth[V*AW+U]:=1e30;
       D := Soma(D0, Mult(Du, U - Cx));
       if D.Z < -1e-5 then
       begin
         T := -AC.Z / D.Z;
+        Depth[V*AW+U]:=T;
         Px := AC.X + D.X * T;
         Py := AC.Y + D.Y * T;
         Dist := T * Sqrt(Escalar(D, D));
@@ -341,7 +371,9 @@ begin
           Cor := Neb
         else
         begin
-          Cor := FAmostrador.CorMetros(Px, Py, Z);
+          if AD.Param.Classe='submarine' then begin
+            if ((Floor(Px/5)+Floor(Py/5)) and 1)=0 then Cor:=$002A5261 else Cor:=$00315E6B;
+          end else Cor := FAmostrador.CorMetros(Px, Py, Z);
           Nevoa := EnsureRange((Dist - 900) / 4000, 0, 0.85);
           if Nevoa > 0 then
             Cor := Mistura(Cor, Neb, Nevoa);
@@ -352,9 +384,19 @@ begin
         // Céu: mais claro perto do horizonte.
         Cor := Mistura(Ceu, CeuAlto, EnsureRange(D.Z * 2.5, 0, 1));
       end;
-      Linha[U] := Cor or $FF000000;
+      Pixels[V*AW+U] := Cor or $FF000000;
     end;
   end;
+  if Assigned(FEdificios) and (AD.Param.Classe<>'submarine') then begin
+    Cena:=FEdificios.Cena;
+    if (Length(Cena.Itens)=0) and Assigned(FRaster) then Cena:=FRaster.Cena;
+    if Length(Cena.Itens)>0 then begin
+    GeoParaLocal(AD.Origem,Cena.Origem.Lat,Cena.Origem.Lon,OffsetX,OffsetY);
+    Cam.Pos:=AC;Cam.Frente:=AFrente;Cam.Direita:=ADireita;Cam.Cima:=ACima;Cam.Focal:=AFocal;
+    DesenhaEdificios(Cena,OffsetX,OffsetY,Cam,AW,AH,Pixels,Depth);
+    end;
+  end;
+  for V:=0 to AH-1 do Move(Pixels[V*AW],FImg.GetDataLineStart(V)^,AW*4);
 end;
 
 procedure TVisao.DesenhaMapaPixels(const AD: TDadosVista; AW, AH: Integer);
@@ -433,14 +475,16 @@ var
   procedure DesenhaDronePropio;
   var
     Ok1, Ok2: Boolean;
-    A1, B1, A2, B2, Zx, Psi2: Double;
+    A1, B1, A2, B2, Zx, Psi2, BodyZ: Double;
     K: Integer;
     Bracos: array[0..3] of TVetor;
   begin
     Psi2 := DegToRad(E.Rumo);
+    BodyZ:=E.Z;
+    if AD.Param.Classe='submarine' then BodyZ:=BodyZ+30;
     for K := 0 to 3 do
       Bracos[K] := Vet(E.X + 0.35 * Sin(Psi2 + DegToRad(45 + 90 * K)),
-        E.Y + 0.35 * Cos(Psi2 + DegToRad(45 + 90 * K)), E.Z);
+        E.Y + 0.35 * Cos(Psi2 + DegToRad(45 + 90 * K)), BodyZ);
     ACanvas.Pen.Width := 3;
     for K := 0 to 1 do
     begin

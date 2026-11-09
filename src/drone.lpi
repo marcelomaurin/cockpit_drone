@@ -12,6 +12,14 @@
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
     </General>
+    <VersionInfo>
+      <UseVersionInfo Value="True"/>
+      <MajorVersionNr Value="0"/>
+      <MinorVersionNr Value="46"/>
+      <RevisionNr Value="0"/>
+      <BuildNr Value="0"/>
+      <StringTable ProductName="Cockpit Drone" ProductVersion="0.46.0.0" FileVersion="0.46.0.0"/>
+    </VersionInfo>
     <BuildModes Count="1">
       <Item1 Name="Default" Default="True"/>
     </BuildModes>
@@ -24,61 +32,46 @@
         <Mode0 Name="default"/>
       </Modes>
     </RunParams>
-    <RequiredPackages Count="18">
+    <RequiredPackages Count="13">
       <Item1>
         <PackageName Value="lazMapViewerPkg"/>
       </Item1>
       <Item2>
-        <PackageName Value="fpowm"/>
+        <PackageName Value="SdpoSerialLaz"/>
       </Item2>
       <Item3>
-        <PackageName Value="lazupdate"/>
+        <PackageName Value="LazSerialPort"/>
       </Item3>
       <Item4>
-        <PackageName Value="playwavepackage"/>
+        <PackageName Value="opengpsx"/>
       </Item4>
       <Item5>
-        <PackageName Value="SdpoSerialLaz"/>
+        <PackageName Value="bgracontrols"/>
       </Item5>
       <Item6>
-        <PackageName Value="LazSerialPort"/>
+        <PackageName Value="cadsys"/>
       </Item6>
       <Item7>
-        <PackageName Value="MPlayerControlLaz"/>
+        <PackageName Value="bgragames"/>
       </Item7>
       <Item8>
-        <PackageName Value="laz_acs"/>
+        <PackageName Value="industrial"/>
       </Item8>
       <Item9>
-        <PackageName Value="opengpsx"/>
+        <PackageName Value="LCL"/>
       </Item9>
       <Item10>
-        <PackageName Value="bgracontrols"/>
+        <PackageName Value="openai_input"/>
       </Item10>
       <Item11>
-        <PackageName Value="cadsys"/>
+        <PackageName Value="openai_hardware"/>
       </Item11>
       <Item12>
-        <PackageName Value="bgragames"/>
+        <PackageName Value="openai_video"/>
       </Item12>
       <Item13>
-        <PackageName Value="industrial"/>
-      </Item13>
-      <Item14>
-        <PackageName Value="LCL"/>
-      </Item14>
-      <Item15>
-        <PackageName Value="openai_input"/>
-      </Item15>
-      <Item16>
-        <PackageName Value="openai_hardware"/>
-      </Item16>
-      <Item17>
-        <PackageName Value="openai_video"/>
-      </Item17>
-      <Item18>
         <PackageName Value="openai_drone"/>
-      </Item18>
+      </Item13>
     </RequiredPackages>
     <Units Count="25">
       <Unit0>
@@ -212,6 +205,7 @@
       <Filename Value="drone"/>
     </Target>
     <SearchPaths>
+      <OtherUnitFiles Value="compat"/>
       <IncludeFiles Value="$(ProjOutDir)"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>

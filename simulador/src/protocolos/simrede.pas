@@ -75,6 +75,9 @@ function IPValido(const AIP: string): string;
 
 implementation
 
+{$IFDEF WINDOWS}
+function SimSocketAvailable(Socket:NativeUInt;Command:LongInt;var Bytes:LongWord):LongInt;stdcall;external 'ws2_32.dll' name 'ioctlsocket';
+{$ENDIF}
 type
 
   { TClienteTCP: lê e descarta até o outro lado fechar. }
@@ -198,11 +201,18 @@ function TSimUDP.Recebe(var ABuf; ATamanho, AEsperaMs: Integer; out ADe: TEndere
 var
   End_: TInetSockAddr;
   Tam: TSockLen;
+  {$IFDEF WINDOWS}Available:LongWord;{$ENDIF}
 begin
   ADe.IP := '';
   ADe.Porta := 0;
   if not Aberto then
     Exit(-1);
+  {$IFDEF WINDOWS}
+  if AEsperaMs=0 then begin
+    Available:=0;
+    if (SimSocketAvailable(NativeUInt(FSock),$4004667F,Available)<>0) or (Available=0) then Exit(0);
+  end;
+  {$ENDIF}
   DefineEspera(FSock, Max(1, AEsperaMs));
   Tam := SizeOf(End_);
   FillChar(End_, SizeOf(End_), 0);

@@ -76,6 +76,9 @@ type
     procedure AtualizaReferenciaPorObjetoZero;
     procedure AtualizaObjetosNoGrid;
     function PontoTelaParaGrid(const APt: TPoint; out ACol, ARow: Integer): Boolean;
+    function LatLonToScreen(const ALat, ALon: Double): TPoint;
+    function ScreenToLatLon(const APt: TPoint): TRealPoint;
+    procedure SetMapCenter(const ALat, ALon: Double);
     procedure CliqueNoMapa(Shift: TShiftState; X, Y: Integer);
 
   public
@@ -140,7 +143,7 @@ begin
   end;
   for I := 0 to High(Items) do
   begin
-    P := MapView1.LatLonToScreen(Items[I].Lat, Items[I].Lon);
+    P := LatLonToScreen(Items[I].Lat, Items[I].Lon);
     with FParticipantLabels[I] do
     begin
       Caption := Format('* %s (%.0f m)', [Items[I].Name, Items[I].Distance]);
@@ -150,6 +153,40 @@ begin
       BringToFront;
     end;
   end;
+end;
+
+
+function TfrmMap.LatLonToScreen(const ALat, ALon: Double): TPoint;
+var
+  Pt: TRealPoint;
+begin
+  if not Assigned(MapView1) then
+    Exit(Point(0, 0));
+  Pt.Lat := ALat;
+  Pt.Lon := ALon;
+  Result := MapView1.LonLatToScreen(Pt);
+end;
+
+function TfrmMap.ScreenToLatLon(const APt: TPoint): TRealPoint;
+begin
+  if not Assigned(MapView1) then
+  begin
+    Result.Lat := 0;
+    Result.Lon := 0;
+    Exit;
+  end;
+  Result := MapView1.ScreenToLonLat(APt);
+end;
+
+procedure TfrmMap.SetMapCenter(const ALat, ALon: Double);
+var
+  Pt: TRealPoint;
+begin
+  if not Assigned(MapView1) then
+    Exit;
+  Pt.Lat := ALat;
+  Pt.Lon := ALon;
+  MapView1.Center := Pt;
 end;
 
 procedure TfrmMap.AtualizaReferenciaPorObjetoZero;
@@ -176,8 +213,7 @@ begin
 
   MapView1.Active := False;
   MapView1.MapProvider := 'OpenStreetMap Standard';
-  MapView1.MapCenter.Latitude := FRefLat;
-  MapView1.MapCenter.Longitude := FRefLon;
+  SetMapCenter(FRefLat, FRefLon);
   MapView1.Zoom := MAPA_INICIAL_ZOOM;
   MapView1.Active := True;
   MapView1.Invalidate;
@@ -245,7 +281,7 @@ begin
   if not Assigned(MapView1) then
     Exit;
 
-  Pt := MapView1.LatLonToScreen(FRefLat, FRefLon);
+  Pt := LatLonToScreen(FRefLat, FRefLon);
 
   if not PontoTelaParaGrid(Pt, FRefCol, FRefRow) then
   begin
@@ -264,7 +300,7 @@ begin
   if not Assigned(MapView1) then
     Exit;
 
-  Pt := MapView1.LatLonToScreen(FDroneLat, FDroneLon);
+  Pt := LatLonToScreen(FDroneLat, FDroneLon);
 
   if not PontoTelaParaGrid(Pt, FDroneCol, FDroneRow) then
   begin
@@ -310,7 +346,7 @@ begin
     MapView1.OnChange := @MapView1Change;
     MapView1.OnResize := @MapView1Resize;
     MapView1.OnZoomChange := @MapView1ZoomChange;
-    MapView1.OnZoomChanging := @MapView1ZoomChanging;
+    // MapView1.OnZoomChanging := @MapView1ZoomChanging;
     MapView1.OnDrawGpsPoint := @MapView1DrawGpsPoint;
     MapView1.OnMouseDown := @MapView1MouseDown;
     MapView1.OnMouseUp := @MapView1MouseUp;
@@ -442,8 +478,7 @@ begin
   if not Assigned(MapView1) then
     Exit;
 
-  MapView1.MapCenter.Latitude := ALatitude;
-  MapView1.MapCenter.Longitude := ALongitude;
+  SetMapCenter(ALatitude, ALongitude);
   MapView1.Invalidate;
 
   AtualizaObjetosNoGrid;
@@ -481,8 +516,7 @@ begin
   FDroneLon := ALongitude;
   if (ACentralizar or FCameraSegueDrone) and Assigned(MapView1) then
   begin
-    MapView1.MapCenter.Latitude := ALatitude;
-    MapView1.MapCenter.Longitude := ALongitude;
+    SetMapCenter(ALatitude, ALongitude);
     MapView1.Invalidate;
   end;
   AtualizaObjetosNoGrid;
@@ -595,8 +629,7 @@ begin
 
   if Assigned(MapView1) then
   begin
-    MapView1.MapCenter.Latitude := FRefLat;
-    MapView1.MapCenter.Longitude := FRefLon;
+    SetMapCenter(FRefLat, FRefLon);
     MapView1.Invalidate;
   end;
 
@@ -629,10 +662,10 @@ begin
       if (Abs(C0.Latitude) > 0.0001) and (Abs(C1.Latitude) > 0.0001) and
          (Abs(C2.Latitude) > 0.0001) and (Abs(C3.Latitude) > 0.0001) then
       begin
-        Pt0 := MapView1.LatLonToScreen(C0.Latitude, C0.Longitude);
-        Pt1 := MapView1.LatLonToScreen(C1.Latitude, C1.Longitude);
-        Pt2 := MapView1.LatLonToScreen(C2.Latitude, C2.Longitude);
-        Pt3 := MapView1.LatLonToScreen(C3.Latitude, C3.Longitude);
+        Pt0 := LatLonToScreen(C0.Latitude, C0.Longitude);
+        Pt1 := LatLonToScreen(C1.Latitude, C1.Longitude);
+        Pt2 := LatLonToScreen(C2.Latitude, C2.Longitude);
+        Pt3 := LatLonToScreen(C3.Latitude, C3.Longitude);
 
         SetLength(Pts, 4);
         Pts[0] := PointF(Pt0.X, Pt0.Y);
@@ -648,17 +681,17 @@ begin
     // Ponto de partida e trechos de ida/volta (tracejados)
     if GlobalFlightPlan.HomeValido then
     begin
-      Pt2 := MapView1.LatLonToScreen(GlobalFlightPlan.HomeLat, GlobalFlightPlan.HomeLon);
+      Pt2 := LatLonToScreen(GlobalFlightPlan.HomeLat, GlobalFlightPlan.HomeLon);
       if GlobalFlightPlan.WaypointCount > 0 then
       begin
         Bitmap.PenStyle := psDash;
         W := GlobalFlightPlan.Waypoints[0];
-        Pt0 := MapView1.LatLonToScreen(W.Latitude, W.Longitude);
+        Pt0 := LatLonToScreen(W.Latitude, W.Longitude);
         Bitmap.DrawLineAntialias(Pt2.X, Pt2.Y, Pt0.X, Pt0.Y, BGRA(0, 160, 255, 150), 2.0);
         if GlobalFlightPlan.AcaoFinal = afVoltarPartida then
         begin
           W := GlobalFlightPlan.Waypoints[GlobalFlightPlan.WaypointCount - 1];
-          Pt0 := MapView1.LatLonToScreen(W.Latitude, W.Longitude);
+          Pt0 := LatLonToScreen(W.Latitude, W.Longitude);
           Bitmap.DrawLineAntialias(Pt0.X, Pt0.Y, Pt2.X, Pt2.Y, BGRA(80, 80, 80, 170), 2.0);
         end;
         Bitmap.PenStyle := psSolid;
@@ -678,12 +711,12 @@ begin
       for I := 0 to GlobalFlightPlan.WaypointCount - 1 do
       begin
         W := GlobalFlightPlan.Waypoints[I];
-        Pt0 := MapView1.LatLonToScreen(W.Latitude, W.Longitude);
+        Pt0 := LatLonToScreen(W.Latitude, W.Longitude);
 
         if I > 0 then
         begin
           WPrev := GlobalFlightPlan.Waypoints[I - 1];
-          Pt1 := MapView1.LatLonToScreen(WPrev.Latitude, WPrev.Longitude);
+          Pt1 := LatLonToScreen(WPrev.Latitude, WPrev.Longitude);
           Bitmap.DrawLineAntialias(Pt1.X, Pt1.Y, Pt0.X, Pt0.Y, BGRA(0, 160, 255, 180), 3.0);
         end;
 
@@ -720,7 +753,7 @@ begin
       if not Obj.Visivel then
         Continue;
 
-      Pt := MapView1.LatLonToScreen(Obj.Latitude, Obj.Longitude);
+      Pt := LatLonToScreen(Obj.Latitude, Obj.Longitude);
 
       if PontoTelaParaGrid(Pt, Col, Row) then
       begin
@@ -855,7 +888,7 @@ begin
   if not Assigned(MapView1) then
     Exit;
 
-  LatLon := MapView1.ScreenToLatLon(Point(X, Y));
+  LatLon := ScreenToLatLon(Point(X, Y));
 
   if ssAlt in Shift then
   begin

@@ -5,7 +5,7 @@ unit setmain;
 interface
 
 uses
-  Classes, SysUtils, IniFiles;
+  Classes, SysUtils, IniFiles, cockpit_joystick_mapping, wifi8k_profile,rc_wire_protocol,vehicle_rc_profile;
 
 const
   CONFIG_FILE = 'drone.cfg';
@@ -152,6 +152,11 @@ type
     procedure Default;
 
   public
+    RCSettings:array[TRCWireProtocol,TVehicleClass]of TRCSettings;
+    RCSelected:array[TRCWireProtocol]of TVehicleClass;
+    WiFi8K:TWiFi8KSettings;
+    SimulationMode: Boolean;
+    FlightJoystick: TFlightJoystickSettings;
     CX10W: TCX10WSettings;
     ARDrone: TARDroneSettings;
     ESP32Drone: TESP32DroneSettings;
@@ -161,8 +166,9 @@ type
     Tello: TTelloSettings;
     ESPDrone: TESPDroneSettings;
 
+    function TargetHost(const Configured, DefaultHost:string):string;
     function GetConfigFileName: string;
-    constructor Create;
+    constructor Create(const AConfigDirectory:string='');
     destructor Destroy; override;
 
     procedure IdentificaArquivo;
@@ -221,10 +227,12 @@ implementation
 
 { TSetMain }
 
-constructor TSetMain.Create;
+constructor TSetMain.Create(const AConfigDirectory:string);
 begin
   inherited Create;
-  IdentificaArquivo;
+  if AConfigDirectory='' then IdentificaArquivo
+  else begin FPathConfig:=IncludeTrailingPathDelimiter(ExpandFileName(AConfigDirectory));
+    ForceDirectories(FPathConfig); end;
   Default;
   CarregaContexto;
 end;
@@ -257,7 +265,11 @@ begin
 end;
 
 procedure TSetMain.Default;
+var RP:TRCWireProtocol;RV:TVehicleClass;
 begin
+ for RP:=Low(RP) to High(RP) do begin RCSelected[RP]:=vcDrone;
+  for RV:=Low(RV) to High(RV) do RCSettings[RP,RV]:=DefaultRCSettings(RP,RV);end;
+  WiFi8K:=DefaultWiFi8KSettings;
   // Janela
   FPosX := 100;
   FPosY := 100;
@@ -279,6 +291,8 @@ begin
   FUsaSerial := False;
 
   // Joystick
+  SimulationMode := False;
+  FlightJoystick := DefaultFlightJoystickSettings;
   FJoystickAtivo := False;
   FJoystickDeviceIndex := 0;
   FJoystickNome := '';
@@ -368,6 +382,12 @@ begin
   FQ777.AceleradorCentrado := False;
 end;
 
+function TSetMain.TargetHost(const Configured,DefaultHost:string):string;
+begin
+  if SimulationMode then Exit('127.0.0.1');
+  Result:=Trim(Configured); if Result='' then Result:=DefaultHost;
+end;
+
 procedure TSetMain.IdentificaArquivo;
 begin
   FPathConfig := IncludeTrailingPathDelimiter(GetAppConfigDir(False));
@@ -382,7 +402,7 @@ end;
 
 procedure TSetMain.CarregaContexto;
 var
-  Ini: TIniFile;
+  Ini: TIniFile;RP:TRCWireProtocol;RV:TVehicleClass;Selection:Integer;
 begin
   if not FileExists(GetConfigFileName) then
     Exit;
@@ -409,6 +429,15 @@ begin
     FBaudRate := Ini.ReadInteger('SERIAL', 'BAUDRATE', FBaudRate);
     FUsaSerial := Ini.ReadBool('SERIAL', 'USA_SERIAL', FUsaSerial);
 
+      SimulationMode:=Ini.ReadBool('DRONE','SIMULADOR',
+        (FDroneProtocolo=0) and Ini.ReadBool('CX10W','SIMULADO',False));
+
+    ReadWiFi8KSettings(Ini,WiFi8K);
+    for RP:=Low(RP) to High(RP) do begin
+      Selection:=Ini.ReadInteger('RC_'+RCKeys[RP],'VEHICLE',0);
+      if (Selection>=0) and (Selection<=Ord(High(TVehicleClass))) then RCSelected[RP]:=TVehicleClass(Selection);
+      for RV:=Low(RV) to High(RV) do ReadRCSettings(Ini,RP,RV,RCSettings[RP,RV]);
+    end;
     // Joystick
     FJoystickAtivo := Ini.ReadBool('JOYSTICK', 'ATIVO', FJoystickAtivo);
     FJoystickDeviceIndex := Ini.ReadInteger('JOYSTICK', 'DEVICE_INDEX', FJoystickDeviceIndex);
@@ -504,7 +533,7 @@ end;
 
 procedure TSetMain.SalvaContexto;
 var
-  Ini: TIniFile;
+  Ini: TIniFile;RP:TRCWireProtocol;RV:TVehicleClass;Selection:Integer;
 begin
   if not DirectoryExists(FPathConfig) then
     ForceDirectories(FPathConfig);
@@ -531,6 +560,13 @@ begin
     Ini.WriteInteger('SERIAL', 'BAUDRATE', FBaudRate);
     Ini.WriteBool('SERIAL', 'USA_SERIAL', FUsaSerial);
 
+      Ini.WriteBool('DRONE','SIMULADOR',SimulationMode);
+
+    WriteWiFi8KSettings(Ini,WiFi8K);
+    for RP:=Low(RP) to High(RP) do begin
+      Ini.WriteInteger('RC_'+RCKeys[RP],'VEHICLE',Ord(RCSelected[RP]));
+      for RV:=Low(RV) to High(RV) do WriteRCSettings(Ini,RP,RV,RCSettings[RP,RV]);
+    end;
     // Joystick
     Ini.WriteBool('JOYSTICK', 'ATIVO', FJoystickAtivo);
     Ini.WriteInteger('JOYSTICK', 'DEVICE_INDEX', FJoystickDeviceIndex);

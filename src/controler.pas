@@ -47,7 +47,8 @@ type
 
     procedure Reset;
     procedure Atualiza(const AX, AY, AZ: Byte;
-      const AB1, AB2, AB3, AB4, AB5, AB6: Byte);
+      const AB1, AB2, AB3, AB4, AB5, AB6: Byte;
+      const AGuinadaAnalogica: Double = 2.0);
 
     property Ativo: Boolean read FAtivo write FAtivo;
 
@@ -148,7 +149,9 @@ begin
 end;
 
 procedure TDroneControler.Atualiza(const AX, AY, AZ: Byte;
-  const AB1, AB2, AB3, AB4, AB5, AB6: Byte);
+  const AB1, AB2, AB3, AB4, AB5, AB6: Byte;
+  const AGuinadaAnalogica: Double);
+var Zona:Double;
 begin
   if not FAtivo then
   begin
@@ -161,6 +164,12 @@ begin
   FAcelerador := AZ / 255;
   FSubida := Eixo(AZ);
   FGuinada := 0;
+  if (AGuinadaAnalogica>=-1) and (AGuinadaAnalogica<=1) then
+  begin
+    Zona:=EnsureRange(FZonaMorta,0,50)/100;
+    if Abs(AGuinadaAnalogica)>Zona then
+      FGuinada:=Sign(AGuinadaAnalogica)*(Abs(AGuinadaAnalogica)-Zona)/(1-Zona);
+  end;
   if (AB1 = 255) and (AB2 <> 255) then
     FGuinada := -GUINADA_BOTAO
   else if (AB2 = 255) and (AB1 <> 255) then

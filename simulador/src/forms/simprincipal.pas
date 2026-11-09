@@ -16,8 +16,8 @@ interface
 
 uses
   Classes, SysUtils, Math, Forms, Controls, Graphics, StdCtrls, ExtCtrls, ComCtrls,
-  Spin, IniFiles, LCLType, LCLIntf,
-  simtipos, simgeo, simsimulacao, simemulador, simmavlink, simmapa, simmundo, simvisao;
+  Spin, IniFiles, LCLType, LCLIntf, Dialogs,
+  simtipos, simgeo, simsimulacao, simemulador, simmavlink, simmapa, simmundo, simvisao, simedificios_cache,simedificios,simrastercache;
 
 type
 
@@ -28,7 +28,13 @@ type
     FSim: TSimulacao;
     FModelos: TListaModelos;
     FGer: TGerenciadorBlocos;
-    FVisao, FVisaoMini: TVisao;
+    FVisao, FVisaoMini, FVisaoCockpit: TVisao;
+    FUltimoQuadroCockpit:QWord;
+    FEdificios:TGerenciadorEdificios;
+    FRaster:TGerenciadorRaster;
+    FEdServidorEdificios:TEdit;FArquivoEdificios:string;
+    FCkEdificios,FCkTerrenos:TCheckBox;
+    FLbEdificios:TLabel;
     FMundo: TClienteMundo;
     FIni: TIniFile;
     FOrigem: TPontoGeo;
@@ -51,7 +57,7 @@ type
     FBtMundo: TButton;
     FLbMundo: TLabel;
     // Falhas
-    FCkSinal, FCkGPS: TCheckBox;
+    FCkSinal, FCkGPS, FCkSinalInfinito: TCheckBox;
     FTbVento: TTrackBar;
     FSpVentoRumo: TSpinEdit;
     FLbVento: TLabel;
@@ -81,6 +87,8 @@ type
 
     procedure BtLigarClick(Sender: TObject);
     procedure BtAplicarMapaClick(Sender: TObject);
+    procedure BtImportarEdificios(Sender:TObject);
+    procedure BtInternetEdificios(Sender:TObject);
     procedure BtMundoClick(Sender: TObject);
     procedure BtEnviarClick(Sender: TObject);
     procedure BtSinalClick(Sender: TObject);
@@ -106,7 +114,7 @@ var
 implementation
 
 const
-  VERSAO_SIMULADOR = '1.0';
+  VERSAO_SIMULADOR = '0.46';
   NOME_PASTA_CONFIG = 'CockpitDroneSimulador';
 
 function NomeAplicacao: string;
@@ -168,6 +176,9 @@ begin
   FreeAndNil(FSim);
   FreeAndNil(FVisao);
   FreeAndNil(FVisaoMini);
+  FreeAndNil(FVisaoCockpit);
+  FreeAndNil(FRaster);
+  FreeAndNil(FEdificios);
   FreeAndNil(FGer);
   FIni.Free;
   inherited Destroy;
@@ -299,7 +310,7 @@ begin
   FLbPortas.Width := 297;
   FLbPortas.Height := 40;
 
-  Gb := NovoGrupo('Mapa', 160);
+  Gb := NovoGrupo('Mapa', 410);
   Rotulo(Gb, 'Fonte:');
   FCbFonte := TComboBox.Create(Self);
   FCbFonte.Parent := Gb;
@@ -320,10 +331,23 @@ begin
   FEdOSM := Edita(Gb, 100, 205, 'https://tile.openstreetmap.org/{z}/{x}/{y}.png');
   Inc(Y, 30);
   Botao(Gb, 8, 120, 'Aplicar mapa', @BtAplicarMapaClick);
+  Y:=155;Rotulo(Gb,'Servidor de construcoes (HTTPS):');
+  Inc(Y,22);FEdServidorEdificios:=Edita(Gb,8,297,SERVIDOR_EDIFICIOS_PADRAO);
+  Y:=209;Botao(Gb,8,145,'Arquivo OSM...',@BtImportarEdificios);
+  Botao(Gb,160,145,'Usar internet',@BtInternetEdificios);
+  FCkEdificios:=TCheckBox.Create(Self);FCkEdificios.Parent:=Gb;
+  FCkEdificios.SetBounds(8,245,300,24);FCkEdificios.Checked:=True;
+  FCkEdificios.Caption:='Construcoes 3D no OpenStreetMap';
+  FCkTerrenos:=TCheckBox.Create(Self);FCkTerrenos.Parent:=Gb;
+  FCkTerrenos.SetBounds(8,273,300,24);FCkTerrenos.Checked:=True;
+  FCkTerrenos.Caption:='Simular casas nos terrenos';
+  FCkTerrenos.Hint:='Completa areas residenciais respeitando vias. Use Aplicar mapa.';FCkTerrenos.ShowHint:=True;
+  FLbEdificios:=TLabel.Create(Self);FLbEdificios.Parent:=Gb;
+  FLbEdificios.AutoSize:=False;FLbEdificios.WordWrap:=True;FLbEdificios.SetBounds(8,303,300,80);
   FLbFonte := TLabel.Create(Self);
   FLbFonte.Parent := Gb;
   FLbFonte.Left := 135;
-  FLbFonte.Top := Y + 5;
+  FLbFonte.Top := 105;FLbFonte.Width:=165;FLbFonte.AutoSize:=False;FLbFonte.WordWrap:=True;FLbFonte.Height:=42;
   FLbFonte.Caption := '-';
 
   Gb := NovoGrupo('Mundo compartilhado', 190);
@@ -385,7 +409,15 @@ begin
   FCbAtraso.ItemIndex := 0;
   FCbAtraso.OnChange := @AtualizaFalhas;
 
-  Gb := NovoGrupo('Simulação', 70);
+  Gb := NovoGrupo('Simulação', 105);
+  FCkSinalInfinito := TCheckBox.Create(Self);
+  FCkSinalInfinito.Parent := Gb;
+  FCkSinalInfinito.SetBounds(8, Y, 297, 24);
+  FCkSinalInfinito.Caption := 'Sinal infinito (treinamento)';
+  FCkSinalInfinito.Hint := 'Mantem o sinal simulado em qualquer distancia e altura.';
+  FCkSinalInfinito.ShowHint := True;
+  FCkSinalInfinito.OnChange := @AtualizaFalhas;
+  Inc(Y, 28);
   FBtPausar := Botao(Gb, 8, 145, 'Pausar', @BtPausarClick);
   Botao(Gb, 160, 145, 'Reiniciar na partida', @BtReiniciarClick);
 
@@ -470,7 +502,7 @@ end;
 
 procedure TFrmPrincipal.CarregaPreferencias;
 var
-  I: Integer;
+  I: Integer;Erro:string;
 begin
   FEdChave.Text := FIni.ReadString('mapa', 'chave_google', '');
   case ModoFonteDeTexto(FIni.ReadString('mapa', 'fonte_mapa', 'auto')) of
@@ -479,6 +511,12 @@ begin
   else
     FCbFonte.ItemIndex := 0;
   end;
+  FCkEdificios.Checked:=FIni.ReadBool('mapa','edificios_3d',True);
+  FCkTerrenos.Checked:=FIni.ReadBool('mapa','simular_terrenos',True);
+  FEdServidorEdificios.Text:=FIni.ReadString('mapa','servidor_edificios',SERVIDOR_EDIFICIOS_PADRAO);
+  FArquivoEdificios:=FIni.ReadString('mapa','arquivo_edificios','');
+  if (FArquivoEdificios<>'') and not ValidaArquivoOSM(FArquivoEdificios,Erro) then begin
+    Log('Arquivo de construcoes ignorado: '+Erro+' Usando os mapas carregados.');FArquivoEdificios:='';end;
   FEdOSM.Text := FIni.ReadString('mapa', 'servidor_osm', FEdOSM.Text);
   FEdUrl.Text := FIni.ReadString('mundo', 'url', FEdUrl.Text);
   if (Trim(FEdUrl.Text) = 'https://maurinsoft.com.br/cockpit/') or (Trim(FEdUrl.Text) = 'https://maurinsoft.com.br/cockpit') then
@@ -493,6 +531,8 @@ begin
   FSpMavPortaCockpit.Value := FIni.ReadInteger('mavlink', 'porta_cockpit', MAV_PORTA_COCKPIT);
   FSpMavPortaLocal.Value := FIni.ReadInteger('mavlink', 'porta_local', MAV_PORTA_LOCAL);
   CbModeloChange(nil);
+  FCkSinalInfinito.Checked := FIni.ReadBool('treinamento', 'sinal_infinito', False);
+  AtualizaFalhas(nil);
 end;
 
 procedure TFrmPrincipal.SalvaPreferencias;
@@ -500,9 +540,14 @@ const
   FONTES: array[0..2] of string = ('auto', 'google', 'osm');
 begin
   try
+    FIni.WriteBool('treinamento', 'sinal_infinito', FCkSinalInfinito.Checked);
     FIni.WriteString('mapa', 'chave_google', Trim(FEdChave.Text));
     FIni.WriteString('mapa', 'fonte_mapa', FONTES[EnsureRange(FCbFonte.ItemIndex, 0, 2)]);
     FIni.WriteString('mapa', 'servidor_osm', Trim(FEdOSM.Text));
+    FIni.WriteBool('mapa','edificios_3d',FCkEdificios.Checked);
+    FIni.WriteBool('mapa','simular_terrenos',FCkTerrenos.Checked);
+    FIni.WriteString('mapa','servidor_edificios',Trim(FEdServidorEdificios.Text));
+    FIni.WriteString('mapa','arquivo_edificios',FArquivoEdificios);
     FIni.WriteString('mundo', 'url', Trim(FEdUrl.Text));
     FIni.WriteString('mundo', 'apelido', Trim(FEdApelido.Text));
     FIni.WriteString('voo', 'lat', Trim(FEdLat.Text));
@@ -519,12 +564,28 @@ begin
   end;
 end;
 
+procedure TFrmPrincipal.BtImportarEdificios(Sender:TObject);
+var D:TOpenDialog;Erro:string;
+begin
+  D:=TOpenDialog.Create(Self);
+  try D.Title:='Contornos de edificios: exportacao JSON do Overpass';D.Filter:='OSM Overpass JSON|*.json';
+    if D.Execute then begin
+      if not ValidaArquivoOSM(D.FileName,Erro) then begin MessageDlg('Arquivo de construcoes invalido',Erro,mtError,[mbOK],0);Exit;end;
+      FArquivoEdificios:=D.FileName;BtAplicarMapaClick(nil);end;
+  finally D.Free;end;
+end;
+procedure TFrmPrincipal.BtInternetEdificios(Sender:TObject);
+begin FArquivoEdificios:='';BtAplicarMapaClick(nil);end;
+
 procedure TFrmPrincipal.CriaGerenciador;
 var
   Modo: TModoFonte;
 begin
   FreeAndNil(FVisao);
   FreeAndNil(FVisaoMini);
+  FreeAndNil(FVisaoCockpit);
+  FreeAndNil(FRaster);
+  FreeAndNil(FEdificios);
   FreeAndNil(FGer);
   case FCbFonte.ItemIndex of
     1: Modo := mfGoogle;
@@ -540,8 +601,11 @@ begin
   finally
     Screen.Cursor := crDefault;
   end;
-  FVisao := TVisao.Create(FGer);
-  FVisaoMini := TVisao.Create(FGer, 0);
+  FEdificios:=TGerenciadorEdificios.Create(PastaConfig+'cache_edificios',Trim(FEdServidorEdificios.Text),FArquivoEdificios,FCkTerrenos.Checked);
+  FRaster:=TGerenciadorRaster.Create(FGer,FCkTerrenos.Checked);
+  FVisao := TVisao.Create(FGer,1,FEdificios,FRaster);
+  FVisaoMini := TVisao.Create(FGer,0,FEdificios,FRaster);
+  FVisaoCockpit := TVisao.Create(FGer,1,FEdificios,FRaster);
 end;
 
 procedure TFrmPrincipal.Log(const ATexto: string);
@@ -585,13 +649,23 @@ const
 var
   F: TFalhas;
 begin
-  F.PerdaSinal := FCkSinal.Checked;
+  F.SinalInfinito := FCkSinalInfinito.Checked;
+  FCkSinal.Enabled := not F.SinalInfinito;
+  F.PerdaSinal := FCkSinal.Checked and not F.SinalInfinito;
   F.PerdaGPS := FCkGPS.Checked;
   F.VentoMS := FTbVento.Position;
   F.VentoRumoGraus := FSpVentoRumo.Value;
   F.AtrasoMs := ATRASOS[EnsureRange(FCbAtraso.ItemIndex, 0, 4)];
   FLbVento.Caption := Format('Vento: %d m/s vindo de %d°', [FTbVento.Position, FSpVentoRumo.Value]);
   FSim.DefineFalhas(F);
+  // Persist just this option here; the other preferences have their own save flow.
+  if Sender = FCkSinalInfinito then
+    try
+      FIni.WriteBool('treinamento', 'sinal_infinito', F.SinalInfinito);
+      FIni.UpdateFile;
+    except
+      on E: Exception do Log('Nao foi possivel salvar sinal infinito: ' + E.Message);
+    end;
 end;
 
 procedure TFrmPrincipal.BtLigarClick(Sender: TObject);
@@ -619,6 +693,7 @@ begin
     Exit;
   end;
   FBtLigar.Caption := 'Desligar equipamento';
+  FBtPausar.Caption:='Pausar';
   FLbPortas.Caption := FSim.Emulador.Descricao;
   FCbModelo.Enabled := False;
   if FCbVista.ItemIndex = 2 then
@@ -704,21 +779,15 @@ begin
   if not FSim.Ligado then
     Exit;
   FSim.Reinicia;
-  if FSim.Ligado then
-    Log('Simulação reiniciada no ponto de partida.')
-  else
-  begin
-    FBtLigar.Caption := 'Ligar equipamento';
-    FCbModelo.Enabled := True;
-    Log('Não foi possível reabrir as portas do protocolo.');
-  end;
+  FBtPausar.Caption:='Pausar';
+  Log('Reinicio solicitado no ponto de partida; baixe a aceleracao e repita o armamento/decolagem.');
 end;
 
 function TFrmPrincipal.DadosVista: TDadosVista;
 var
   I: Integer;
 begin
-  FillChar(Result, SizeOf(Result), 0);
+  Result:=Default(TDadosVista);
   if FSim.Ligado then
   begin
     Result.Estado := FSim.LeEstado;
@@ -755,8 +824,7 @@ begin
     Exit;
   T := TTipoVista(EnsureRange(FCbVista.ItemIndex, 0, 2));
   FVisao.Desenha(FPbVista.Canvas, FPbVista.ClientRect, T, DadosVista, 0.5);
-  if T in [tvCamera, tvTerceiraPessoa] then
-    FVisao.SalvaQuadro(IncludeTrailingPathDelimiter(GetTempDir) + 'cockpit_sim_camera.bmp');
+
 end;
 
 procedure TFrmPrincipal.PbMiniPaint(Sender: TObject);
@@ -777,8 +845,7 @@ begin
   FPbMini.Canvas.Pen.Color := clWhite;
   FPbMini.Canvas.Brush.Style := bsClear;
   FPbMini.Canvas.Rectangle(FPbMini.ClientRect);
-  if T = tvCamera then
-    FVisaoMini.SalvaQuadro(IncludeTrailingPathDelimiter(GetTempDir) + 'cockpit_sim_camera.bmp');
+
 end;
 
 procedure TFrmPrincipal.PbVistaMouseDown(Sender: TObject; Button: TMouseButton;
@@ -819,6 +886,14 @@ begin
         [FGer.NomeFonte, FGer.Baixados, FGer.DoCache]);
     end;
   end;
+  if Assigned(FEdificios) then begin
+    E:=DadosVista.Estado;
+    if not FSim.Ligado then begin E.Lat:=FOrigem.Lat;E.Lon:=FOrigem.Lon;end;
+    FEdificios.Atualiza(E.Lat,E.Lon,FCkEdificios.Checked and not FGer.EhSatelite);
+    FRaster.Atualiza(E.Lat,E.Lon,FCkEdificios.Checked and not FGer.EhSatelite);
+    if Length(FEdificios.Cena.Itens)>0 then FLbEdificios.Caption:=FEdificios.Status
+    else FLbEdificios.Caption:=FRaster.Status;
+  end;
   if Assigned(FMundo) then
   begin
     while FMundo.ProximaMensagem(S) do
@@ -830,11 +905,18 @@ begin
     E := FSim.LeEstado;
     FLbPainel.Caption := Format('%s | %s | cockpit: %d pacotes recebidos, %d enviados',
       [FSim.Param.Nome, FSim.Emulador.FaseTexto, FSim.Emulador.PacotesRx, FSim.Emulador.PacotesTx]);
+    if FSim.LeFalhas.SinalInfinito then
+      FLbPainel.Caption := FLbPainel.Caption + ' | SINAL INFINITO';
     if E.SinalPerdido then
       FLbPainel.Caption := FLbPainel.Caption + ' | SEM SINAL';
   end
   else
     FLbPainel.Caption := 'Equipamento desligado';
+  if Assigned(FVisaoCockpit) and (GetTickCount64-FUltimoQuadroCockpit>=100) then begin
+    FUltimoQuadroCockpit:=GetTickCount64;
+    FVisaoCockpit.GeraQuadroCamera(DadosVista,640,360,
+      IncludeTrailingPathDelimiter(GetTempDir)+'cockpit_sim_camera.bmp');
+  end;
   PosicionaMini(nil);
   FPbVista.Invalidate;
   FPbMini.Invalidate;

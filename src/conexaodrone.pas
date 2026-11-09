@@ -28,6 +28,7 @@ uses
 
 type
   TComandoManche = record
+    SampleTick:QWord;
     Rolagem: Double;     // -1..1, + = direita
     Arfagem: Double;     // -1..1, + = frente
     Guinada: Double;     // -1..1, + = gira à direita
@@ -121,6 +122,8 @@ type
       A janela de um drone pode trocar a fonte (ex.: joystick próprio). }
     function LeComando: TComandoManche; virtual;
     { True se há vídeo chegando (para a janela da câmera). }
+    function VideoExternoConfigurado:Boolean;virtual;
+    function CarregaQuadroExterno(ABitmap:TBitmap):Boolean;virtual;
     function VideoChegando: Boolean;
     { Telemetria de posição do GPS do Drone (se suportado pelo protocolo) }
     function ObterPosicaoGPS(out ALat, ALon, AAlt: Double): Boolean; virtual;
@@ -138,7 +141,7 @@ type
 implementation
 
 uses
-  main, camera, controler;
+  main, camera, controler, setmain;
 
 { TfrmConexaoDrone }
 
@@ -292,7 +295,9 @@ begin
   Screen.Cursor := crHourGlass;
   try
     try
-      Result := Conectar;
+      if FSetMain.SimulationMode then Log('MODO SIMULADOR: conexao local 127.0.0.1, sem busca de Wi-Fi real.')
+    else Log('MODO EQUIPAMENTO REAL: usando enderecos configurados.');
+    Result := Conectar;
     except
       on E: Exception do
       begin
@@ -385,6 +390,11 @@ begin
   end;
 end;
 
+function TfrmConexaoDrone.VideoExternoConfigurado:Boolean;
+begin Result:=False;end;
+function TfrmConexaoDrone.CarregaQuadroExterno(ABitmap:TBitmap):Boolean;
+begin Result:=False;end;
+
 function TfrmConexaoDrone.VideoChegando: Boolean;
 begin
   Result := FVideoLigado and Assigned(FDrone) and FDrone.VideoStreaming;
@@ -412,7 +422,7 @@ begin
   begin
     FLockComando.Enter;
     try
-      FUltimoComando := ACmd;
+      FUltimoComando := ACmd;FUltimoComando.SampleTick:=GetTickCount64;
     finally
       FLockComando.Leave;
     end;

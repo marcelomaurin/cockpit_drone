@@ -1,0 +1,29 @@
+name: Pascal and MAVLink regression tests
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install Free Pascal and test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fp-compiler fp-units-fcl
+          python -m pip install -r requirements-sitl.txt
+      - name: Run Pascal and real MAVLink UDP loopback tests
+        shell: pwsh
+        run: ./tools/test_local.ps1 -Compiler fpc -Python python -MavlinkIntegration
+      - name: Preserve test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pascal-mavlink-regression
+          path: build-diagnostics/local-tests/

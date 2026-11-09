@@ -78,12 +78,12 @@ function TfrmConectionESP32Drone.Conectar: Boolean;
 begin
   with FSetMain.ESP32Drone do
   begin
-    if Trim(IP) <> '' then
-      FCDP.Host := Trim(IP);
+    FCDP.Host := FSetMain.TargetHost(IP,'192.168.4.1');
     if Porta > 0 then
       FCDP.Port := Porta;
   end;
   Log(Format('Conectando em %s, UDP %d.', [FCDP.Host, FCDP.Port]));
+  if FSetMain.SimulationMode then FCDP.Port:=4210;
   FCDP.Connect;
   Result := FCDP.Active;
 end;

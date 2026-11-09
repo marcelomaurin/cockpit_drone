@@ -1,3 +1,5 @@
+> **Versão 0.46:** casas/prédios na câmera com fallback a partir do mapa real, sinal infinito opcional, recuperação após queda e Xbox 360 configurável. Inclui WIFI_8K Legacy9/E58_8 experimentais e MSPv1/MSPv2/CRSF/SBUS/iBUS com 30 perfis de drone, helicóptero, avião, carro, barco e submarino. [Pilotagem](docs/CONTROLES_0.46.md) · [Protocolos e limites](docs/PROTOCOLOS_0.46.md) · [Simulador](simulador/docs/SIMULADOR_0.46.md) · [Dependências do instalador](docs/DEPENDENCIAS_0.46.md).
+
 [Português](README.md) · [English](README.en.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Русский](README.ru.md) · [中文](README.zh-CN.md) · [日本語](README.ja.md) · [العربية](README.ar.md) · [हिन्दी](README.hi.md)
 
 # Cockpit Drone - Sistema de Controle, Telemetria e Simulação

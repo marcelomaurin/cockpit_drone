@@ -1,0 +1,3364 @@
+{
+  "version": "0.46.0.0",
+  "platform": "Windows x64",
+  "file_count": 536,
+  "total_bytes": 342348878,
+  "missing_native_dependencies": [],
+  "files": [
+    {
+      "path": "data/drone_models.json",
+      "bytes": 19019,
+      "sha256": "a225bf671b6780dc4c637c3066b4042e18cdb456a698accb0de3eaaa83a811a3"
+    },
+    {
+      "path": "docs/CONTROLES_0.46.md",
+      "bytes": 6872,
+      "sha256": "c57bd9a889f24d84950b3fcd4765a371ca1a82643979ae6b406cdbb4b53dc5e7"
+    },
+    {
+      "path": "docs/DEPENDENCIAS_0.46.md",
+      "bytes": 5364,
+      "sha256": "f48f1132336247bc2d160e1739af07eb6e6c70968f1d93f444018b0e3b25198f"
+    },
+    {
+      "path": "docs/PROTOCOLOS_0.46.md",
+      "bytes": 4576,
+      "sha256": "5f8c548720c62ad4e1756dabd54169455e3c2a9753133e5a93fbb5941271c59d"
+    },
+    {
+      "path": "docs/WIFI_8K_EXPERIMENTAL.en.md",
+      "bytes": 1771,
+      "sha256": "204cd25beca627df534756fc64043a1663d2375e7063c763f925efcb5e298e5f"
+    },
+    {
+      "path": "docs/WIFI_8K_EXPERIMENTAL.md",
+      "bytes": 5386,
+      "sha256": "5cb0b7cd63ad8bdeaf1bbf0a51c0c8def9104e4d987e7566e47443eddfb84213"
+    },
+    {
+      "path": "drone.exe",
+      "bytes": 73939141,
+      "sha256": "c6c20f59b40bcc0e6b5326d9f51d55f7b086f1fb7d6d91d483dce71643f93cea"
+    },
+    {
+      "path": "ffmpeg.exe",
+      "bytes": 165442048,
+      "sha256": "231a551ead94dfad27d5e2ed493bb8f523a9cbf5fcb1421bf946085c25f1a935"
+    },
+    {
+      "path": "firmware/esp32_drone/config.h",
+      "bytes": 3556,
+      "sha256": "fb8e9c54ed1c74b0f91c067077057e6ace1a4e580ca3d2c4aaba8e2098ca3e8f"
+    },
+    {
+      "path": "firmware/esp32_drone/esp32_drone.ino",
+      "bytes": 17852,
+      "sha256": "f16a948f6311465da5d282d128b183d54334f280642f599a422ab4448148ebfe"
+    },
+    {
+      "path": "firmware/esp32_drone/PROTOCOLO.md",
+      "bytes": 3211,
+      "sha256": "f566768ea4e2637211a215b19184077ac62f867c95e2eab8682aa2c0e982e9fa"
+    },
+    {
+      "path": "firmware/esp32_drone/README.md",
+      "bytes": 3170,
+      "sha256": "3f2ea98d6a615637a73dc99287e58d6feb7bc846230cd862ed8943294abea027"
+    },
+    {
+      "path": "imgs/cockpit.jpg",
+      "bytes": 10135,
+      "sha256": "b71ebde9b0579e3b3b101288e6899346f4662ed72796ce425a6ab510a8262556"
+    },
+    {
+      "path": "imgs/cockpit.png",
+      "bytes": 3354,
+      "sha256": "00312d1cfee0da44e1fe3ac788801ae792681ae93c3be6710c575250569db448"
+    },
+    {
+      "path": "imgs/cocopitdrone.jpg",
+      "bytes": 8718,
+      "sha256": "6583788514a3b09fd9cacaa118a52a2fe1ed6e4b28be5719fb3d356fe22f03ed"
+    },
+    {
+      "path": "imgs/communication-gif-10.gif",
+      "bytes": 691486,
+      "sha256": "0cd317eff2d43ba67843bc6d5626b7ff31468a0d75374ee0f0667e3243862355"
+    },
+    {
+      "path": "imgs/communication-gif-11.gif",
+      "bytes": 495572,
+      "sha256": "993e97dc9966ef12c8193a3fd668386e34a78e64aed2dc9e5bd66b3841db6b30"
+    },
+    {
+      "path": "imgs/communication-gif-12.gif",
+      "bytes": 273225,
+      "sha256": "92a1c9e7a8968502801824baaf13dbf18f4270e3b8a4df5d80dd543e436ec80b"
+    },
+    {
+      "path": "imgs/map.jpg",
+      "bytes": 270334,
+      "sha256": "122b98320ee5fa2b256d3ffa4cd6cccb04973fd308cacb2ea316d093d0505cb2"
+    },
+    {
+      "path": "libcrypto-3-x64.dll",
+      "bytes": 7225016,
+      "sha256": "5268a29c9a5e353770b894f3dbd148ee8c60971aa1620713c54d8e56563d0aca"
+    },
+    {
+      "path": "libssl-3-x64.dll",
+      "bytes": 1500856,
+      "sha256": "00520a8ca63ec624969742aa04e7db2af94ba0d3f5fe204cbd114b4ec1f24752"
+    },
+    {
+      "path": "licenses/ffmpeg-LICENSE.txt",
+      "bytes": 35147,
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+    },
+    {
+      "path": "licenses/OpenSSL-LICENSE.txt",
+      "bytes": 10352,
+      "sha256": "ed72ce2b51ee58f117e5a021e2e04af158857f40269fbc03491f0b2a99dbcc96"
+    },
+    {
+      "path": "licenses/THIRD_PARTY_NOTICES_0.46.txt",
+      "bytes": 6709,
+      "sha256": "0dfc22dc34dadb8d47657dca5ce8b8be966ee09eb2ac7701e0cfb2c9b9f2be8d"
+    },
+    {
+      "path": "objetos.json",
+      "bytes": 196,
+      "sha256": "b77391c14fcc212486f8d6a813606d583fb2b61fe223cba78ba898abda2be7cc"
+    },
+    {
+      "path": "README.md",
+      "bytes": 9207,
+      "sha256": "33cf94bf5c1589667a47ad7d26e51d754b54d2d026d8fbd511086b3017fb562a"
+    },
+    {
+      "path": "runtime/python/_asyncio.pyd",
+      "bytes": 73048,
+      "sha256": "675587b1155c875ab27e24302d53f38e41febd3c080bc190c3e4ffbdb51fe76b"
+    },
+    {
+      "path": "runtime/python/_bz2.pyd",
+      "bytes": 86872,
+      "sha256": "b3dd7cea6d03342252834cebcc814af37d850b86d0627fa22b7f6990882f2f8b"
+    },
+    {
+      "path": "runtime/python/_ctypes.pyd",
+      "bytes": 133464,
+      "sha256": "dfa65498c77e71f038883337d2b5ffd92508489e79e6ee5e96ddec4ecf2a7fa1"
+    },
+    {
+      "path": "runtime/python/_decimal.pyd",
+      "bytes": 283480,
+      "sha256": "f55d81378a3261a7073fb71aee674152265b6f24ba6f375f9b939d5a117d8e6b"
+    },
+    {
+      "path": "runtime/python/_elementtree.pyd",
+      "bytes": 137048,
+      "sha256": "58339737dd818a6d0bac98403158677f2f7d54adc7c673b9a8a18c8b19ab11f6"
+    },
+    {
+      "path": "runtime/python/_hashlib.pyd",
+      "bytes": 69464,
+      "sha256": "1a3010b06c2fcd625dece3dd0883ca060e98b94adc062b06cb1a671cfc3b5caf"
+    },
+    {
+      "path": "runtime/python/_lzma.pyd",
+      "bytes": 159576,
+      "sha256": "f20be6a9fee8fb5d53170c4bc24a39b48d3c0ccbe8e2000e60ff7d65b77c6ea1"
+    },
+    {
+      "path": "runtime/python/_multiprocessing.pyd",
+      "bytes": 38232,
+      "sha256": "6c4ca996eafc99aeb246d25b5a9499d01488b643dcdabee6b48137f179b3deef"
+    },
+    {
+      "path": "runtime/python/_overlapped.pyd",
+      "bytes": 57688,
+      "sha256": "626675dc9fc5c74beb72cd278322a8313b68b22161e34473f8b951c238e72185"
+    },
+    {
+      "path": "runtime/python/_queue.pyd",
+      "bytes": 35160,
+      "sha256": "1e349a13913370369059a4ae5951157112b5eba53ed4389c18ffc5e00af1a037"
+    },
+    {
+      "path": "runtime/python/_socket.pyd",
+      "bytes": 86360,
+      "sha256": "127a39d2198f17dd9b573904fe7e4040c7c8718753e6c4edee2ff6c35f487fac"
+    },
+    {
+      "path": "runtime/python/_sqlite3.pyd",
+      "bytes": 129880,
+      "sha256": "1f79bc24e1736dcbe487e711ae04b19fbd19498818be46010d862912d83df1c2"
+    },
+    {
+      "path": "runtime/python/_ssl.pyd",
+      "bytes": 182104,
+      "sha256": "faf716d309349dbd54efd7fb402bd42ed21a537614ac0da89ed92ba307ecbf15"
+    },
+    {
+      "path": "runtime/python/_uuid.pyd",
+      "bytes": 27992,
+      "sha256": "6748c182df6181cff8691da72dbb81f4f7f446ac7482d5dfe671f2b5333aed5d"
+    },
+    {
+      "path": "runtime/python/_wmi.pyd",
+      "bytes": 39768,
+      "sha256": "3be5e14e9a9dc49f099209dee98b9cb5e31ade3b0deab52277026bb14df5bdb6"
+    },
+    {
+      "path": "runtime/python/_zoneinfo.pyd",
+      "bytes": 50512,
+      "sha256": "88f8ce841f21a2203fe7f66fdc95723321f21678916f8cd87f24be370d7e00b3"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/magfit.py",
+      "bytes": 5174,
+      "sha256": "90d3515a80b44e26ce4949b2b499414d7f75c8634269b9762810c5e5171fa094"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/magfit_delta.py",
+      "bytes": 4629,
+      "sha256": "20f5e174135c7a92a9cecaf7e42ffba58e1a9bd1120fb3cfe41603813b3fc308"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/magfit_gps.py",
+      "bytes": 4911,
+      "sha256": "5ddb89df208c204d77bb6c6829b744d5a2cb68591596e1fb091602d95e242f3c"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/magfit_motors.py",
+      "bytes": 4926,
+      "sha256": "972392e190ccdc662e2ac9ffd023eebb414780c4e7df24f5a102eaafd85453a9"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/magfit_WMM.py",
+      "bytes": 19260,
+      "sha256": "162b1d0bdaae971f8d0e71ce5ef52210cc6319c8ec03251914a684f320df324e"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavbitmask_change.py",
+      "bytes": 8047,
+      "sha256": "e769df08bd028f084bc74bbce34894bb1e30fc1bccaac532d42aa6d72eb21152"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavextract.py",
+      "bytes": 4067,
+      "sha256": "4e73f241ae75287ea591cf87d1b565118464ce58b5c0a04f01044350e198d264"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavfft.py",
+      "bytes": 2576,
+      "sha256": "c45deb5c330194fc7f373d0a17889ccc2ca3cea7053af31c5a7811e9429b28a6"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavfft_isb.py",
+      "bytes": 15860,
+      "sha256": "f2c21d993ac1f81bc8a05a905b9910d827cfaeeeea583329433ff3eae86a903f"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavflightmodes.py",
+      "bytes": 2864,
+      "sha256": "6cbd521868996a39f95ff59cc85d1ed52f569700e4ddab47418d53a1ff85262a"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavflighttime.py",
+      "bytes": 2828,
+      "sha256": "8e6b9dc3d39ad05573af0782d3c42fbc72313a628d77c0c01ea21ff038d706ea"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavgen.py",
+      "bytes": 1785,
+      "sha256": "19c0b632eda3c89a940d4d131e428b01bacf701135b8374512c21fd5c5fb8d44"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavgpslock.py",
+      "bytes": 2132,
+      "sha256": "5c2ca9d69ffd4dd4dc3896d524bdb5a0113ef3fbb9657e6b7bb86365c492dabd"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavgraph.py",
+      "bytes": 12005,
+      "sha256": "c9d6ba02bfe90ef64a4d069d9cd06b6fd5ba1caf78c16fe8cc459bb2fb68be5f"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavkml.py",
+      "bytes": 7248,
+      "sha256": "c01f81f6bc092cc6b74bf352ac4018b2704464034603d36f00b088b157191369"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavlink_bitmask_decoder.py",
+      "bytes": 977,
+      "sha256": "cd9f4150204bce5a4e465c9c0ea995320f6dc53776092f08b537b390bfe3a347"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavlogdump.py",
+      "bytes": 16466,
+      "sha256": "ef754297bada4eab3af327cebdff1dbb1597faa78e0c76a64942fdccf3e8a3bd"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavloss.py",
+      "bytes": 6380,
+      "sha256": "5e2018ad2294e3fb67a514b9bfed39d756ce23292594b2534d8c9e92b99e23f0"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavmission.py",
+      "bytes": 3164,
+      "sha256": "6de7a3ecd366c2cb83ab003885aa98fe809405fb223fd40b4a671cee8e8c029d"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavparmdiff.py",
+      "bytes": 3070,
+      "sha256": "444960e045af790ccaa62a3df9441241ca9887943e5edb21b2fbb7df60544542"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavparms.py",
+      "bytes": 1966,
+      "sha256": "a87edec62a86ac66a302c6bfe8e67d507cd8c1485005a79906c5eed0e83ea0f6"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavplayback.py",
+      "bytes": 8849,
+      "sha256": "ec39d340140e370fa232f18314516a71cc4d86759e05ee5c9edfdc1c4fbc50a1"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavsearch.py",
+      "bytes": 1224,
+      "sha256": "7473e7ad2dae4847f7575429bc61b676a3ac224b3159fae03fe9656f59da2d33"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavsensor_status_change.py",
+      "bytes": 675,
+      "sha256": "183d6e77c74c5ddf097b99ad80843c19d87bb002e679ba05db7c6ceafcb022f6"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavsigloss.py",
+      "bytes": 2018,
+      "sha256": "f3d996a1402d7356eb017db0271c806c41e4b0ebad22c21902be5d8d831f1ee1"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavsummarize.py",
+      "bytes": 6799,
+      "sha256": "a849519302d6cbf72429995c476a946c3e6dabbf4927178b433ec859dfeb5a9e"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavtogpx.py",
+      "bytes": 3506,
+      "sha256": "c7dd942e00a2505efbd78e609e972a29758cb5e6a8f01f7f48232dd8ab336c1a"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/bin/mavtomfile.py",
+      "bytes": 3221,
+      "sha256": "f6ec8d47f56e0e891caf2d9f5468eabef27e4231c2595b9f48e4c01420ea443b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/fastcrc/__info__.py",
+      "bytes": 312,
+      "sha256": "7c4a0d3b210c01a258f0582b9025d1ee73f8bdda141b329fe166ced1ab12f15b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/fastcrc/__init__.py",
+      "bytes": 214,
+      "sha256": "4c332bbf753792e535856741df582e6db2e552a3d52a50ed648e94a17fdc8d1b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/fastcrc/crc16.py",
+      "bytes": 2145,
+      "sha256": "fce264120087dcb5c0bd2dcef5461ad99465e177096deffede314a7a0a4cf2c3"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/fastcrc/crc16.pyi",
+      "bytes": 21307,
+      "sha256": "4f952ca7b32777617f32e4be3315dceff2c09c40e58dabb3ddd3bcfc8e4b8b59"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/fastcrc/crc32.py",
+      "bytes": 995,
+      "sha256": "6aaf94cebebca3719d5c4e7e16ac3239d17e006c3d721e2505abf9d1f3bc557c"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/fastcrc/crc32.pyi",
+      "bytes": 8217,
+      "sha256": "92418f6a060f1b1098ce092918cc8442326e9046d3b37c40285a187de30a33d8"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/fastcrc/crc64.py",
+      "bytes": 553,
+      "sha256": "ac8cdede943c1be5af0edce8a97caf9d7faf48a0736774953acf41ae5dfc7ace"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/fastcrc/crc64.pyi",
+      "bytes": 3581,
+      "sha256": "d8a44ba2b26fe31f4ad0e1939567e9b4061bf8d3c2ff4b0e81c6d792d60f33f0"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/fastcrc/crc8.py",
+      "bytes": 1347,
+      "sha256": "a483996f9ac4ff831c5bee982f8d13364ab6ee2ea93bc18294ef4fd47086c86d"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/fastcrc/crc8.pyi",
+      "bytes": 12446,
+      "sha256": "cd082beaeed1db86a548c51d8bfe4ca8a5613d09e0d5de272dcb1acc1f39c760"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/fastcrc/fastcrc.cp313-win_amd64.pyd",
+      "bytes": 1378816,
+      "sha256": "4332799c80c9e4ed32a94fb5bf6e29c0d4cda5540505e52cfc337748bbab179d"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/fastcrc/py.typed",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/fastcrc-0.5.0.dist-info/INSTALLER",
+      "bytes": 4,
+      "sha256": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/fastcrc-0.5.0.dist-info/licenses/LICENSE",
+      "bytes": 1085,
+      "sha256": "3ed665fb60518ae791b805d858134f0678b7c53549ea9876eca9b21170c92da1"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/fastcrc-0.5.0.dist-info/METADATA",
+      "bytes": 4997,
+      "sha256": "42a3efc8d521b303fb31209a058c8d804e89106347764b918036a92662082ec4"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/fastcrc-0.5.0.dist-info/RECORD",
+      "bytes": 1419,
+      "sha256": "53dec97500ba160ed708db38b0783a88b205adc8fefc01edd734d765b290b38e"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/fastcrc-0.5.0.dist-info/sboms/fastcrc.cyclonedx.json",
+      "bytes": 24339,
+      "sha256": "224c6f278d3eec503df9938b898acc66f516d076543c95f43d1c275cf4ccc8a4"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/fastcrc-0.5.0.dist-info/WHEEL",
+      "bytes": 97,
+      "sha256": "b3ec5a173c39b5659248d2a7f83b8a8621d47985f950788472797f8730c9f596"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/__init__.py",
+      "bytes": 596,
+      "sha256": "8a1af767af7bf9edc64b2b8dcabb22408a4ca43d1483d0496b421236c1e02f25"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/_elementpath.cp313-win_amd64.pyd",
+      "bytes": 147456,
+      "sha256": "182df491e23e00eceda2ff193081fe785fc587c1a7f316f54a9768891e7a03bc"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/_elementpath.py",
+      "bytes": 11302,
+      "sha256": "9a9867ec70c6849c9fa885e158b10b5885717fdc02e6e748d47e772aa9118009"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/apihelpers.pxi",
+      "bytes": 66219,
+      "sha256": "d32610d2844c1d8de299450e7d04f3f879206b8c79ce00f02dc44413267f8e02"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/builder.cp313-win_amd64.pyd",
+      "bytes": 87552,
+      "sha256": "635016d56edc1d262bb58459c22f000b4db2f34040ab78f35f04b052e66dc104"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/builder.py",
+      "bytes": 8730,
+      "sha256": "f81232503933a46193fff0ca3848179083cf59b096f3876627d76d63efd4b811"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/classlookup.pxi",
+      "bytes": 23049,
+      "sha256": "f4cfeaea28e6680d42b27786aead5809938a0e76e9076e0da06e7ac24ca12ed2"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/cleanup.pxi",
+      "bytes": 8669,
+      "sha256": "66597fc5072630191442d916ba0889ed30d058f4742072a30f939eb26434741f"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/cssselect.py",
+      "bytes": 3407,
+      "sha256": "babefb355b13936e3eb7fd40168e448df12aca17aec34d41446fbf39be430d06"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/debug.pxi",
+      "bytes": 1161,
+      "sha256": "aada27ef0676e616b42a7b8210fac4bdc3e8c30ef6c8861a738b82c06a921163"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/docloader.pxi",
+      "bytes": 5969,
+      "sha256": "426c365a2130520eeec0e12b59e6cfaa407ffcf5045073dea53388a7bd7d78e8"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/doctestcompare.py",
+      "bytes": 18219,
+      "sha256": "d6bdb73b72a2d41ca9ab39155a1f7b144751abe10dbe61445ae001396744d0ba"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/dtd.pxi",
+      "bytes": 15760,
+      "sha256": "84ee14d10977c73a6ab55f170d95e426770d11b6ff30bf1091a60bf120434c3d"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/ElementInclude.py",
+      "bytes": 8804,
+      "sha256": "a44bcb292ca1356b594d1afa9625090fed6622a99bc5b72eaf172a66feef3478"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/etree.cp313-win_amd64.pyd",
+      "bytes": 4033024,
+      "sha256": "743cd66d1caee61baae5e19f9bb1bf373edcb778562fa17eea969ad4dc712f7c"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/etree.h",
+      "bytes": 10036,
+      "sha256": "06564016f47ee90c45c278b860ac871f77abd3b1ec5b71ea00eab81575179c32"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/etree.pyx",
+      "bytes": 142153,
+      "sha256": "725cb6b28e90e1fae2d9c4309ae1677cc92fb6643fb293cd834107a9475c1835"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/etree_api.h",
+      "bytes": 17924,
+      "sha256": "97856cc363fcd5d3a579e1a28e0da35604ee9fc5ddacd057b83d21389ebe005c"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/extensions.pxi",
+      "bytes": 33086,
+      "sha256": "529f5e687a0aab00786da6451291d9f0709b54745f096ce0e2036de9bcfe14a1"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/html/__init__.py",
+      "bytes": 66352,
+      "sha256": "cd067080a1fc73f4016055f3baaf12f8aba00452ea2c5b7bbd000eb1e1d1211a"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/html/_diffcommand.py",
+      "bytes": 2167,
+      "sha256": "31f71c698000282b730917bf3025e2842def9ee3d42a225b98ec7ce43b77ed3a"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/html/_difflib.cp313-win_amd64.pyd",
+      "bytes": 363520,
+      "sha256": "b6d6ac7c69931a033fb092b4a0cb391fdbd8a675b2ec02cf3e26467123f65788"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/html/_difflib.py",
+      "bytes": 87130,
+      "sha256": "bc33af65a800624ed74f2599ddae8c17aed45ab4296e9342395b688ea1930d3a"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/html/_html5builder.py",
+      "bytes": 3330,
+      "sha256": "5dfa8d1434391d43964eab9b78e7b59b9aa622eb7a23fdc48327bbe707abeed1"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/html/_setmixin.py",
+      "bytes": 1244,
+      "sha256": "e9c53221e88c227e73532b5c587b1d5995f23095d5b1f255550a002087bd87b4"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/html/builder.py",
+      "bytes": 6360,
+      "sha256": "abe059d788feb2a4972ff1759d09f3c41d7306109d477689ec5fbe2f118c6216"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/html/clean.py",
+      "bytes": 524,
+      "sha256": "8f44b41d9f98487a1d4d3cdf0ae26e81ceb24c83c0592ebbd68c176f17de5d63"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/html/defs.py",
+      "bytes": 5551,
+      "sha256": "b938a7566f5fc6e10a45ae6a2a7f87f7b9dd3846d8399ec471a36f9c24b5d454"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/html/diff.cp313-win_amd64.pyd",
+      "bytes": 231424,
+      "sha256": "850f6204c6372a6a7ddd06aa887bad7440b7d8785ec9f28c9b4973bdae4d978b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/html/diff.py",
+      "bytes": 33961,
+      "sha256": "ed16a1e874c2796711207fda2334f05dfe56208d5cc4f890d5f7488dec25e5c2"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/html/ElementSoup.py",
+      "bytes": 330,
+      "sha256": "7504a9ceecd44f72ca08687bd47e2b71c079442c28329c9ac9163ea9bb5604cd"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/html/formfill.py",
+      "bytes": 9980,
+      "sha256": "f325c520ee0335563e1c6f2ae0ee0eb71210f2a98ba57610f13d6b1544e42bc7"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/html/html5parser.py",
+      "bytes": 8894,
+      "sha256": "8aea425433bfe88d4f356b2d904ea899d0e1fab11cd0a31a217a353823fd9e83"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/html/soupparser.py",
+      "bytes": 10511,
+      "sha256": "7d0fd98d6717c0a4eb6cf0fc96c3def5834fb109a4da8f7309dd5f246157d336"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/html/usedoctest.py",
+      "bytes": 262,
+      "sha256": "78fd129cb2d915f6073487a07cb58f781a8efb8cb228a8d2b63b5401418937ac"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/__init__.pxd",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/c14n.pxd",
+      "bytes": 1135,
+      "sha256": "b0eda0e0782774d1a586c4a6308efaed3f0a7d970db63a458a5cd9dce0f87aa5"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/config.pxd",
+      "bytes": 99,
+      "sha256": "1022b08446b1e485b62859f505077047633415b59c8954453095bba47c494aa2"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/dtdvalid.pxd",
+      "bytes": 707,
+      "sha256": "54eb7de1ba9ee35edbc6f7e47dbb5bb1de64567c108f8a1848731f9d5da972c3"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/etree_defs.h",
+      "bytes": 14914,
+      "sha256": "811241253c157d0b78f73229c31140f3d8db3f4a92c859a7c4feae49bed1cb0f"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/etreepublic.pxd",
+      "bytes": 10421,
+      "sha256": "b361d1252b998709438b7a07b1204f0a10387604e75a359633305bdd5c6bb49c"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/extlibs/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/extlibs/zconf.h",
+      "bytes": 17506,
+      "sha256": "c67a074a7930587fd2a4a16361e3890e9ac691187e57dd5b7a137f3e1a55b8e3"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/extlibs/zlib.h",
+      "bytes": 105905,
+      "sha256": "aa5d046fe1c26c0fce240ebfe014d2110a447a49e59ad5ff83975143d17a46ad"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/htmlparser.pxd",
+      "bytes": 2858,
+      "sha256": "504576c08a7c4477a4c1401c3d63107bc2817c4bf7f6ed1cdcb1ceb1dbd1af49"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libexslt/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libexslt/exslt.h",
+      "bytes": 3222,
+      "sha256": "2b1557d027828743297d37064abddfe7c322263c771ac2480b932fcebc67e518"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libexslt/exsltconfig.h",
+      "bytes": 1242,
+      "sha256": "b7a12fdc986ad665460018c17829739d0ad093edd14b00ae2271c0f4c9fc0e95"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libexslt/exsltexports.h",
+      "bytes": 1140,
+      "sha256": "fe575d2e85233976b5ef668061215f417929f31bfc436599c642804fae04bfb8"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libexslt/libexslt.h",
+      "bytes": 789,
+      "sha256": "af2a7010263592192e2ef39d1b62483f5ce173612f6f50cf17db3e064c357f2a"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/c14n.h",
+      "bytes": 3213,
+      "sha256": "b35701c3b9f12c6947afacb30aefcf2c94d8bd17e8925a8218b55be35ec6a222"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/catalog.h",
+      "bytes": 4800,
+      "sha256": "b1eea28570d1332c02f1cae75fe249d2fce0492c7741b6c101bb5941b2511751"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/chvalid.h",
+      "bytes": 5317,
+      "sha256": "128277df76c4c544e503fb8640e7bca8e9c9c9a2db7274111eb90c7fa7e328b8"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/debugXML.h",
+      "bytes": 5145,
+      "sha256": "b39ada080f4d2eccdca6b66c06eb5ffbee49c934a80857d7ebdd8846c43ab8b5"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/dict.h",
+      "bytes": 1821,
+      "sha256": "3e1388cbabc743ec67295023ab68aca0546a23cf3d4c22b5ad8d90a80fdddfaf"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/encoding.h",
+      "bytes": 8142,
+      "sha256": "0f406ac3c778320769e255da2d647d127d1d75ff265e9c89e06a0c670d26d1ff"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/entities.h",
+      "bytes": 4701,
+      "sha256": "8743a6cb60d0edb1041f8358ad6d62f614a99f3a78e3036069f924f38658b7f7"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/globals.h",
+      "bytes": 14931,
+      "sha256": "afe42f083955f894b6680ca0f9f5e95e04e88ce14752ae495f12b9e66c970dd4"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/hash.h",
+      "bytes": 6637,
+      "sha256": "a1c3d51abf465456624e2161c9fa5761632d075486862b1922b9332fd2e2273d"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/HTMLparser.h",
+      "bytes": 9809,
+      "sha256": "e4e336f03a97988e8bde6992c7a93892156e299ae6f846d79a16347f85d6fa60"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/HTMLtree.h",
+      "bytes": 3649,
+      "sha256": "2dfb7212eaceaab78966de01e462b6a6abd8fdb636b9be1352309f71c84f15ac"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/list.h",
+      "bytes": 3277,
+      "sha256": "ebb5c39b95b44cd8f213d3a75dde88b36f98cb4ff8e3d67a46907dc27415ec85"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/nanoftp.h",
+      "bytes": 4150,
+      "sha256": "d636a53b03a091eea457c69e64f73d5b16671b0bca55743c79967e6700ebccc2"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/nanohttp.h",
+      "bytes": 1950,
+      "sha256": "c2ee36e6212b675c51dc76d0c8c651d8483d9293bc305124fc2c74ec04b41651"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/parser.h",
+      "bytes": 40871,
+      "sha256": "a78f4353d83352b98d89ed7264e3c03610ac40486d1e76132e0e4d6c120c4bab"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/parserInternals.h",
+      "bytes": 17241,
+      "sha256": "e8d4129d00d5cebd57ce73511a8a65c0447f1ed4ee28afc2d91a38e2fe83f001"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/pattern.h",
+      "bytes": 2566,
+      "sha256": "8c8b9d4c1de8c1659d4feeeaadbe37f3ec2db9b6522b8d92bc97474e7e495856"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/relaxng.h",
+      "bytes": 6019,
+      "sha256": "91ab9aefb2446dee4c138274e745418c22331e7f7359119cf2c17e33a6e18c87"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/SAX.h",
+      "bytes": 4661,
+      "sha256": "9abfb9b68dcd8878100251381b85b837f86de08fe74efb406131a944cbbfefb3"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/SAX2.h",
+      "bytes": 4642,
+      "sha256": "1d9a51932c85447ab964b0e53f0341e0c19651f5b091313f4e5d684fc7ba40f7"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/schemasInternals.h",
+      "bytes": 27166,
+      "sha256": "96a936ad44b6b6c05deeda264e1cb2297408812eff3d7578e15a5e1467b86d98"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/schematron.h",
+      "bytes": 4368,
+      "sha256": "1ef0b8eb0dd4036443a96b11c8c38838eab056fc433ed5e5761f9064caf60a96"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/threads.h",
+      "bytes": 1969,
+      "sha256": "cf2e0afb6bb068654ba19225d6e18c9d16695b924c9bdc174a2ce1cab89bc217"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/tree.h",
+      "bytes": 38200,
+      "sha256": "7eb7b8723816475eecb533de35c514df39609907b3947c675603708460030a8d"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/uri.h",
+      "bytes": 2638,
+      "sha256": "3b4935caba2cf6e3c2ea2b19f93c70cf93004ad39c69defcaf2ff6e99991bc1d"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/valid.h",
+      "bytes": 13229,
+      "sha256": "974b0e8030c87b14577399809d897a7edd9e10c4a2876deea34326774e6d1e13"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xinclude.h",
+      "bytes": 3016,
+      "sha256": "d6ee718e32faee5fddfc05e31a6b860b3d5974ff681deb06998c7c38ef9c250b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xlink.h",
+      "bytes": 5191,
+      "sha256": "4c2fab5d35a6d0a17a1bc132f418b1cdc7a46981e9c8470a697c1d293f5a2bf2"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xmlautomata.h",
+      "bytes": 3933,
+      "sha256": "baba4de8d314e9eeee2ed87ba9957ee56c53f4cb8213a8f08509e2ee9f0e1156"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xmlerror.h",
+      "bytes": 37020,
+      "sha256": "aa4da3fbb088906315ad72627f71000c56fd4e6b4246affc3570040dbd902ab9"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xmlexports.h",
+      "bytes": 1042,
+      "sha256": "18bdfbc4c2dcdae8577ef9165abb79b88bd293146f9abf57a4746f916ca7a77b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xmlIO.h",
+      "bytes": 10572,
+      "sha256": "6f3b641373701ac6178518c864891a03578fb73d076e9c09c324f15654e998d8"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xmlmemory.h",
+      "bytes": 6053,
+      "sha256": "80a31580f2e4d7a8f7b046d83bffed8c9f8a874a299f95d8b6a8a0706e116789"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xmlmodule.h",
+      "bytes": 1195,
+      "sha256": "23972e1c296f2fc233de2071017f1ef38c9a829186083b92628510a99d96a885"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xmlreader.h",
+      "bytes": 12339,
+      "sha256": "5ca4bdbcfd32749219788eca3bac504e08e61bfc606036b20b9a4c3fd9e614a0"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xmlregexp.h",
+      "bytes": 5440,
+      "sha256": "85c33692cca84f488fa94659314311668452d56bb1b4fb22ebcaf574181a76a6"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xmlsave.h",
+      "bytes": 2345,
+      "sha256": "8669cc43726a00ce7c273fac3920d2e05013e4291f690f2f2674715b0642f8f4"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xmlschemas.h",
+      "bytes": 7071,
+      "sha256": "6e30499a3a1c2fb1454ee938f760088ab5f48df40a1d384797ac0cba4ec4fa82"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xmlschemastypes.h",
+      "bytes": 4735,
+      "sha256": "3e3db170a2091bb28e089186718689ffb233262753ead3de3b43422a4b0708e9"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xmlstring.h",
+      "bytes": 5411,
+      "sha256": "d4b4dcd798b2e6c953faf87cdd857caa87976ae5ddcd8f02fd4a836f94d0ffb9"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xmlunicode.h",
+      "bytes": 8867,
+      "sha256": "a6d84c5d5b3799fb168202890c0256f6f0e8a25eaf6a4a04a4bb429bae4f4129"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xmlversion.h",
+      "bytes": 9833,
+      "sha256": "0d8266c772dedb12e43e3f5d4607fa14053e2f4f3d26f8a72a2d2cdf3379f664"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xmlwriter.h",
+      "bytes": 21113,
+      "sha256": "ea13171e0ee45f317140d59a72f8a274e653e027e15178cf8951e492fc394188"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xpath.h",
+      "bytes": 16994,
+      "sha256": "a48816eca97627ed0f5926ea08e0749cf46632c09ecf61710600e9b726b3f87d"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xpathInternals.h",
+      "bytes": 19049,
+      "sha256": "d5877832f2f8537c0fc2e7aa262b1d652873c54cb2b85eb63816b3550334f407"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxml/xpointer.h",
+      "bytes": 3753,
+      "sha256": "3a4a6fe62c1c837a320f9a478988ad60f56e3e7f77ef62f859b8a63b6f982fed"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/attributes.h",
+      "bytes": 996,
+      "sha256": "0b25dbe19567255c3bff43077075cf70d4642c05434d34aeeb3a0b2994035a66"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/documents.h",
+      "bytes": 2797,
+      "sha256": "e86512f622144b5a7fe6f7837c5d549b1d71b07c4d853bb72a71158019cd76a5"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/extensions.h",
+      "bytes": 7161,
+      "sha256": "889c4f87028da917e2227de2dcbf2d2a27c2f2e2013e7d75b78eaafa3e97cc1a"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/extra.h",
+      "bytes": 1712,
+      "sha256": "88eba11a314b8b4b1c9b679b800d3b111f851f5ffa1e63de1df4a08665eee57c"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/functions.h",
+      "bytes": 2050,
+      "sha256": "24ae67cda07c3ab082425c4172de8c310a7c2bc73f19deb5e0eabcd9f706bda5"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/imports.h",
+      "bytes": 1915,
+      "sha256": "b9d1abdd45bd760dde12275d4835563940afc258c6c9f339ed11f6420bd9c35b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/keys.h",
+      "bytes": 1208,
+      "sha256": "cb7758fe567791f61407a5f0f373919c3a12ebc789a74a065047c3b61616b4c2"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/libxslt.h",
+      "bytes": 1296,
+      "sha256": "4f1a6bd0c7e5cfbefe48e23e32e5cc7904b2333b41e734db691f6b81204e6300"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/namespaces.h",
+      "bytes": 1734,
+      "sha256": "93bf040f57d40dee06df9b9586ba396aa27bdda4df43ec67e39cfe4248d9a169"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/numbersInternals.h",
+      "bytes": 2092,
+      "sha256": "dbc67f04e1c29c9113efa4c7697b1692dfdd47c2bffd838881d62f73843cfe10"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/preproc.h",
+      "bytes": 939,
+      "sha256": "c619d35c85cce823483f84ac5c9abdcebaaa60e638ae7ac3527cb88d6bd5b7a8"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/security.h",
+      "bytes": 2756,
+      "sha256": "d5a4874189c34ea95807bdd10286ea7dc2d6b2608245be7617fc879b235c0d9d"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/templates.h",
+      "bytes": 2345,
+      "sha256": "08c65b6e2b2a5a6f72994f87469da18dad0cdaac318808158f00636521780427"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/transform.h",
+      "bytes": 6518,
+      "sha256": "0e250989ca2697443181d6d709eac29ca42ec9b7a7e8f882cba546f6742b86ca"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/transformInternals.h",
+      "bytes": 246,
+      "sha256": "4d4b41f558649662a6b8d365801ec21691bb2745404ecad9502114a2c16a2c9e"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/trio.h",
+      "bytes": 7415,
+      "sha256": "927fbdf0db0953dfe143c23c976fa7f09e4b9961ffd0ad249571d1de12ad734a"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/triodef.h",
+      "bytes": 6912,
+      "sha256": "5e06d45ce738e3bd9109c987aa1f8d32030c2dcca4aee6ee23ef6b34491fdc9a"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/variables.h",
+      "bytes": 3261,
+      "sha256": "edc2f510ea73a61cd9243dfd427f5e9c76736a47b2130ec77f3f67d48790d1c6"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/win32config.h",
+      "bytes": 1199,
+      "sha256": "f8e19b571db9936dea60a13e12520fb94823a90ec6631a377ced0913a6d4f399"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/xslt.h",
+      "bytes": 2074,
+      "sha256": "8fa9d91f1c98dd4e74e466ed3bf69e2ccac9f71136baec78e573a5c93d287986"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/xsltconfig.h",
+      "bytes": 3060,
+      "sha256": "2b9b220fc3c4f7b0923f8982725641094bfbb9ffee54284dced9283d5c405e71"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/xsltexports.h",
+      "bytes": 1188,
+      "sha256": "19d7092f6a078b7e381a8ae7b86da2013dbbcaa238f0bf5e8a6d127008fdcb08"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/xsltInternals.h",
+      "bytes": 59944,
+      "sha256": "c3f0d01d1ba5a55a58a20c4a3284ad7452fe02147e7edabb30ef4fae3e005b70"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/xsltlocale.h",
+      "bytes": 986,
+      "sha256": "b8019effbde1bc264fe660ef1c21e070cbdb749ec56c71d2cc20c89dfb83b9bf"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/libxslt/xsltutils.h",
+      "bytes": 9428,
+      "sha256": "283db4f29b6c407ac70750eee1b89953689933461be8cedcd923c9b63a38e891"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/lxml-version.h",
+      "bytes": 74,
+      "sha256": "fd65586a48f4859a345b400830942f9b2c7d1cbf7008622af2ac16efc47b2bcd"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/relaxng.pxd",
+      "bytes": 2679,
+      "sha256": "1f95b95ce6c8e58b51a542de891cba2ba95d5190b4b4341ab80159ecf252a84e"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/schematron.pxd",
+      "bytes": 1638,
+      "sha256": "2662831bd12534f5c9eeb6733a94233da21dcc8675a73304393fc68d944af7c5"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/tree.pxd",
+      "bytes": 20671,
+      "sha256": "e3fb6d4138a08502623f1b7715af4527cf8187132d647570e033eb75a67a90a1"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/uri.pxd",
+      "bytes": 150,
+      "sha256": "51b4c6e1fbc76aaea390d9302f2c7a68c6db0825c60e6ac4dca8cf8ab0ad5b7d"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/xinclude.pxd",
+      "bytes": 826,
+      "sha256": "9f749dcf1c1d730271797f13408459ffaa33001c20ea6acc10e5c3173b397f9d"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/xmlerror.pxd",
+      "bytes": 59697,
+      "sha256": "c3f4b1217f16924416d6223e621927948f4de427c4bad85e5157e6e17599093d"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/xmlparser.pxd",
+      "bytes": 14108,
+      "sha256": "e661d9972d488b02dd4d33fd1d5dda2d3f79eeffea6167a139ec8acdc789928c"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/xmlschema.pxd",
+      "bytes": 1737,
+      "sha256": "aba7073c9a62dee8647f630b5147768779c20c1ff86b507c71e8bc6931db37ce"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/xpath.pxd",
+      "bytes": 5739,
+      "sha256": "2ec0e85a33b9c49501fb3d3f05db08b4458784b80ba57e3421d3666d8ce976fe"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/includes/xslt.pxd",
+      "bytes": 8431,
+      "sha256": "18cfc7924eef1a758c95694b33d602a6451e1a05a4f0bbe6af5294cb991b67ee"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/isoschematron/__init__.py",
+      "bytes": 13622,
+      "sha256": "0a2f0989a2b17efbbe84c461ec83f6ed3161334de2110f0226836c7578cba0cf"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/isoschematron/resources/rng/iso-schematron.rng",
+      "bytes": 19046,
+      "sha256": "702338aa97ee4d8015b6e923c65a1b3cc949f2767e6aeec380e352da0e2b60ee"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/isoschematron/resources/xsl/iso-schematron-xslt1/iso_abstract_expand.xsl",
+      "bytes": 12015,
+      "sha256": "492519900916845606fd8347bd6f5453a5fcb6630e1f5bdda519b3aaed25e103"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/isoschematron/resources/xsl/iso-schematron-xslt1/iso_dsdl_include.xsl",
+      "bytes": 41116,
+      "sha256": "659f9def6af14250027ebb381266836316916f177480f6be0cf2d195557a4118"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/isoschematron/resources/xsl/iso-schematron-xslt1/iso_schematron_message.xsl",
+      "bytes": 2069,
+      "sha256": "3506a5e33dc4b99ff9415a0c15b26a99ad922a0e3e8739bf0dbdbcdfed25d245"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/isoschematron/resources/xsl/iso-schematron-xslt1/iso_schematron_skeleton_for_xslt1.xsl",
+      "bytes": 73560,
+      "sha256": "568d45e7bea875191d2c19ae1045ab2dae4b17748c4d7f41e841069f151bbfff"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/isoschematron/resources/xsl/iso-schematron-xslt1/iso_svrl_for_xslt1.xsl",
+      "bytes": 20970,
+      "sha256": "508ef11f1d2578d5d2f41694e9cc90e021de7e5b9f2a6004fb38ceae286e1fe1"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/isoschematron/resources/xsl/iso-schematron-xslt1/readme.txt",
+      "bytes": 3310,
+      "sha256": "3862e216cc2e2c9116e443d828e7a86aeb8224512d55aea3cb3044d4e70923df"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/isoschematron/resources/xsl/RNG2Schtrn.xsl",
+      "bytes": 3247,
+      "sha256": "832f84eb1476a77e522bdc1715386b68f24423d35da084cd1dde319aacbba316"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/isoschematron/resources/xsl/XSD2Schtrn.xsl",
+      "bytes": 4563,
+      "sha256": "430791ac820cfb315c820f7c19703609a59f21b8151345ca11e6127efbfaec0d"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/iterparse.pxi",
+      "bytes": 17288,
+      "sha256": "750640ed62c9376a5b1a8af43dbcb89e8182b1702946446368fb13bc8d434113"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/lxml.etree.h",
+      "bytes": 10036,
+      "sha256": "06564016f47ee90c45c278b860ac871f77abd3b1ec5b71ea00eab81575179c32"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/lxml.etree_api.h",
+      "bytes": 17929,
+      "sha256": "7997f288c4472c1beec5f668311d3c91698e4dd28484d9e3b6e81b03740e338c"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/nsclasses.pxi",
+      "bytes": 9410,
+      "sha256": "f538998cf6cfef71fc54dd17bb5466b9107b1be0f4a534d2a8b3db753250b795"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/objectify.cp313-win_amd64.pyd",
+      "bytes": 1744384,
+      "sha256": "0589acb808a4cc0b96b12cd30d582969b7ca9b403a2b61c0b79f5886cd6d463e"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/objectify.pyx",
+      "bytes": 77952,
+      "sha256": "7ebb5c5fa03847d5cbc30dc3567eea8f0cf7b1362406043a4d5548cbdc6098da"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/objectpath.pxi",
+      "bytes": 11782,
+      "sha256": "a20ecb5fe6bcf11ae0248de5500b6e27c1efc7846935fe7b93ba6669fcc2b820"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/parser.pxi",
+      "bytes": 87996,
+      "sha256": "f304fd405db86a7500a8d1d29092e15119dae9e93bd9a2531e0b35f5a72d0127"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/parsertarget.pxi",
+      "bytes": 6506,
+      "sha256": "d2067978b276850f2d480a45110c753dfcda88fa91b9a4710ff1b028e0c8cc47"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/proxy.pxi",
+      "bytes": 24639,
+      "sha256": "9db6859c842366e8f8cb07113275430a1ea8bf134542461442d64cabc8c138cc"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/public-api.pxi",
+      "bytes": 6934,
+      "sha256": "65daf1e031d52348155e3cf65f237e4e58edb9e8b5dc11fe16e38de017f23876"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/pyclasslookup.py",
+      "bytes": 95,
+      "sha256": "8c3198adbc6e284dc7974ecf6c82d7fe9b4b91069762ba494a0be2978848b37b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/readonlytree.pxi",
+      "bytes": 19573,
+      "sha256": "b07e6ad697eb432c013c6e199404e1fdde20ca2701d18c01a367336cf2e85151"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/relaxng.pxi",
+      "bytes": 6504,
+      "sha256": "ae34df97eac16251ea42fe277f154af0a651e7d2aa296429f6566fdda2985d59"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/sax.cp313-win_amd64.pyd",
+      "bytes": 118272,
+      "sha256": "9258afb6d01d044c174ca7381f4a7362a7d115ce38f0f8b3de6b83098e37f34d"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/sax.py",
+      "bytes": 9993,
+      "sha256": "8942f8f94931d8cbbc8cefbd8e49edcd35a5e7b99de00164c8d04f701a803e21"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/saxparser.pxi",
+      "bytes": 34413,
+      "sha256": "1c0b9abf29b17707a3500df64a9499fac94b450de297eb8f34b5f2cd165cedb5"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/schematron.pxi",
+      "bytes": 6237,
+      "sha256": "145db64342a826e5f641c6f6eab2f560ef50a454e79aa4524ba93c47f1b98f6f"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/serializer.pxi",
+      "bytes": 69912,
+      "sha256": "068957cb242ab9010c2481be2ec14db5cfdc7241872bfb71bf346ddf43798b9a"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/usedoctest.py",
+      "bytes": 243,
+      "sha256": "727deb5de2f717e2128fe1d734bf60e04c1c887eb46fd35c6635c8440177d623"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/xinclude.pxi",
+      "bytes": 2523,
+      "sha256": "0d3adefca6084add6bcdb7ffa92ef98b1f996ebb9206779f21f36ce00aaf17e3"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/xmlerror.pxi",
+      "bytes": 51900,
+      "sha256": "ff2fd4ea06e15f832aa571e51f5422e7fb38299c3f7ff27bff0cd6b32c55fdd1"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/xmlid.pxi",
+      "bytes": 6252,
+      "sha256": "360ed689fbf45d79278cf30eea495d82b3877c2b08238e9404f0a451393de909"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/xmlschema.pxi",
+      "bytes": 8705,
+      "sha256": "b09ba61046e4b91faf8f6bc3004f2f0ef6e3061833b7f2d15fe2304111602d35"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/xpath.pxi",
+      "bytes": 19619,
+      "sha256": "893d52ec2068d9d067d7dcbddba92dc0f800286442e56167460ae7700e86c293"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/xslt.pxi",
+      "bytes": 37446,
+      "sha256": "35ba78819618ae998447f428332d920239ffa07d7170d40f812701922f9d1ce4"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml/xsltext.pxi",
+      "bytes": 11330,
+      "sha256": "b322a4988e8633013f7fe5cf602f2b1855c9e45f4a7908a0c73e760ac6c5e0f0"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml-6.1.3.dist-info/INSTALLER",
+      "bytes": 4,
+      "sha256": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml-6.1.3.dist-info/licenses/LICENSE.txt",
+      "bytes": 1538,
+      "sha256": "e7c3ce8d76331b0101cc46790ab43958ea90a364bcf962ed8763d5a818340e69"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml-6.1.3.dist-info/licenses/LICENSES.txt",
+      "bytes": 6348,
+      "sha256": "df682c668de65321677b5e4861dca4128a8bad8067f230956e9da3f985b3d398"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml-6.1.3.dist-info/METADATA",
+      "bytes": 3368,
+      "sha256": "4038f4e4decac1c15eb5fd883abf1370f2df9b176b53bd172dd709d4542e2a48"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml-6.1.3.dist-info/RECORD",
+      "bytes": 15510,
+      "sha256": "8e5c74c681f4fe372c99666128948f8d7d07aeb3004ac4fcb7fb604a49ac9c2f"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml-6.1.3.dist-info/top_level.txt",
+      "bytes": 5,
+      "sha256": "3630fdf3cc2a68aab9d769ec84d74bb7eb83c6c8e4a78061e759ba37e76152b9"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/lxml-6.1.3.dist-info/WHEEL",
+      "bytes": 101,
+      "sha256": "d0b50da07c4bbdca70f5d6ffc745e8cc4e635bbdfefc63803bb7c30c9e17b784"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/__init__.py",
+      "bytes": 81,
+      "sha256": "8e990fcf3dabda06fcaa8c6abb0cb12c3f7683d78eccc8f2f52bd4cebce0ef23"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/CSVReader.py",
+      "bytes": 6124,
+      "sha256": "393052028337805c977ae3ec8ab5de8acc34bdcec5aa30c29fe8fb32795e77db"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dfindexer/__init__.py",
+      "bytes": 137,
+      "sha256": "4440f98b2872169f8b996d56d7393d701a3fb82df82d99400cc3b9dc580c1725"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dfindexer/dfindexer_cy.cp313-win_amd64.pyd",
+      "bytes": 137728,
+      "sha256": "e7627a3d4eed2fe74bf7cb660bcb10a8887b5f4db7a0a7bc58d85565a51f247f"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/DFReader.py",
+      "bytes": 70876,
+      "sha256": "3d2b31e83557368565d6cca1d99ead43849cc22a76a624bf95b99c37b890a1f3"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/all.py",
+      "bytes": 1620234,
+      "sha256": "1f7a3ce71fde059d861d83e9f55db74c0f2835e2d42a82217943c5ebc47cdd9b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/all.xml",
+      "bytes": 1749,
+      "sha256": "3a260911e39ff2bf7bdb9ffc6fd628993d98bf2dc294ba54f88e134ca2433427"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/ardupilotmega.py",
+      "bytes": 1542927,
+      "sha256": "c03eb9f459720e0f4927eab902a64c0f93ecce53148316a3624ca35e0ae0ef85"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/ardupilotmega.xml",
+      "bytes": 119869,
+      "sha256": "9a4b9390b232083ba01b35923a3b645e69e8d1c06cb9794adeca39e6a891abb9"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/ASLUAV.py",
+      "bytes": 1269545,
+      "sha256": "f1d52f19bc8977db747af62e62c6a0aff6df4926774771c249ea0711fb099489"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/ASLUAV.xml",
+      "bytes": 20614,
+      "sha256": "da810b85ea63059b42d4993509a66cbf6fe20a7637468b70adb01096ad0a270b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/AVSSUAS.py",
+      "bytes": 1260453,
+      "sha256": "d1d0cfcee74b28bc415cd8cf44951d4f50a9a051ee562c3b6c6379fe22d00b56"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/AVSSUAS.xml",
+      "bytes": 10568,
+      "sha256": "fa3cb38a8fb9764255b300acc66cb565716f5ce594bee3cd81157a757147e7ab"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/common.py",
+      "bytes": 1252721,
+      "sha256": "ca37216f33ea5e0fe7d311516a60ddcb736c31bae007e3b42ea9093ddd34ad08"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/common.xml",
+      "bytes": 632041,
+      "sha256": "ec9a32b00ed801ed6231edd0da943b782b7e5070b1134e8738a8ada0949ee2cb"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/csAirLink.py",
+      "bytes": 29429,
+      "sha256": "27e2eb4f6502810493a03e5b9773863ab52af25a59566aa6232959a0bf5165ee"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/csAirLink.xml",
+      "bytes": 1128,
+      "sha256": "d80350ff93890b6c0037d04908d93dc02e483c93e9b6b95622feb5b4be7b9dc6"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/cubepilot.py",
+      "bytes": 1252738,
+      "sha256": "64c0aca1092059a620f6a3b94255ee1e52f4384824b408b14029ceae9954f046"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/cubepilot.xml",
+      "bytes": 2786,
+      "sha256": "0e14a4870421dfeb9db9e144d8f046dc8d62e6ad898ef78e73d5fe3a2534963a"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/development.py",
+      "bytes": 1274272,
+      "sha256": "af874d5437048418b34187474c3e7ff1b1568f1e8bb1b61cfc935e782cf26d7d"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/development.xml",
+      "bytes": 25109,
+      "sha256": "71b6a4afd78f0b34c613e784d34438e02a6878b660cd018c32564d4da44dbe3e"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/icarous.py",
+      "bytes": 30398,
+      "sha256": "881fa324d5685ae174db918cea8cb7574b77796b224ab768f45fcecd663f05a2"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/icarous.xml",
+      "bytes": 2927,
+      "sha256": "95167e6cd313cf02a2249943c0a828f0502212d2a8eca3b1a495adeadca26137"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/loweheiser.py",
+      "bytes": 78450,
+      "sha256": "f8ec10f7baf11986972c158492daf237d9d803d24f627cdf26a492f816b789f1"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/loweheiser.xml",
+      "bytes": 3672,
+      "sha256": "3ff1551230ed1cada4523b9246b95884c46be1c168359f557042a07648853c4b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/matrixpilot.py",
+      "bytes": 1409695,
+      "sha256": "57545b7e68887c257bdf40008d22fb6fb9204987d984c038c4fc6d30915b8dae"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/matrixpilot.xml",
+      "bytes": 27598,
+      "sha256": "df5fe9fcbea6302865bf1886f22e491c72b5fc89e418be50f4eca48faa3bfed2"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/minimal.py",
+      "bytes": 77625,
+      "sha256": "188892721fb41cead8807cf402ddee53016ebd837b7d70f846d2ebef7f56e6ea"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/minimal.xml",
+      "bytes": 47521,
+      "sha256": "5b450b2eef9e93db9c0a35ea56141bd05c197f41a9f4a7990a99b91c16814fa9"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/paparazzi.py",
+      "bytes": 1267431,
+      "sha256": "e80bf12cec961b048b1c19a07d9f24fbe010a8b2be5acbfc87fdece95286eb10"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/paparazzi.xml",
+      "bytes": 2114,
+      "sha256": "e0994fec7441bef91fb62ea819bc0dac9b968ddc565a11f1d22326e2aabdee3f"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/python_array_test.py",
+      "bytes": 1252754,
+      "sha256": "1e0f6d9ae4169b6aa282299b914a4151dcb18d2bf241eb030f0b654333303782"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/python_array_test.xml",
+      "bytes": 3383,
+      "sha256": "6e3b99fcdca24c8726cc7036264242725f7850750c9a78a0f19309461f5ed06f"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/standard.py",
+      "bytes": 99635,
+      "sha256": "8bd6bc7f347aa3491cf00ced84faf0e4cc7ebacab633090366ef839c06e491e9"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/standard.xml",
+      "bytes": 10450,
+      "sha256": "d41d5a29619345fcaa110891682e6df83eca081168f76ecfd17d59d0ea721c47"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/storm32.py",
+      "bytes": 1560782,
+      "sha256": "7856fd742c17e304dba7aa7e90acc72cdcf273effd9b93ee9d6d2628e731f78b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/storm32.xml",
+      "bytes": 37529,
+      "sha256": "d121aa325443b894530ed8874ade819c9d5041f052650257cfb66fbaa8686f13"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/test.py",
+      "bytes": 28886,
+      "sha256": "1a98fba4da514ce984f52983df1e13f5e78d25c06db0941bf55a75b747fc0437"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/test.xml",
+      "bytes": 1592,
+      "sha256": "83702edcb6dfec3c7b41bee6a4426698bb6efcfd6952916a35c422c72b610f56"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/ualberta.py",
+      "bytes": 1266039,
+      "sha256": "3d156232e2c2f4eb9484af97946e6c387ad228ffc7c259818fcb0047652746ae"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/ualberta.xml",
+      "bytes": 3591,
+      "sha256": "3519ea2925d921cfe414c88513908adb6c3d917b53e1092eabfc9b9fa14ada44"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/uAvionix.py",
+      "bytes": 1270981,
+      "sha256": "dd618f0d5dbc6d214fbb9c2ae4f34d01c6935cfaf75ded1acfd5a42a527a35b0"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v10/uAvionix.xml",
+      "bytes": 16300,
+      "sha256": "305a6da6cfe66742c7d0be63362ade7687a4725b33061dae1786308d1a026665"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/all.py",
+      "bytes": 2639568,
+      "sha256": "27004662b595518b717ac3b2345b5668c8e1940cbb3993cf9444c9995962f7e6"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/all.xml",
+      "bytes": 1749,
+      "sha256": "3a260911e39ff2bf7bdb9ffc6fd628993d98bf2dc294ba54f88e134ca2433427"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/ardupilotmega.py",
+      "bytes": 2297199,
+      "sha256": "3a05c93f3d5b3804c517a30860fb0ca25f26771c0d113b99493b7363a2249097"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/ardupilotmega.xml",
+      "bytes": 119869,
+      "sha256": "9a4b9390b232083ba01b35923a3b645e69e8d1c06cb9794adeca39e6a891abb9"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/ASLUAV.py",
+      "bytes": 1899736,
+      "sha256": "5ffbf7027fa95ac7b4a6772b387d78112a0a2f030503282d36c48a0081b02659"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/ASLUAV.xml",
+      "bytes": 20614,
+      "sha256": "da810b85ea63059b42d4993509a66cbf6fe20a7637468b70adb01096ad0a270b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/AVSSUAS.py",
+      "bytes": 1825477,
+      "sha256": "270e527d4b58c732dacf27d4aeb845ae957ecd774e0e27d9b0d29d304e9958bd"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/AVSSUAS.xml",
+      "bytes": 10568,
+      "sha256": "fa3cb38a8fb9764255b300acc66cb565716f5ce594bee3cd81157a757147e7ab"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/common.py",
+      "bytes": 1800728,
+      "sha256": "728a16d65ff4e531a01cc6f7111d909179eec1b0498b4c4a49a13d1388f798c3"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/common.xml",
+      "bytes": 632041,
+      "sha256": "ec9a32b00ed801ed6231edd0da943b782b7e5070b1134e8738a8ada0949ee2cb"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/csAirLink.py",
+      "bytes": 34416,
+      "sha256": "6b76e5904f2f010b5057da13dc4e65227882b5d60901e8f9baa8e1e898a6228f"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/csAirLink.xml",
+      "bytes": 1128,
+      "sha256": "d80350ff93890b6c0037d04908d93dc02e483c93e9b6b95622feb5b4be7b9dc6"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/cubepilot.py",
+      "bytes": 1818904,
+      "sha256": "23a34f39402c25cc6621a0ca8a445248daffa5b3c0123b0acba3d67bf41079ba"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/cubepilot.xml",
+      "bytes": 2786,
+      "sha256": "0e14a4870421dfeb9db9e144d8f046dc8d62e6ad898ef78e73d5fe3a2534963a"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/development.py",
+      "bytes": 1865283,
+      "sha256": "7d66c62856ee4e4115e4115c59f2c0ce5d3d793d42f7c769740f997a61c95249"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/development.xml",
+      "bytes": 25109,
+      "sha256": "71b6a4afd78f0b34c613e784d34438e02a6878b660cd018c32564d4da44dbe3e"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/icarous.py",
+      "bytes": 39984,
+      "sha256": "45e2d3b3446acf66278431abdac68b7e5a3b3710edd30a4f4385d60172e54ed8"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/icarous.xml",
+      "bytes": 2927,
+      "sha256": "95167e6cd313cf02a2249943c0a828f0502212d2a8eca3b1a495adeadca26137"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/loweheiser.py",
+      "bytes": 89730,
+      "sha256": "378aef7878ad3c5c1a4ddd72f71cbda2e830b5a8e4658178092d7adf508a583e"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/loweheiser.xml",
+      "bytes": 3672,
+      "sha256": "3ff1551230ed1cada4523b9246b95884c46be1c168359f557042a07648853c4b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/matrixpilot.py",
+      "bytes": 1957702,
+      "sha256": "142db1874fdab563663f118fa3d3e2984d34eda40055733c2a3a64c780be5168"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/matrixpilot.xml",
+      "bytes": 27598,
+      "sha256": "df5fe9fcbea6302865bf1886f22e491c72b5fc89e418be50f4eca48faa3bfed2"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/minimal.py",
+      "bytes": 77625,
+      "sha256": "ae11dbfd070ed39164fa30c115ff040de2e7bc1c09b5c6a4d7d8394432b9b324"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/minimal.xml",
+      "bytes": 47521,
+      "sha256": "5b450b2eef9e93db9c0a35ea56141bd05c197f41a9f4a7990a99b91c16814fa9"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/paparazzi.py",
+      "bytes": 1815438,
+      "sha256": "40ea4e1e1ea8790c38427585c789cf803e0108a923f0c58c20383f860718c12b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/paparazzi.xml",
+      "bytes": 2114,
+      "sha256": "e0994fec7441bef91fb62ea819bc0dac9b968ddc565a11f1d22326e2aabdee3f"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/python_array_test.py",
+      "bytes": 1826104,
+      "sha256": "dea65229298849740796545038b0a864d597dccb1f756fdd4559b3ed32240a36"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/python_array_test.xml",
+      "bytes": 3383,
+      "sha256": "6e3b99fcdca24c8726cc7036264242725f7850750c9a78a0f19309461f5ed06f"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/standard.py",
+      "bytes": 100536,
+      "sha256": "490ac5f1b65016c2111576914a8e00ef228b8e81648c58e89d6b0eaf260586fe"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/standard.xml",
+      "bytes": 10450,
+      "sha256": "d41d5a29619345fcaa110891682e6df83eca081168f76ecfd17d59d0ea721c47"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/storm32.py",
+      "bytes": 2404265,
+      "sha256": "f90c31550f728d8355f0bc7e7e70ece4a32157a4b162dde1d4866191b788120c"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/storm32.xml",
+      "bytes": 37529,
+      "sha256": "d121aa325443b894530ed8874ade819c9d5041f052650257cfb66fbaa8686f13"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/test.py",
+      "bytes": 37189,
+      "sha256": "ebcadd9dd10d2237eb391b00e989e5aba3868e6b6c80e74c4b43766c102b1419"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/test.xml",
+      "bytes": 1592,
+      "sha256": "83702edcb6dfec3c7b41bee6a4426698bb6efcfd6952916a35c422c72b610f56"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/ualberta.py",
+      "bytes": 1814046,
+      "sha256": "100448ed2244ca9e8161fb4471bcf79f6cd0b2492d7182567e75de69ed3c3cf1"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/ualberta.xml",
+      "bytes": 3591,
+      "sha256": "3519ea2925d921cfe414c88513908adb6c3d917b53e1092eabfc9b9fa14ada44"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/uAvionix.py",
+      "bytes": 1856016,
+      "sha256": "f68fdc02d4ee56a876921af20a74c0b3ae57cf7098da9429b7037092049b0aa6"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/dialects/v20/uAvionix.xml",
+      "bytes": 16300,
+      "sha256": "305a6da6cfe66742c7d0be63362ade7687a4725b33061dae1786308d1a026665"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/fgFDM.py",
+      "bytes": 9755,
+      "sha256": "569d3fcb187ed50b3a7eeb747a5a1e0b185fe805fb5f03118dd414c48ecab7b0"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/__init__.py",
+      "bytes": 31,
+      "sha256": "70a2079016a74c96fff11f2d0fad92a461041c3da3794988cbbe0c3dfd061ebb"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/C/include_v1.0/checksum.h",
+      "bytes": 2327,
+      "sha256": "d8eacd9eb9550277cb953783f528af72300d58f14f8b16af7677f17bf6054951"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/C/include_v1.0/mavlink_conversions.h",
+      "bytes": 6840,
+      "sha256": "2dc81c074670bfdca563ee11583c88f90adabd9582916f05ca48a9e51b5ce3e9"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/C/include_v1.0/mavlink_helpers.h",
+      "bytes": 20865,
+      "sha256": "bfb7edb38bb5cf4731f049dfcdf26946e8fcf29bb6df817c2aba7d8b65173932"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/C/include_v1.0/mavlink_types.h",
+      "bytes": 8803,
+      "sha256": "662677b9d69158709f2a198fb9d93f02fc5b0a8c9f7c95f86c23b1987fca67dd"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/C/include_v1.0/protocol.h",
+      "bytes": 13902,
+      "sha256": "62bf6122f49dd3b6e05ed52ee000e65653e3d980519df7d9f15e83270c2eaaee"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/C/include_v2.0/checksum.h",
+      "bytes": 2386,
+      "sha256": "63ee0b4b69a71276e54b251edcdb476afbb2ed42d1df167ef2692b1a0785495e"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/C/include_v2.0/mavlink_conversions.h",
+      "bytes": 6785,
+      "sha256": "b6fe6efca9c11bf1a25df39a09dd13b8465e1c07318b913db8714e395d9d0a09"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/C/include_v2.0/mavlink_get_info.h",
+      "bytes": 2282,
+      "sha256": "c3ba8fc5593d1b159735f8f2c797dddbbf161a9e699f31080969213988da6e1c"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/C/include_v2.0/mavlink_helpers.h",
+      "bytes": 36656,
+      "sha256": "2ab9bdff0953c75c6fb9d021e61c2c26c0f048da22b14db3b8a88ac515688035"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/C/include_v2.0/mavlink_sha256.h",
+      "bytes": 8350,
+      "sha256": "ccf184ab6d19d969604bcb4750030b3c94e16b512262eca20bb087d5643d3a19"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/C/include_v2.0/mavlink_types.h",
+      "bytes": 12104,
+      "sha256": "270bfc2ff1612ce84823dada22f3efa869263e6797f895090ebb41e27adc7309"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/C/include_v2.0/protocol.h",
+      "bytes": 13229,
+      "sha256": "9254e99273136dc2f199d2fc369a799a361b4b3afa01a8e4ac878d67b13db24a"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/CPP11/include_v2.0/message.hpp",
+      "bytes": 3204,
+      "sha256": "1885f77230e55c0544e26ff63e08804ffe3a08f2fb27683598368064a127b45e"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/CPP11/include_v2.0/msgmap.hpp",
+      "bytes": 6119,
+      "sha256": "74d9ba5a44753c22465784919eccc13aa7b3398ddff710db2fefc428eea3916f"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/CS/MAVLink.csproj",
+      "bytes": 2322,
+      "sha256": "04de1434550f65fb8061100544c45ab09ac311b8ff22b0a85358f44f73023d8a"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/CS/MavlinkCRC.cs",
+      "bytes": 1288,
+      "sha256": "ba488e35c3918db97944e975325a813f129dfb9f2c647fdc5729636941e856a4"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/CS/MAVLinkMessage.cs",
+      "bytes": 6143,
+      "sha256": "00b97b4e8605e370b8a508022d3c59d549489e301016262818293bbf45caf6f7"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/CS/MavlinkParse.cs",
+      "bytes": 12387,
+      "sha256": "2a4b282f13a9b1764d4bc79a711cd3362f7e754a07dec16566bd76754928c728"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/CS/MavlinkUtil.cs",
+      "bytes": 12633,
+      "sha256": "80b4bc148da7cc2815848e19fef125578bb02cc673d075ae44f5392d379fdb66"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/java/lib/Messages/Description.java",
+      "bytes": 861,
+      "sha256": "7ac09b7f7208011d1ffb4ebe4875e766c3f42c8a3449e102308db69882b4c220"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/java/lib/Messages/MAVLinkMessage.java",
+      "bytes": 949,
+      "sha256": "b8aec4bc46518e824e736e7d8947e2d2ca2746ed54b689a607f68bf40644b96e"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/java/lib/Messages/MAVLinkPayload.java",
+      "bytes": 6390,
+      "sha256": "701650d1df528e8484f6608947aa0e0d95abe740472b0a18bef6cab8f3979bdc"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/java/lib/Messages/MAVLinkStats.java",
+      "bytes": 4786,
+      "sha256": "c282e8c6e797d0dfabab9bc1b789c8e2e2870e613c96014d70e0b0ab9df81da4"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/java/lib/Messages/Units.java",
+      "bytes": 1319,
+      "sha256": "a51585779f410a5ba2673d520d6152f78208e774e73f9449854fe515c8dbbfe4"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/java/lib/Messages/UnitsEnum.java",
+      "bytes": 3547,
+      "sha256": "4dcbb22a5dd0706208ae97df84198ede87364418f3a4d8bb596afc42972b3d11"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/java/lib/Parser.java",
+      "bytes": 8023,
+      "sha256": "f981de878e6ff7ecde7ffae60fd0c764fde6b2408672652268ef20eb2ece606a"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/mavcrc.py",
+      "bytes": 2230,
+      "sha256": "aedadc06433a01392675034c4056b9fe9962b25dc8c56a5f21856bfd678cfcfd"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/mavgen.py",
+      "bytes": 14997,
+      "sha256": "26027ec0dae2d0a404d57c376adea74d04d6b41d55b08c9279786f45cfca335d"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/mavgen_ada.py",
+      "bytes": 47081,
+      "sha256": "9e9e2ba3898a42fad5417b69734c79f7ade3d716db9cc98e8577a7be86a9f25c"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/mavgen_c.py",
+      "bytes": 28017,
+      "sha256": "dea553e7117d9e377d1a85db7c30c8f3eb5707f187a87680d3d43f37d74ccfe8"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/mavgen_cpp11.py",
+      "bytes": 12858,
+      "sha256": "81dc7d73b4b1164c04115f11aff9618be72ac97a0729a89f4651aa8ab6802ed5"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/mavgen_cs.py",
+      "bytes": 13647,
+      "sha256": "2b46fbd050be82fba0d2e5caabe22c27ef1f165c82220b7adf54ccffc5f89d95"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/mavgen_java.py",
+      "bytes": 26991,
+      "sha256": "7a7ebb7d5da03ae62a09a88f48bfd55ea49e4178f98aebac7f0a314230b680a6"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/mavgen_javascript.py",
+      "bytes": 50618,
+      "sha256": "10d50677323fdf6962896063d5e19fe7e7dd74ff7d7834c7e0826fa17fb60259"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/mavgen_javascript_stable.py",
+      "bytes": 23984,
+      "sha256": "fbc60ce078b7242816553dcbd2effc732c235eeaefe9bfb23c33a5d4dfc35c50"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/mavgen_lua.py",
+      "bytes": 8094,
+      "sha256": "36cd7904645c597f16bc46bb649bf4e6ed0c463383cd9a1b188629a2d84975e2"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/mavgen_objc.py",
+      "bytes": 13598,
+      "sha256": "27e4a05d8cfc988516bcc1c6e2c17b4955e36006df94808622f3b38b10c9ecc7"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/mavgen_python.py",
+      "bytes": 42980,
+      "sha256": "81282646cc95f8ddffdaa9b133de004ca905c5280866c5bb98490b4dc4b2dfeb"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/mavgen_spin2.py",
+      "bytes": 28741,
+      "sha256": "6829f627453f1e16b11c485e3b2ce9436bca048be38eca04fe765059f2513dd2"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/mavgen_swift.py",
+      "bytes": 15082,
+      "sha256": "14c4188f3ed57101203099f21a30855cd6905e36843f3a7b81dbbf984a6bae94"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/mavgen_typescript.py",
+      "bytes": 5821,
+      "sha256": "77dfe7698b949206b4e7a071dd392cf1d9550c8d30aa495f4ece90d031d06841"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/mavgen_wlua.py",
+      "bytes": 29678,
+      "sha256": "65cd46f45f8e74c58c6afdae3a9319d6b2c732163c1bd770663e5e2b3e779639"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/mavparse.py",
+      "bytes": 26110,
+      "sha256": "a5e6ee520a237f05faf9e5519a6c51502e902baeaed8794d9c45720cce84e663"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/mavschema.xsd",
+      "bytes": 17899,
+      "sha256": "74420566d97af48621678c1962c2c30c727ae5b37e0e1a224c37613ce9622e95"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/mavtemplate.py",
+      "bytes": 5599,
+      "sha256": "79f2745a31f3fb1965ecbc27b4407472ed371f0a277bdc46ead83b7ec8bfc2de"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/generator/swift/MAVLink.swift",
+      "bytes": 44895,
+      "sha256": "715c18198e4c3523be18daf94f4e7d60bba908bfc337c49652076e4c088f95aa"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/mavexpression.py",
+      "bytes": 2308,
+      "sha256": "f48702b4f326a83939a03badfe93187331d03b486eabb253ceda5245aab89429"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/mavextra.py",
+      "bytes": 70854,
+      "sha256": "b40b05cd8826f098c269930b2dfc5c6a775340c9fe5c211cbd705ef1c4041ea4"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/mavftp.py",
+      "bytes": 106053,
+      "sha256": "11ef42586d656ce6eb3a1a19835b73ce94f86a86e270de51e1ca48e44efcf094"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/mavftp_op.py",
+      "bytes": 3358,
+      "sha256": "aa6c80ea137873a1827d1ddef2d89a05599649161e86e2d26bfb56db62e66510"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/mavftpfs.py",
+      "bytes": 6879,
+      "sha256": "05b2ea918a25b7d10e437224707c06c45462559020f9cbe60153aa1ef0285aa2"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/mavparm.py",
+      "bytes": 8312,
+      "sha256": "84bcf9f49513a5e0ca819ae4586ad7c1c25f7b009e181ec1a88ee429552a6bd3"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/mavtestgen.py",
+      "bytes": 3543,
+      "sha256": "4745732060743091692c217680a0b322be59b619bc3b800e196c0cd067112df3"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/mavutil.py",
+      "bytes": 109124,
+      "sha256": "f89becd5249c8c04a8353afab0eeae7d24d0e402f8557cfedef60f6f4974a4cd"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/mavwp.py",
+      "bytes": 29535,
+      "sha256": "2c18ebc4a159d3597c00f21c6080dc9a5d3fe6345f2481f1226b8977293d2225"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/message_definitions/v1.0/all.xml",
+      "bytes": 1749,
+      "sha256": "3a260911e39ff2bf7bdb9ffc6fd628993d98bf2dc294ba54f88e134ca2433427"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/message_definitions/v1.0/ardupilotmega.xml",
+      "bytes": 119869,
+      "sha256": "9a4b9390b232083ba01b35923a3b645e69e8d1c06cb9794adeca39e6a891abb9"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/message_definitions/v1.0/ASLUAV.xml",
+      "bytes": 20614,
+      "sha256": "da810b85ea63059b42d4993509a66cbf6fe20a7637468b70adb01096ad0a270b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/message_definitions/v1.0/AVSSUAS.xml",
+      "bytes": 10568,
+      "sha256": "fa3cb38a8fb9764255b300acc66cb565716f5ce594bee3cd81157a757147e7ab"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/message_definitions/v1.0/common.xml",
+      "bytes": 632041,
+      "sha256": "ec9a32b00ed801ed6231edd0da943b782b7e5070b1134e8738a8ada0949ee2cb"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/message_definitions/v1.0/csAirLink.xml",
+      "bytes": 1128,
+      "sha256": "d80350ff93890b6c0037d04908d93dc02e483c93e9b6b95622feb5b4be7b9dc6"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/message_definitions/v1.0/cubepilot.xml",
+      "bytes": 2786,
+      "sha256": "0e14a4870421dfeb9db9e144d8f046dc8d62e6ad898ef78e73d5fe3a2534963a"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/message_definitions/v1.0/development.xml",
+      "bytes": 25109,
+      "sha256": "71b6a4afd78f0b34c613e784d34438e02a6878b660cd018c32564d4da44dbe3e"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/message_definitions/v1.0/icarous.xml",
+      "bytes": 2927,
+      "sha256": "95167e6cd313cf02a2249943c0a828f0502212d2a8eca3b1a495adeadca26137"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/message_definitions/v1.0/loweheiser.xml",
+      "bytes": 3672,
+      "sha256": "3ff1551230ed1cada4523b9246b95884c46be1c168359f557042a07648853c4b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/message_definitions/v1.0/matrixpilot.xml",
+      "bytes": 27598,
+      "sha256": "df5fe9fcbea6302865bf1886f22e491c72b5fc89e418be50f4eca48faa3bfed2"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/message_definitions/v1.0/minimal.xml",
+      "bytes": 47521,
+      "sha256": "5b450b2eef9e93db9c0a35ea56141bd05c197f41a9f4a7990a99b91c16814fa9"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/message_definitions/v1.0/paparazzi.xml",
+      "bytes": 2114,
+      "sha256": "e0994fec7441bef91fb62ea819bc0dac9b968ddc565a11f1d22326e2aabdee3f"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/message_definitions/v1.0/python_array_test.xml",
+      "bytes": 3383,
+      "sha256": "6e3b99fcdca24c8726cc7036264242725f7850750c9a78a0f19309461f5ed06f"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/message_definitions/v1.0/standard.xml",
+      "bytes": 10450,
+      "sha256": "d41d5a29619345fcaa110891682e6df83eca081168f76ecfd17d59d0ea721c47"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/message_definitions/v1.0/storm32.xml",
+      "bytes": 37529,
+      "sha256": "d121aa325443b894530ed8874ade819c9d5041f052650257cfb66fbaa8686f13"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/message_definitions/v1.0/test.xml",
+      "bytes": 1592,
+      "sha256": "83702edcb6dfec3c7b41bee6a4426698bb6efcfd6952916a35c422c72b610f56"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/message_definitions/v1.0/ualberta.xml",
+      "bytes": 3591,
+      "sha256": "3519ea2925d921cfe414c88513908adb6c3d917b53e1092eabfc9b9fa14ada44"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/message_definitions/v1.0/uAvionix.xml",
+      "bytes": 16300,
+      "sha256": "305a6da6cfe66742c7d0be63362ade7687a4725b33061dae1786308d1a026665"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/quaternion.py",
+      "bytes": 18777,
+      "sha256": "99fa38d9b35fad963ae2a87c1429ba16f0c398ef9331306c09da79875ddaf950"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/rotmat.py",
+      "bytes": 18276,
+      "sha256": "30e5e4f9b723139013b5f3f3d8658f612ed41a1176172fe33a166b6287845950"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/setup.py",
+      "bytes": 9107,
+      "sha256": "38708bfc61151417a3b9778268e9a1edc5d2968bb4293d725dc6b843e6a0da54"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/__init__.py",
+      "bytes": 86,
+      "sha256": "3a44bd00190c38a0495f4c6a020557e978ab5db615fea1e64914ab439920271b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/extract_batch_imu.py",
+      "bytes": 2045,
+      "sha256": "2c4286812e9a1fdd7fa5f7e7f730a4098dfd339bf9795f237984cb1364e0f738"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/extract_parms.py",
+      "bytes": 1532,
+      "sha256": "b736deddd7f75bc2198022aa133b384a8b259420903c562267142fcc2b6a3c04"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/find_aliasing.py",
+      "bytes": 3055,
+      "sha256": "e7fa1ce8e04bba8b4a5500282d784a7330e8f5435fed59580eb3c632eb2d8201"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/isb_extract.py",
+      "bytes": 4009,
+      "sha256": "583dc826e674f8ce85035b6f4df2d43d8705f53b5573f453adbe33c8c8dce542"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/magfit.py",
+      "bytes": 4960,
+      "sha256": "591afd21fdb60830ab23aaa17197f202c78aa2218b314dbffe638214cbabfc22"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/magfit_compassmot.py",
+      "bytes": 2294,
+      "sha256": "74a8b4379302d60623ac02c89e3805a37ad5ca1f3cf4bce9262cc461148e4954"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/magfit_delta.py",
+      "bytes": 4448,
+      "sha256": "3464af9bc2b77bf0d60f2edc639ef29b56d15e3c6d987f2aa0ad9535c024e60e"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/magfit_elliptical.py",
+      "bytes": 6664,
+      "sha256": "863786394f805c6ba577239d3dd6faa8c98062cb6761325e94a305b2e5da7ad9"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/magfit_gps.py",
+      "bytes": 4710,
+      "sha256": "a85440bf33721650972986db8d60f5cf9100d1f0ccd0703cc1f25dd2e90d6629"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/magfit_motors.py",
+      "bytes": 4736,
+      "sha256": "c5216a2767f2527c95f845388788d3cfc355bdf44c59dbe0c7c78cc8a29d7de7"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/magfit_rotation_gps.py",
+      "bytes": 3835,
+      "sha256": "d35894f7ce964b90ea353970248ca0e53e16348a3a9ae5274f12f34a778e0e41"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/magfit_rotation_gyro.py",
+      "bytes": 7200,
+      "sha256": "626f0e69269d392a4c4af4934f3e7a4052b54c2fbc8a42606d2080eab58b15f9"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/magfit_WMM.py",
+      "bytes": 18728,
+      "sha256": "23f4c25a68d43565b9cfbede5a4f0b2880a1873fd698c483fd1b9f472c8e288d"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavbitmask_change.py",
+      "bytes": 7799,
+      "sha256": "f499fb338d4d8ba167c304407cccb241e7e57e831ca1e2050cd76364a594d526"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavextract.py",
+      "bytes": 3911,
+      "sha256": "6fc48334e93ccd055da4926b40809fc6658a756edfb4f443289ff492ea53051a"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavfft.py",
+      "bytes": 2452,
+      "sha256": "3f314a610aa59ad01d42875e186ffad3d848c08ac44431db24f2c94c881df4c1"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavfft_int.py",
+      "bytes": 8205,
+      "sha256": "636a1f2f2bf0a39c90848617e6c3e765806c03645bd1deddf52d1034ebf192c3"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavfft_isb.py",
+      "bytes": 15474,
+      "sha256": "20e61d90e9b08a52d261192aa6385f0d86f43c77beeff625467ae8e6c6b44294"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavfft_pid.py",
+      "bytes": 3901,
+      "sha256": "43a275856c9be41d03eb696b61b2dd5cd8dc57438ddf3b63af2484bcf2ef89aa"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavfixtimedrift.py",
+      "bytes": 2402,
+      "sha256": "ec1ec899049a0ef5de8c6613ed34ffe670d6254ff38e19d18ff320fe31200751"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavflightmodes.py",
+      "bytes": 2736,
+      "sha256": "1475c79016b7b71be30dd08c4ec4f8eb7d0bd32fe7595524eb36d21191b66093"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavflighttime.py",
+      "bytes": 2705,
+      "sha256": "6d65f07dbe922fac17e4efc082a78931c0cce8fb43a1c16d75b6d1328a6afd0b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavftpdecode.py",
+      "bytes": 3885,
+      "sha256": "922f456016aed28924dcad3319cad3bb450fa3cb240f3562bf3f1fe235462a62"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavgen.py",
+      "bytes": 1708,
+      "sha256": "ed0cce1459144b743d26c76974d0212a17721ade8b057a5568e03c0b3956be6f"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavgps_CEP.py",
+      "bytes": 4665,
+      "sha256": "ccb7a29cb037e341c80ddc59f05aa9d966cbbe1f244cdc1ca1a4021abcae549e"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavgpslag.py",
+      "bytes": 4419,
+      "sha256": "106b9d5bbb5a42e16d23a2ae055236f8d67bac3f68c085f0e379e2ea6f9cedce"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavgpslock.py",
+      "bytes": 2025,
+      "sha256": "64b9f2eb80e21b31a44716d07ef521d8093a42cb9cb7f2fbf8e4c8d7a8a331ef"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavgraph.py",
+      "bytes": 11619,
+      "sha256": "1aba9fa5f58dfc21f0da1eabe46a8b9be6e33ee0af89c0c9bd92fc05e564b10e"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavkml.py",
+      "bytes": 7005,
+      "sha256": "7787b3c24a921dcc1fcb808cbe6c8571e46fd6174262e1465d4965c28287fb9b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavlink_bitmask_decoder.py",
+      "bytes": 900,
+      "sha256": "290c46d974260dcfb2f20a8e93009e1318ce87b351576f922d4850c1eb5d0a3a"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavlink_messages_size.py",
+      "bytes": 21945,
+      "sha256": "2e7e795993e99758b2855bfb80f7fef6a5753a7e8993369cfd367be690035ce6"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavlogdump.py",
+      "bytes": 16034,
+      "sha256": "9c2d73b00b6cb876e863598b143389e5e8d1cdce0ab357d7d0cf970928f85168"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavloss.py",
+      "bytes": 6189,
+      "sha256": "d48853b87bcb5e8dc2fa34d65853c6ab56e173af86dc9c814429ffe1f06a6732"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavmerge.py",
+      "bytes": 2217,
+      "sha256": "99ea4419d4c425210c1770502712dad28df7eaf23fc7f1fa3311c737c395ce94"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavmission.py",
+      "bytes": 3043,
+      "sha256": "1e8f5c8755b6d1cbbd0317a44399828a9982a6d9af102dc5394f179223126221"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavmsgstats.py",
+      "bytes": 2786,
+      "sha256": "a7d80a766eed6a854f7782d16e65e9de7b586e917476b3a1a95b59301f4dc9fd"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavparmdiff.py",
+      "bytes": 2942,
+      "sha256": "3aace12aeab36f63989949855bd13a49fd55c75a479ad2c2f06d6145c07e675d"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavparms.py",
+      "bytes": 1858,
+      "sha256": "b7dd06fe42b2bf03472a93cbbfbb0622a55e2636bdff44db4a7e77a5957164de"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavplayback.py",
+      "bytes": 8556,
+      "sha256": "dc847e146f8f53a362f391751cbcef9741365801c9c4961e5d9163449f65f1a3"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavsearch.py",
+      "bytes": 1142,
+      "sha256": "e103f2320de4dbd973681a3bf38c09b07fc29fc26de3dbc295327b6872446526"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavsensor_status_change.py",
+      "bytes": 607,
+      "sha256": "05e82d50eca38308f2c8d7800947ae1e93feb8ea7f6ddfd08d646f13a16475ec"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavsigloss.py",
+      "bytes": 1918,
+      "sha256": "9efc28fe76a5211983357e734c24a2de909b301448df56890f8b9a907c913d0d"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavsplit_sysid.py",
+      "bytes": 1797,
+      "sha256": "98dbc66381178849adaeca5a109fafe26da38bba96d8b84338632d1b673d324b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavsummarize.py",
+      "bytes": 6595,
+      "sha256": "eaaa8d7d298f6c0533c8120ec14e7939006eb38d45b3192fb4fdd0216fdbd105"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavtelemetry_datarates.py",
+      "bytes": 8932,
+      "sha256": "c11e0195e51238ebf64290923c3ed144f4fbce9b96f70280b4a8853662a10446"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavtogpx.py",
+      "bytes": 3343,
+      "sha256": "43dd4b306b3a38e49ff1cba4a454c739a6a8620c0ef184c7eef87668ce37bf87"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavtomfile.py",
+      "bytes": 3078,
+      "sha256": "bfc7c1fae59f12652b6e859d6fddf6211cb37a65f7af785b59d5713795b385db"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/mavtranslatelog.py",
+      "bytes": 7672,
+      "sha256": "274abbb2cf5a0aef3087b11b2b7428596a44465f157db7d1ecb52e93138f069a"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/python_array_test_recv.py",
+      "bytes": 205,
+      "sha256": "721aa0fe4c7af6ee139bd5fe4bec6a7ccaf98ac164e408283aafcecb426fc322"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/python_array_test_send.py",
+      "bytes": 828,
+      "sha256": "f10ff8048d57b658df36242b090dddce6e11c0423a4504067cb370c455f40924"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/serial_control_to_shell.py",
+      "bytes": 4335,
+      "sha256": "9d5f1629bb029a9a228ddfc4bf2bf7293d36f1c3c9dd5eb49e478665b82396bb"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/sertotcp.py",
+      "bytes": 2093,
+      "sha256": "b38811c3ac0d5738f84356df57ad6f63468bbca979ff7a12ffbb98d35770f3c1"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink/tools/test_mavftp_hardware.py",
+      "bytes": 7971,
+      "sha256": "0ad90a0d5fdbdace157c5fb43844ff26e34832e104498d46f6234ba7c5f7b92c"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink-2.4.50.dist-info/INSTALLER",
+      "bytes": 4,
+      "sha256": "ceebae7b8927a3227e5303cf5e0f1f7b34bb542ad7250ac03fbcde36ec2f1508"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink-2.4.50.dist-info/licenses/COPYING",
+      "bytes": 9699,
+      "sha256": "cbc6d5236c8119fbc92a44e9bad194f2a8886d65b86a896d3404182f415a920b"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink-2.4.50.dist-info/METADATA",
+      "bytes": 7804,
+      "sha256": "bce352560b437fc71ce991241b3ce8d7829b08b1eba06460b194bad33bc64073"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink-2.4.50.dist-info/RECORD",
+      "bytes": 23380,
+      "sha256": "deafae6e8499a2064a1584fb2c5b5b818f08b6dee67a5847857fbd7a82d25816"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink-2.4.50.dist-info/REQUESTED",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink-2.4.50.dist-info/top_level.txt",
+      "bytes": 10,
+      "sha256": "e47efcf4a1419513e4ae6d0a344b58c4f55f0e33a6a832bc202b60164fe629d2"
+    },
+    {
+      "path": "runtime/python/Lib/site-packages/pymavlink-2.4.50.dist-info/WHEEL",
+      "bytes": 101,
+      "sha256": "d0b50da07c4bbdca70f5d6ffc745e8cc4e635bbdfefc63803bb7c30c9e17b784"
+    },
+    {
+      "path": "runtime/python/libcrypto-3.dll",
+      "bytes": 5231472,
+      "sha256": "ccfffddcd3defb8d899026298af9af43bc186130f8483d77e97c93233d5f27d7"
+    },
+    {
+      "path": "runtime/python/libffi-8.dll",
+      "bytes": 39696,
+      "sha256": "eff52743773eb550fcc6ce3efc37c85724502233b6b002a35496d828bd7b280a"
+    },
+    {
+      "path": "runtime/python/libssl-3.dll",
+      "bytes": 794992,
+      "sha256": "007142039f04d04e0ed607bda53de095e5bc6a8a10d26ecedde94ea7d2d7eefe"
+    },
+    {
+      "path": "runtime/python/LICENSE.txt",
+      "bytes": 33861,
+      "sha256": "62bec384df47b0328307db41455ff6ea2559e5546b394ac69148561b21703120"
+    },
+    {
+      "path": "runtime/python/pyexpat.pyd",
+      "bytes": 206168,
+      "sha256": "719dc29fee125f0d5026319da9a3001c130c84419db7ef7c5473fb496d56cfc2"
+    },
+    {
+      "path": "runtime/python/python.cat",
+      "bytes": 569510,
+      "sha256": "e4f8f4b4006ff861b7f13395e7688eaf6c5ad7ab111e168afa962556164c2c00"
+    },
+    {
+      "path": "runtime/python/python.exe",
+      "bytes": 105816,
+      "sha256": "d932e5e2f324d57f392e8fd063dcf6d0185be8a664c57c6d24e7762ed02c28ca"
+    },
+    {
+      "path": "runtime/python/python3.dll",
+      "bytes": 72536,
+      "sha256": "4ae581aa4e65fef9f92c84c428c990892da538b4d9289592df51fa31fd879770"
+    },
+    {
+      "path": "runtime/python/python313._pth",
+      "bytes": 50,
+      "sha256": "5087fe75601576cdeab5a45da29266d4d9b8949787b5d8ba242076760aedf892"
+    },
+    {
+      "path": "runtime/python/python313.dll",
+      "bytes": 6123864,
+      "sha256": "41ec4fc4e5bc8b207258590238f7f050b13fdfee84c4a7b1ecff6e945d031a10"
+    },
+    {
+      "path": "runtime/python/python313.zip",
+      "bytes": 3781453,
+      "sha256": "56ac04066d302e9ffe247af4f3333cfe55044fba163e5bcc5ef8698d9c54f9d5"
+    },
+    {
+      "path": "runtime/python/pythonw.exe",
+      "bytes": 104280,
+      "sha256": "49f305f2eebfb144f3a3d040f5e374ccb59c7f00c9ff8ffecfd41616e1e6bfa9"
+    },
+    {
+      "path": "runtime/python/select.pyd",
+      "bytes": 33112,
+      "sha256": "9cc1ef0264060099503592db57ee7d7c1f8d6bea689b2ed125919c7a30b7ab7f"
+    },
+    {
+      "path": "runtime/python/sqlite3.dll",
+      "bytes": 1584984,
+      "sha256": "6c47f687b210e26c4a743f8d36daf450175f31f96a17b20e31980b8602909728"
+    },
+    {
+      "path": "runtime/python/unicodedata.pyd",
+      "bytes": 712024,
+      "sha256": "1989628f16052f9123c5cf603e96490a75fde6228315457556f96a838bf9e904"
+    },
+    {
+      "path": "runtime/python/vcruntime140.dll",
+      "bytes": 120400,
+      "sha256": "052ad6a20d375957e82aa6a3c441ea548d89be0981516ca7eb306e063d5027f4"
+    },
+    {
+      "path": "runtime/python/vcruntime140_1.dll",
+      "bytes": 49776,
+      "sha256": "6a99bc0128e0c7d6cbbf615fcc26909565e17d4ca3451b97f8987f9c6acbc6c8"
+    },
+    {
+      "path": "runtime/python/winsound.pyd",
+      "bytes": 32088,
+      "sha256": "399d8c1a6607a97394a2ed735dcf3b489cf81048e81afe29bce7e0f53fb252c2"
+    },
+    {
+      "path": "simulador/config/equipamentos.json",
+      "bytes": 3199,
+      "sha256": "7074cc5a437ba922f9f6de928ea8c286dc0d1a0d59110be9690864bcce09f12a"
+    },
+    {
+      "path": "simulador/docs/arquitetura.md",
+      "bytes": 4796,
+      "sha256": "9805e42a09afdfcfe0f2af5e96b017534aae5a164d6c288ca2ddbe24d794c7f4"
+    },
+    {
+      "path": "simulador/docs/camera-high.png",
+      "bytes": 26115,
+      "sha256": "c3ba0a19122d35c0895d46afee7b7ebad37ee9959f1ac804681e109ced98d57e"
+    },
+    {
+      "path": "simulador/docs/camera-low.png",
+      "bytes": 14189,
+      "sha256": "70ee1095f9a60acac2fb214515bb1f08448b08149e97435d76fe5aa2c825048e"
+    },
+    {
+      "path": "simulador/docs/camera-mapa-real.png",
+      "bytes": 28389,
+      "sha256": "e572c9c85e45cad56b923f573ed1f10cab203218a11e3284636d7cd202775184"
+    },
+    {
+      "path": "simulador/docs/exemplo_construcoes_sinteticas.json",
+      "bytes": 2153,
+      "sha256": "43bbd80d4b1476320bd371984ea4c49ec7b0db0237350fab91ea385a35d20dfc"
+    },
+    {
+      "path": "simulador/docs/instalacao_servidor.md",
+      "bytes": 2302,
+      "sha256": "1835fa25a6e7d73f32c97c7ad190ed3b2d4c7f9a290a94ada2ed20aee01c62e9"
+    },
+    {
+      "path": "simulador/docs/LEIAME.md",
+      "bytes": 7733,
+      "sha256": "394b0c3333801e9a28730b4b7704a98b2a9dbbabfef29bd0a817938e94917383"
+    },
+    {
+      "path": "simulador/docs/modelos.md",
+      "bytes": 5570,
+      "sha256": "82952a2668564836a7b7951e4770c6af3ef06ba9a032cdf17e60cc90cace5c60"
+    },
+    {
+      "path": "simulador/docs/protocolo_mundo.md",
+      "bytes": 4324,
+      "sha256": "10c1e67ac1886af45985531b960565455d203255ad618076c44b25d10f0e9e2f"
+    },
+    {
+      "path": "simulador/docs/SIMULADOR_0.45.md",
+      "bytes": 7389,
+      "sha256": "34198c77ddb522c74cd8fb7abbdae0ecac3697de633be73399c1af4c08056858"
+    },
+    {
+      "path": "simulador/docs/SIMULADOR_0.46.md",
+      "bytes": 8778,
+      "sha256": "c30f5b410a0dd7308a164a90158f0f826c4ce51eb181fab26437558c851cf91b"
+    },
+    {
+      "path": "simulador/docs/testes.md",
+      "bytes": 2192,
+      "sha256": "33738ac557d3c9e1d0188ac98d0eda889038efb57ee4e75c81b163ad9d05cdc7"
+    },
+    {
+      "path": "simulador/libcrypto-3-x64.dll",
+      "bytes": 7225016,
+      "sha256": "5268a29c9a5e353770b894f3dbd148ee8c60971aa1620713c54d8e56563d0aca"
+    },
+    {
+      "path": "simulador/libssl-3-x64.dll",
+      "bytes": 1500856,
+      "sha256": "00520a8ca63ec624969742aa04e7db2af94ba0d3f5fe204cbd114b4ec1f24752"
+    },
+    {
+      "path": "simulador/simulador.exe",
+      "bytes": 3159040,
+      "sha256": "f7d12a477565ea9d9b1960a88a35a8609f42ebf5ed813bb2e6155dbc07ff44a9"
+    },
+    {
+      "path": "tools/drone_vision.py",
+      "bytes": 6367,
+      "sha256": "e2cab8674f1cdf8d371f2dcd23547f12064079400f20e86d06c491d24cbb1f82"
+    },
+    {
+      "path": "tools/inventory_lazarus.py",
+      "bytes": 3321,
+      "sha256": "8b0543ccac89f3f604a26542fc982209c2bf7baac23df0e0d1d9e93355b9ee3c"
+    },
+    {
+      "path": "tools/simulator_ardrone_endpoint.py",
+      "bytes": 6405,
+      "sha256": "53bef67c832bc7ce936d581f0514fed9ef0ee09e148abe208696d45c6f783b4d"
+    },
+    {
+      "path": "tools/simulator_cdp_endpoint.py",
+      "bytes": 5701,
+      "sha256": "071c0380f182df43e12cb737ca4e0d76c2967b02d1aab097cbe901020d48707c"
+    },
+    {
+      "path": "tools/simulator_cheerson_endpoint.py",
+      "bytes": 7507,
+      "sha256": "723100e9978997ae7fc30627c41a82cf840cd34e010568dd97fceb49d87e4498"
+    },
+    {
+      "path": "tools/simulator_cheerson_physics.py",
+      "bytes": 4114,
+      "sha256": "bb6c8604c9b65d1c0fdb20a8af151894bcd013bf273446ab84ac3c8d5db5839d"
+    },
+    {
+      "path": "tools/simulator_espdrone_endpoint.py",
+      "bytes": 4319,
+      "sha256": "7bd33240e2868f44d1fc04ca605541fac3a306a6cd08d0d3ec0fa05f60924484"
+    },
+    {
+      "path": "tools/simulator_mavlink_endpoint.py",
+      "bytes": 8681,
+      "sha256": "1c467506d84012279cbbc4379219643c9a36138a5e0fafa44597ab9f02af562b"
+    },
+    {
+      "path": "tools/simulator_tello_endpoint.py",
+      "bytes": 6913,
+      "sha256": "0f7a8baf87d0a68db5d7bac4222d53a43fd7842341cf0dded15036e33c0a9068"
+    },
+    {
+      "path": "tools/sitl_heartbeat_monitor.py",
+      "bytes": 4906,
+      "sha256": "3c818a2c048445ac19e5eba2711c260894bb1a139712fd8dba1894a97bbb4562"
+    },
+    {
+      "path": "tools/test_simulator_espdrone.py",
+      "bytes": 3135,
+      "sha256": "46803e5c6fbf3a01a2d109f73267beeed931753590e2ea98b42e7b465feb2d74"
+    }
+  ],
+  "pe_files": [
+    {
+      "machine": "0x8664",
+      "imports": [
+        "kernel32.dll",
+        "oleaut32.dll",
+        "user32.dll",
+        "gdi32.dll",
+        "version.dll",
+        "shell32.dll",
+        "ole32.dll",
+        "comctl32.dll",
+        "comdlg32.dll",
+        "winmm.dll",
+        "wininet.dll",
+        "ws2_32.dll",
+        "winhttp.dll",
+        "wsock32.dll"
+      ],
+      "path": "drone.exe"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "ADVAPI32.dll",
+        "AVRT.dll",
+        "bcrypt.dll",
+        "CFGMGR32.dll",
+        "CRYPT32.dll",
+        "d2d1.dll",
+        "DNSAPI.dll",
+        "DWrite.dll",
+        "GDI32.dll",
+        "IPHLPAPI.DLL",
+        "KERNEL32.dll",
+        "MSIMG32.dll",
+        "api-ms-win-crt-conio-l1-1-0.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-multibyte-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-process-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "ncrypt.dll",
+        "ntdll.dll",
+        "ole32.dll",
+        "OLEAUT32.dll",
+        "RPCRT4.dll",
+        "Secur32.dll",
+        "SHELL32.dll",
+        "SHLWAPI.dll",
+        "USER32.dll",
+        "USERENV.dll",
+        "USP10.dll",
+        "AVICAP32.dll",
+        "WINMM.dll",
+        "WS2_32.dll",
+        "api-ms-win-core-synch-l1-2-0.dll",
+        "bcryptprimitives.dll",
+        "ntdll.dll",
+        "ws2_32.dll"
+      ],
+      "path": "ffmpeg.exe"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "WS2_32.dll",
+        "ADVAPI32.dll",
+        "CRYPT32.dll",
+        "USER32.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "KERNEL32.dll"
+      ],
+      "path": "libcrypto-3-x64.dll"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "libcrypto-3-x64.dll",
+        "WS2_32.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "KERNEL32.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll"
+      ],
+      "path": "libssl-3-x64.dll"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "KERNEL32.dll"
+      ],
+      "path": "runtime/python/_asyncio.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "KERNEL32.dll"
+      ],
+      "path": "runtime/python/_bz2.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "libffi-8.dll",
+        "ole32.dll",
+        "OLEAUT32.dll",
+        "KERNEL32.dll",
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll"
+      ],
+      "path": "runtime/python/_ctypes.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "KERNEL32.dll"
+      ],
+      "path": "runtime/python/_decimal.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "KERNEL32.dll",
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll"
+      ],
+      "path": "runtime/python/_elementtree.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "libcrypto-3.dll",
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "KERNEL32.dll"
+      ],
+      "path": "runtime/python/_hashlib.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "KERNEL32.dll"
+      ],
+      "path": "runtime/python/_lzma.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "WS2_32.dll",
+        "KERNEL32.dll",
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll"
+      ],
+      "path": "runtime/python/_multiprocessing.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "WS2_32.dll",
+        "KERNEL32.dll",
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll"
+      ],
+      "path": "runtime/python/_overlapped.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "KERNEL32.dll"
+      ],
+      "path": "runtime/python/_queue.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "WS2_32.dll",
+        "IPHLPAPI.DLL",
+        "RPCRT4.dll",
+        "KERNEL32.dll",
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll"
+      ],
+      "path": "runtime/python/_socket.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "python313.dll",
+        "sqlite3.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "KERNEL32.dll"
+      ],
+      "path": "runtime/python/_sqlite3.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "WS2_32.dll",
+        "CRYPT32.dll",
+        "libcrypto-3.dll",
+        "libssl-3.dll",
+        "KERNEL32.dll",
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll"
+      ],
+      "path": "runtime/python/_ssl.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "RPCRT4.dll",
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "KERNEL32.dll"
+      ],
+      "path": "runtime/python/_uuid.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "PROPSYS.dll",
+        "OLEAUT32.dll",
+        "KERNEL32.dll",
+        "python313.dll",
+        "VCRUNTIME140_1.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll"
+      ],
+      "path": "runtime/python/_wmi.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "KERNEL32.dll"
+      ],
+      "path": "runtime/python/_zoneinfo.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "python313.dll",
+        "api-ms-win-core-synch-l1-2-0.dll",
+        "bcryptprimitives.dll",
+        "KERNEL32.dll",
+        "ntdll.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll"
+      ],
+      "path": "runtime/python/Lib/site-packages/fastcrc/fastcrc.cp313-win_amd64.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "python313.dll",
+        "KERNEL32.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll"
+      ],
+      "path": "runtime/python/Lib/site-packages/lxml/_elementpath.cp313-win_amd64.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "python313.dll",
+        "KERNEL32.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll"
+      ],
+      "path": "runtime/python/Lib/site-packages/lxml/builder.cp313-win_amd64.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "WS2_32.dll",
+        "python313.dll",
+        "ADVAPI32.dll",
+        "KERNEL32.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll"
+      ],
+      "path": "runtime/python/Lib/site-packages/lxml/etree.cp313-win_amd64.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "python313.dll",
+        "KERNEL32.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll"
+      ],
+      "path": "runtime/python/Lib/site-packages/lxml/html/_difflib.cp313-win_amd64.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "python313.dll",
+        "KERNEL32.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll"
+      ],
+      "path": "runtime/python/Lib/site-packages/lxml/html/diff.cp313-win_amd64.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "WS2_32.dll",
+        "python313.dll",
+        "KERNEL32.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll"
+      ],
+      "path": "runtime/python/Lib/site-packages/lxml/objectify.cp313-win_amd64.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "python313.dll",
+        "KERNEL32.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll"
+      ],
+      "path": "runtime/python/Lib/site-packages/lxml/sax.cp313-win_amd64.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "python313.dll",
+        "KERNEL32.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll"
+      ],
+      "path": "runtime/python/Lib/site-packages/pymavlink/dfindexer/dfindexer_cy.cp313-win_amd64.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "WS2_32.dll",
+        "ADVAPI32.dll",
+        "USER32.dll",
+        "bcrypt.dll",
+        "KERNEL32.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll"
+      ],
+      "path": "runtime/python/libcrypto-3.dll"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "KERNEL32.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll"
+      ],
+      "path": "runtime/python/libffi-8.dll"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "libcrypto-3.dll",
+        "KERNEL32.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll"
+      ],
+      "path": "runtime/python/libssl-3.dll"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "KERNEL32.dll",
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll"
+      ],
+      "path": "runtime/python/pyexpat.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "KERNEL32.dll"
+      ],
+      "path": "runtime/python/python.exe"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [],
+      "path": "runtime/python/python3.dll"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "VERSION.dll",
+        "WS2_32.dll",
+        "api-ms-win-core-path-l1-1-0.dll",
+        "bcrypt.dll",
+        "ADVAPI32.dll",
+        "KERNEL32.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-process-l1-1-0.dll",
+        "api-ms-win-crt-conio-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll"
+      ],
+      "path": "runtime/python/python313.dll"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "KERNEL32.dll"
+      ],
+      "path": "runtime/python/pythonw.exe"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "WS2_32.dll",
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "KERNEL32.dll"
+      ],
+      "path": "runtime/python/select.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "KERNEL32.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll"
+      ],
+      "path": "runtime/python/sqlite3.dll"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "KERNEL32.dll"
+      ],
+      "path": "runtime/python/unicodedata.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "KERNEL32.dll"
+      ],
+      "path": "runtime/python/vcruntime140.dll"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "VCRUNTIME140.dll",
+        "KERNEL32.dll"
+      ],
+      "path": "runtime/python/vcruntime140_1.dll"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "WINMM.dll",
+        "KERNEL32.dll",
+        "USER32.dll",
+        "python313.dll",
+        "VCRUNTIME140.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll"
+      ],
+      "path": "runtime/python/winsound.pyd"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "WS2_32.dll",
+        "ADVAPI32.dll",
+        "CRYPT32.dll",
+        "USER32.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "KERNEL32.dll"
+      ],
+      "path": "simulador/libcrypto-3-x64.dll"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "libcrypto-3-x64.dll",
+        "WS2_32.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-time-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "api-ms-win-crt-utility-l1-1-0.dll",
+        "api-ms-win-crt-filesystem-l1-1-0.dll",
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "KERNEL32.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll"
+      ],
+      "path": "simulador/libssl-3-x64.dll"
+    },
+    {
+      "machine": "0x8664",
+      "imports": [
+        "kernel32.dll",
+        "oleaut32.dll",
+        "user32.dll",
+        "gdi32.dll",
+        "version.dll",
+        "shell32.dll",
+        "ole32.dll",
+        "comctl32.dll",
+        "comdlg32.dll",
+        "ws2_32.dll",
+        "wsock32.dll"
+      ],
+      "path": "simulador/simulador.exe"
+    }
+  ]
+}

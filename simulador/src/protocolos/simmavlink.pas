@@ -107,6 +107,7 @@ type
     constructor Create(const AParam: TParametrosModelo; const AOrigem: TPontoGeo;
       ALeEstado: TLeEstado; ALeFalhas: TLeFalhas); override;
     destructor Destroy; override;
+    procedure ReiniciaEstado; override;
     function MontaComando(const AE: TEstadoVoo): TComandoVoo; override;
     function Descricao: string; override;
     property IPCockpit: string read FIPCockpit write FIPCockpit;
@@ -771,6 +772,15 @@ begin
   finally
     FLock.Leave;
   end;
+end;
+
+procedure TEmuladorMavlink.ReiniciaEstado;
+begin
+  FLock.Enter;
+  try inherited ReiniciaEstado; FArmado:=False; FAlvoDefinido:=False;
+    FillChar(FManual,SizeOf(FManual),0); FUltimoManual:=0;
+    FFaseRTL:=Low(TFaseRTL); FItemAtual:=-1; FEsperaAte:=0;
+  finally FLock.Leave; end;
 end;
 
 function TEmuladorMavlink.MontaComando(const AE: TEstadoVoo): TComandoVoo;

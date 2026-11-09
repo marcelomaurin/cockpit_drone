@@ -69,7 +69,7 @@ implementation
 {$R *.lfm}
 
 uses
-  main, conexaodrone, conectionmavlink, conectionopendrone,
+  setmain, main, conexaodrone, conectionmavlink, conectionopendrone,
   conectionesp32drone;
 
 { TfrmCam }
@@ -291,7 +291,8 @@ begin
 
   // Verifica se ha fluxo recente de imagem gerado pelo simulador local
   SimCamFile := IncludeTrailingPathDelimiter(GetTempDir) + 'cockpit_sim_camera.bmp';
-  if FileExists(SimCamFile) and FileAge(SimCamFile, SimDt) then
+  if Assigned(FSetMain) and FSetMain.SimulationMode and
+    FileExists(SimCamFile) and FileAge(SimCamFile, SimDt) then
   begin
     // Se o arquivo foi atualizado nos ultimos 4 segundos
     if (Now - SimDt) < (4.0 / 86400.0) then
@@ -343,6 +344,14 @@ begin
 
   // A imagem chega por MostraQuadro; aqui só o estado.
   Conn := TfrmConexaoDrone(frmMain.frmConnection);
+  if Conn.VideoExternoConfigurado then begin
+    BmpSim:=TBitmap.Create;
+    try
+      if Conn.CarregaQuadroExterno(BmpSim) then begin MostraQuadro(BmpSim);DefineStatus('ONLINE - FPV pela URL configurada');end
+      else DefineStatus('FPV: aguardando fluxo/decodificacao da URL configurada');
+    finally BmpSim.Free;end;
+    Exit;
+  end;
   if (Conn is TfrmConectionMavlink) or (Conn is TfrmConectionOpendrone) or
      (Conn is TfrmConectionESP32Drone) then
     DefineStatus('ESTE DRONE NÃO ENVIA VÍDEO PARA O COCKPIT')

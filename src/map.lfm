@@ -29,15 +29,10 @@ object frmMap: TfrmMap
     Top = 0
     Width = 731
     Align = alClient
-    DownloadEngine = MapView1.BuiltInDLE
-    DrawingEngine = MapView1.BuiltInDE
-    Layers = <>
-    POITextBgOpacity = 0.550000011920929
     TabOrder = 0
     OnChange = MapView1Change
     OnDrawGpsPoint = MapView1DrawGpsPoint
     OnZoomChange = MapView1ZoomChange
-    OnZoomChanging = MapView1ZoomChanging
     OnResize = MapView1Resize
     object gridMAP: TBCGameGrid
       Left = 40

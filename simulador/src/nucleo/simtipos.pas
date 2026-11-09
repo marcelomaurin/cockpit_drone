@@ -55,6 +55,7 @@ type
     Chave: string;
     Nome: string;
     Protocolo: string;
+    Classe:string;
     MassaKg: Double;
     VelMaxMS: Double;
     SubidaMaxMS: Double;
@@ -72,6 +73,7 @@ type
   TListaModelos = array of TParametrosModelo;
 
   TFalhas = record
+    SinalInfinito: Boolean;         // treinamento: ignora alcance e perda simulada
     PerdaSinal: Boolean;
     PerdaGPS: Boolean;
     VentoMS: Double;
@@ -126,7 +128,7 @@ end;
 function ModelosPadrao: TListaModelos;
 begin
   // Valores iniciais: ajustar pela ficha técnica e voando o equipamento real.
-  SetLength(Result, 7);
+  SetLength(Result, 14);
   Result[0] := Modelo('tello', 'DJI/Ryze Tello', 'tello', 0.087, 8, 2, 25, 100,
     0.25, 13, 100, 1.0, False, 960, 720, 82.6, 0);
   Result[1] := Modelo('ardrone', 'Parrot AR.Drone 2.0', 'ardrone', 0.42, 5, 0.7, 12,
@@ -141,6 +143,16 @@ begin
     25, 150, 0.20, 6, 80, 0, False, 640, 480, 70, 0);
   Result[6] := Modelo('espdrone', 'ESP-Drone / OpenDrone', 'espdrone', 0.035, 4, 1.2,
     20, 150, 0.20, 5, 50, 0, False, 640, 480, 70, 0);
+  Result[7] := Modelo('wifi8k','WIFI_8K (experimental)','wifi8k',0.08,4,1.5,25,120,0.25,7,50,1,False,640,360,75,0);
+  Result[7].Classe:='drone';
+  Result[8] := Modelo('rc_drone','RC generico - drone','rcserial',0.8,8,2,25,120,0.25,15,500,1,False,640,360,75,0);
+  Result[8].Classe:='drone';
+  Result[9]:=Result[8];Result[9].Chave:='rc_helicopter';Result[9].Nome:='RC generico - helicoptero';Result[9].Classe:='helicopter';
+  Result[10]:=Result[8];Result[10].Chave:='rc_airplane';Result[10].Nome:='RC generico - aviao';Result[10].Classe:='airplane';Result[10].VelMaxMS:=25;
+  Result[11]:=Result[8];Result[11].Chave:='rc_car';Result[11].Nome:='RC generico - carro';Result[11].Classe:='car';Result[11].VelMaxMS:=10;
+  Result[12]:=Result[8];Result[12].Chave:='rc_boat';Result[12].Nome:='RC generico - barco';Result[12].Classe:='boat';Result[12].VelMaxMS:=6;
+  Result[13]:=Result[8];Result[13].Chave:='rc_submarine';Result[13].Nome:='RC generico - submarino';Result[13].Classe:='submarine';Result[13].VelMaxMS:=3;
+
 end;
 
 function CarregaModelos(const AArquivo: string): TListaModelos;
@@ -195,6 +207,7 @@ begin
           P := Result[J];
         P.Nome := M.Get('nome', P.Nome);
         P.Protocolo := M.Get('protocolo', P.Protocolo);
+      P.Classe := M.Get('classe', P.Classe);
         P.MassaKg := F(M, 'massa_kg', P.MassaKg);
         P.VelMaxMS := F(M, 'vel_max_ms', P.VelMaxMS);
         P.SubidaMaxMS := F(M, 'subida_max_ms', P.SubidaMaxMS);

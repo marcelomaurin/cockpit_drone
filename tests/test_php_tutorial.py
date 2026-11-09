@@ -1,6 +1,8 @@
 """Tests for PHP tutorial, download links, language menu and simulator guide."""
 import pathlib
 import unittest
+import json
+import re
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -32,8 +34,12 @@ class PhpTutorialTest(unittest.TestCase):
         i18n_path = ROOT / "PHP/i18n.js"
         self.assertTrue(i18n_path.exists())
         content = i18n_path.read_text(encoding="utf-8")
+        match = re.search(r"var\s+translations\s*=\s*", content)
+        self.assertIsNotNone(match)
+        translations, _ = json.JSONDecoder().raw_decode(content[match.end():])
         for lang in ("pt-BR", "en", "es", "fr", "de", "ru", "zh-CN", "ja", "ar", "hi"):
-            self.assertIn(f"'{lang}':", content, f"Language {lang} missing from i18n.js")
+            self.assertIn(lang, translations, f"Language {lang} missing from i18n.js")
+            self.assertTrue(translations[lang])
 
     def test_tutorial_php_exists_and_covers_requirements(self):
         tutorial_path = ROOT / "PHP/tutorial.php"

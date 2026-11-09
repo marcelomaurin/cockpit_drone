@@ -86,9 +86,10 @@ end;
 
 function TfrmConectionMavlink.Conectar: Boolean;
 begin
-  FMav.Host := Trim(FSetMain.Mavlink.IP);
+  FMav.Host := FSetMain.TargetHost(FSetMain.Mavlink.IP,'192.168.4.1');
   if FSetMain.Mavlink.Porta > 0 then
     FMav.Port := FSetMain.Mavlink.Porta;
+  if FSetMain.SimulationMode then FMav.Port:=14550;
   FMav.Connect;
   Result := FMav.Active;
   if not Result then

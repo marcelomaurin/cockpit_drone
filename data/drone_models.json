@@ -277,6 +277,316 @@
       "control_status": "requires_vehicle_specific_adapter",
       "transport": "mavlink_serial_udp_tcp_or_wifi_bridge",
       "source": "https://openhdfpv.org/introduction/"
+    },
+    {
+      "brand": "Experimental",
+      "model": "WIFI_8K (identificacao pendente)",
+      "protocol": "wifi_8k",
+      "cockpit_protocol_index": 7,
+      "gnss": "desconhecido",
+      "cellular": "desconhecido",
+      "control_status": "experimental_candidate_unverified_hardware",
+      "specification": "https://github.com/marcelomaurin/cockpit_drone/issues/3"
+    },
+    {
+      "brand": "RC generico",
+      "model": "MSP1 / Drone",
+      "protocol": "msp1",
+      "cockpit_protocol_index": 8,
+      "vehicle_class": "drone",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "MSP1 / Helicoptero",
+      "protocol": "msp1",
+      "cockpit_protocol_index": 8,
+      "vehicle_class": "helicopter",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "MSP1 / Aviao",
+      "protocol": "msp1",
+      "cockpit_protocol_index": 8,
+      "vehicle_class": "airplane",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "MSP1 / Carro",
+      "protocol": "msp1",
+      "cockpit_protocol_index": 8,
+      "vehicle_class": "car",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "MSP1 / Barco",
+      "protocol": "msp1",
+      "cockpit_protocol_index": 8,
+      "vehicle_class": "boat",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "MSP1 / Submarino",
+      "protocol": "msp1",
+      "cockpit_protocol_index": 8,
+      "vehicle_class": "submarine",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "MSP2 / Drone",
+      "protocol": "msp2",
+      "cockpit_protocol_index": 9,
+      "vehicle_class": "drone",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "MSP2 / Helicoptero",
+      "protocol": "msp2",
+      "cockpit_protocol_index": 9,
+      "vehicle_class": "helicopter",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "MSP2 / Aviao",
+      "protocol": "msp2",
+      "cockpit_protocol_index": 9,
+      "vehicle_class": "airplane",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "MSP2 / Carro",
+      "protocol": "msp2",
+      "cockpit_protocol_index": 9,
+      "vehicle_class": "car",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "MSP2 / Barco",
+      "protocol": "msp2",
+      "cockpit_protocol_index": 9,
+      "vehicle_class": "boat",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "MSP2 / Submarino",
+      "protocol": "msp2",
+      "cockpit_protocol_index": 9,
+      "vehicle_class": "submarine",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "CRSF / Drone",
+      "protocol": "crsf",
+      "cockpit_protocol_index": 10,
+      "vehicle_class": "drone",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "CRSF / Helicoptero",
+      "protocol": "crsf",
+      "cockpit_protocol_index": 10,
+      "vehicle_class": "helicopter",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "CRSF / Aviao",
+      "protocol": "crsf",
+      "cockpit_protocol_index": 10,
+      "vehicle_class": "airplane",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "CRSF / Carro",
+      "protocol": "crsf",
+      "cockpit_protocol_index": 10,
+      "vehicle_class": "car",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "CRSF / Barco",
+      "protocol": "crsf",
+      "cockpit_protocol_index": 10,
+      "vehicle_class": "boat",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "CRSF / Submarino",
+      "protocol": "crsf",
+      "cockpit_protocol_index": 10,
+      "vehicle_class": "submarine",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "SBUS / Drone",
+      "protocol": "sbus",
+      "cockpit_protocol_index": 11,
+      "vehicle_class": "drone",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "SBUS / Helicoptero",
+      "protocol": "sbus",
+      "cockpit_protocol_index": 11,
+      "vehicle_class": "helicopter",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "SBUS / Aviao",
+      "protocol": "sbus",
+      "cockpit_protocol_index": 11,
+      "vehicle_class": "airplane",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "SBUS / Carro",
+      "protocol": "sbus",
+      "cockpit_protocol_index": 11,
+      "vehicle_class": "car",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "SBUS / Barco",
+      "protocol": "sbus",
+      "cockpit_protocol_index": 11,
+      "vehicle_class": "boat",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "SBUS / Submarino",
+      "protocol": "sbus",
+      "cockpit_protocol_index": 11,
+      "vehicle_class": "submarine",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "IBUS / Drone",
+      "protocol": "ibus",
+      "cockpit_protocol_index": 12,
+      "vehicle_class": "drone",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "IBUS / Helicoptero",
+      "protocol": "ibus",
+      "cockpit_protocol_index": 12,
+      "vehicle_class": "helicopter",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "IBUS / Aviao",
+      "protocol": "ibus",
+      "cockpit_protocol_index": 12,
+      "vehicle_class": "airplane",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "IBUS / Carro",
+      "protocol": "ibus",
+      "cockpit_protocol_index": 12,
+      "vehicle_class": "car",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "IBUS / Barco",
+      "protocol": "ibus",
+      "cockpit_protocol_index": 12,
+      "vehicle_class": "boat",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
+    },
+    {
+      "brand": "RC generico",
+      "model": "IBUS / Submarino",
+      "protocol": "ibus",
+      "cockpit_protocol_index": 12,
+      "vehicle_class": "submarine",
+      "gnss": "depende_da_controladora",
+      "cellular": "nao",
+      "control_status": "experimental_serial_rc_unverified_hardware"
     }
   ],
   "sources": [

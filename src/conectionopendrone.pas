@@ -61,13 +61,13 @@ function TfrmConectionOpendrone.Conectar: Boolean;
 begin
   with FSetMain.ESPDrone do
   begin
-    if Trim(IP) <> '' then
-      FESP.Host := Trim(IP);
+    FESP.Host := FSetMain.TargetHost(IP,'192.168.43.42');
     if Porta > 0 then
       FESP.Port := Porta;
     FESP.MaxAngle := AnguloMaximo;
   end;
   FParado := False;
+  if FSetMain.SimulationMode then FESP.Port:=2390;
   FESP.Connect;
   Result := FESP.Active;
 end;

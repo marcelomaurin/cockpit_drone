@@ -76,11 +76,10 @@ function TfrmConectionARDrone.Conectar: Boolean;
 begin
   with FSetMain.ARDrone do
   begin
-    if Trim(IP) <> '' then
-      FAR.Host := Trim(IP);
-    FAR.VideoEnabled := Video;
+    FAR.Host := FSetMain.TargetHost(IP,'192.168.1.1');
+    FAR.VideoEnabled := Video and not FSetMain.SimulationMode;
     FAR.Sensitivity := EnsureRange(Sensibilidade, 10, 100) / 100;
-    PreparaVideo(Video, ARDRONE_VIDEO_WIDTH, ARDRONE_VIDEO_HEIGHT, FFmpeg);
+    PreparaVideo(Video and not FSetMain.SimulationMode, ARDRONE_VIDEO_WIDTH, ARDRONE_VIDEO_HEIGHT, FFmpeg);
     Log(Format('Conectando em %s (altura máx. %d m, %s, sensibilidade %d%%).',
       [FAR.Host, AlturaMaxima, BoolToStr(Externo, 'externo', 'interno'), Sensibilidade]));
     FAR.LandOnDisconnect := True;

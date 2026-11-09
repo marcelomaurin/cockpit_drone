@@ -2,13 +2,13 @@
 ; Compile a partir da pasta install:
 ;   makensis cockpitdrone.nsi
 ;   makensis -DEXE=caminho\drone.exe cockpitdrone.nsi   (outro executável)
-; Saída: bin\setup_cockpit_drone_0.41.exe
+; Saída: bin\setup_cockpit_drone_0.46.exe
 
 Unicode true
 SetCompressor /SOLID lzma
 
 !define APP_NAME      "Cockpit Drone"
-!define APP_VERSION   "0.41"
+!define APP_VERSION   "0.46"
 !define APP_PUBLISHER "Maurinsoft.com.br"
 !define APP_URL       "https://maurinsoft.com.br/wp/projetos-open-source/projeto-cockpit-drone/"
 !define APP_EXE       "drone.exe"
@@ -22,13 +22,13 @@ SetCompressor /SOLID lzma
 !include "x64.nsh"
 
 Name "${APP_NAME} ${APP_VERSION}"
-OutFile "..\bin\setup_cockpit_drone_0.41.exe"
+OutFile "..\bin\setup_cockpit_drone_0.46.exe"
 InstallDir "$PROGRAMFILES64\cockpit drone"
 InstallDirRegKey HKLM "${UNINST_KEY}" "InstallLocation"
 RequestExecutionLevel admin
 BrandingText "${APP_PUBLISHER}"
 
-VIProductVersion "0.41.0.0"
+VIProductVersion "0.46.0.0"
 VIAddVersionKey /LANG=1046 "ProductName" "${APP_NAME}"
 VIAddVersionKey /LANG=1046 "ProductVersion" "${APP_VERSION}"
 VIAddVersionKey /LANG=1046 "CompanyName" "${APP_PUBLISHER}"
@@ -74,8 +74,26 @@ Section "${APP_NAME} (obrigatório)" SecPrograma
   ; Decodificador de vídeo: ffmpeg (GPL, build BtbN/FFmpeg-Builds), copiado
   ; para install\redist antes de compilar o instalador (não fica no git).
   SetOutPath "$INSTDIR"
-  File /nonfatal "redist\ffmpeg.exe"
-  File /nonfatal "redist\ffmpeg-LICENSE.txt"
+  File "redist\ffmpeg.exe"
+  File "redist\libcrypto-3-x64.dll"
+  File "redist\libssl-3-x64.dll"
+  SetOutPath "$INSTDIR\runtime\python"
+  File /r "${RAIZ}\runtime\python\*.*"
+  SetOutPath "$INSTDIR\tools"
+  File "${RAIZ}\tools\*.py"
+  SetOutPath "$INSTDIR\docs"
+  File "${RAIZ}\docs\PROTOCOLOS_0.46.md"
+  File "${RAIZ}\docs\CONTROLES_0.46.md"
+  File "${RAIZ}\docs\DEPENDENCIAS_0.46.md"
+  File "${RAIZ}\docs\WIFI_8K_EXPERIMENTAL.md"
+  File "${RAIZ}\docs\WIFI_8K_EXPERIMENTAL.en.md"
+  SetOutPath "$INSTDIR"
+  File "${RAIZ}\runtime-manifest-0.46.json"
+  SetOutPath "$INSTDIR\licenses"
+  File "redist\OpenSSL-LICENSE.txt"
+  File "${RAIZ}\docs\THIRD_PARTY_NOTICES_0.46.txt"
+  SetOutPath "$INSTDIR"
+  File "redist\ffmpeg-LICENSE.txt"
 
   ; Vídeos e quadros são gravados na pasta do programa.
   nsExec::Exec 'icacls "$INSTDIR" /grant *S-1-5-32-545:(OI)(CI)M /T /Q'
@@ -97,6 +115,8 @@ SectionEnd
 Section "Simulador Cockpit Drone" SecSimulador
   SetOutPath "$INSTDIR\simulador"
   File "${RAIZ}\simulador\simulador.exe"
+  File "redist\libcrypto-3-x64.dll"
+  File "redist\libssl-3-x64.dll"
   SetOutPath "$INSTDIR\simulador\config"
   File /r "${RAIZ}\simulador\config\*.*"
   CreateShortCut "$SMPROGRAMS\Simulador Cockpit Drone.lnk" "$INSTDIR\simulador\simulador.exe" "" "$INSTDIR\simulador\simulador.exe" 0
@@ -130,6 +150,13 @@ Section "Uninstall"
   Delete "$INSTDIR\objetos.json"
   Delete "$INSTDIR\ffmpeg.exe"
   Delete "$INSTDIR\ffmpeg-LICENSE.txt"
+  Delete "$INSTDIR\libcrypto-3-x64.dll"
+  Delete "$INSTDIR\libssl-3-x64.dll"
+  Delete "$INSTDIR\runtime-manifest-0.46.json"
+  RMDir /r "$INSTDIR\runtime"
+  RMDir /r "$INSTDIR\tools"
+  RMDir /r "$INSTDIR\docs"
+  RMDir /r "$INSTDIR\licenses"
   Delete "$INSTDIR\desinstalar.exe"
   RMDir /r "$INSTDIR\imgs"
   RMDir /r "$INSTDIR\firmware"

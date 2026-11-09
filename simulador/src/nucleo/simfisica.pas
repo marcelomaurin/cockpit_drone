@@ -34,11 +34,13 @@ type
     FEstado: TEstadoVoo;
     FOrigem: TPontoGeo;
     FKArrasto: Double;
+    procedure PassoVeiculo(ADt:Double;const C:TComandoVoo;const F:TFalhas);
     procedure AlvoPorVelocidade(AVxDes, AVyDes: Double; out ARol, AArf: Double);
   public
     constructor Create(const AParam: TParametrosModelo; const AOrigem: TPontoGeo);
     procedure Reinicia(const AOrigem: TPontoGeo);
     procedure Passo(ADt: Double; const ACmd: TComandoVoo; const AFalhas: TFalhas);
+    procedure RecuperaQueda;
     procedure DefineBateria(APct: Double);
     property Estado: TEstadoVoo read FEstado;
     property Param: TParametrosModelo read FParam;
@@ -66,8 +68,19 @@ begin
   FillChar(FEstado, SizeOf(FEstado), 0);
   FEstado.NoChao := True;
   FEstado.Bateria := 100;
+  if FParam.Classe='submarine' then begin FEstado.Z:=-1;FEstado.NoChao:=False;end;
   FEstado.Lat := AOrigem.Lat;
   FEstado.Lon := AOrigem.Lon;
+end;
+
+procedure TSimFisica.RecuperaQueda;
+var E:TEstadoVoo;
+begin
+  E:=FEstado;
+  Reinicia(FOrigem);
+  FEstado.X:=E.X; FEstado.Y:=E.Y; FEstado.Rumo:=E.Rumo;
+  LocalParaGeo(FOrigem,E.X,E.Y,FEstado.Lat,FEstado.Lon);
+  FEstado.DistPartida:=Hypot(E.X,E.Y);
 end;
 
 procedure TSimFisica.DefineBateria(APct: Double);
@@ -94,6 +107,63 @@ begin
   ARol := EnsureRange(ARol, -AngMax, AngMax);
 end;
 
+procedure TSimFisica.PassoVeiculo(ADt:Double;const C:TComandoVoo;const F:TFalhas);
+var Powered:Boolean;A,Speed,Target,Turn,Psi,Thrust,Drag,Alpha,Lift,Air,Stall,Pitch,Roll,WX,WY:Double;
+begin
+ Powered:=C.Motores and not FEstado.Caiu and (FEstado.Bateria>0);
+ Psi:=DegToRad(FEstado.Rumo);Thrust:=0;if Powered then Thrust:=EnsureRange(C.Vertical,-1.0,1.0);
+ WX:=F.VentoMS*Sin(DegToRad(F.VentoRumoGraus+180));WY:=F.VentoMS*Cos(DegToRad(F.VentoRumoGraus+180));
+ if FParam.Classe='airplane' then begin
+  Speed:=Hypot(FEstado.VX,FEstado.VY);Air:=Max(0,Hypot(FEstado.VX-WX,FEstado.VY-WY));
+  Alpha:=Min(1,ADt/Max(0.1,FParam.ConstanteRespostaS));
+  Pitch:=DegToRad(FEstado.Arfagem)+(EnsureRange(C.Arfagem,-1.0,1.0)*DegToRad(18)-DegToRad(FEstado.Arfagem))*Alpha;
+  Roll:=DegToRad(FEstado.Rolagem)+(EnsureRange(C.Rolagem,-1.0,1.0)*DegToRad(45)-DegToRad(FEstado.Rolagem))*Alpha;
+  if FEstado.NoChao then Roll:=0;
+  Turn:=C.Guinada*30;if not FEstado.NoChao then Turn:=Turn+RadToDeg(GRAVIDADE*Tan(Roll)/Max(4,Air));
+  FEstado.Rumo:=NormalizaGraus(FEstado.Rumo+Turn*ADt);Psi:=DegToRad(FEstado.Rumo);
+  Drag:=8/Max(25,Sqr(FParam.VelMaxMS))*Speed*Speed;
+  if FEstado.NoChao then Drag:=Drag+0.5;
+  Speed:=EnsureRange(Speed+(Max(0,Thrust)*8-Drag-GRAVIDADE*Sin(-Pitch))*ADt,0.0,FParam.VelMaxMS*1.4);
+  FEstado.VX:=Speed*Sin(Psi);FEstado.VY:=Speed*Cos(Psi);
+  Stall:=Max(6,FParam.VelMaxMS*0.42);A:=-Pitch-ArcTan2(FEstado.VZ,Max(1,Air));
+  Lift:=GRAVIDADE*Sqr(Air/Stall)*EnsureRange(0.6+4*A,-0.3,1.8);
+  if Abs(A)>DegToRad(22) then Lift:=Lift*0.35;
+  FEstado.VZ:=FEstado.VZ+(Lift*Cos(Roll)-GRAVIDADE-0.12*FEstado.VZ)*ADt;
+  FEstado.Z:=FEstado.Z+FEstado.VZ*ADt;
+  if FEstado.Z<=0 then begin
+   if FEstado.VZ< -4 then FEstado.Caiu:=True;
+   FEstado.Z:=0;FEstado.VZ:=0;FEstado.NoChao:=True;
+  end else FEstado.NoChao:=False;
+  FEstado.Rolagem:=RadToDeg(Roll);FEstado.Arfagem:=RadToDeg(Pitch);
+ end else if FParam.Classe='submarine' then begin
+  Alpha:=Min(1,ADt/1.2);Target:=0;if Powered then Target:=C.Guinada*FParam.GuinadaMaxGrausS;
+  FEstado.Rumo:=NormalizaGraus(FEstado.Rumo+Target*ADt);Psi:=DegToRad(FEstado.Rumo);
+  Target:=0;Speed:=0;if Powered then begin Target:=C.Arfagem*FParam.VelMaxMS;Speed:=C.Rolagem*FParam.VelMaxMS;end;
+  FEstado.VX:=FEstado.VX+((Target*Sin(Psi)+Speed*Cos(Psi)+WX*0.03)-FEstado.VX)*Alpha;
+  FEstado.VY:=FEstado.VY+((Target*Cos(Psi)-Speed*Sin(Psi)+WY*0.03)-FEstado.VY)*Alpha;
+  FEstado.VZ:=FEstado.VZ+(Thrust*FParam.SubidaMaxMS-FEstado.VZ)*Alpha;
+  FEstado.Z:=EnsureRange(FEstado.Z+FEstado.VZ*ADt,-30.0,0.0);
+  if (FEstado.Z=0) or (FEstado.Z= -30) then FEstado.VZ:=0;
+  FEstado.NoChao:=False;FEstado.Rolagem:=0;FEstado.Arfagem:=0;
+ end else begin
+  Speed:=FEstado.VX*Sin(Psi)+FEstado.VY*Cos(Psi);
+  if FParam.Classe='boat' then A:=2.0 else A:=0.45;
+  Speed:=Speed+(Thrust*FParam.VelMaxMS-Speed)*Min(1,ADt/A);
+  Turn:=EnsureRange(C.Rolagem,-1.0,1.0)*65*Speed/Max(1,FParam.VelMaxMS);
+  FEstado.Rumo:=NormalizaGraus(FEstado.Rumo+Turn*ADt);Psi:=DegToRad(FEstado.Rumo);
+  FEstado.VX:=Speed*Sin(Psi);FEstado.VY:=Speed*Cos(Psi);
+  if FParam.Classe='boat' then begin FEstado.VX:=FEstado.VX+WX*0.03;FEstado.VY:=FEstado.VY+WY*0.03;end;
+  FEstado.Z:=0;FEstado.VZ:=0;FEstado.NoChao:=True;FEstado.Rolagem:=0;FEstado.Arfagem:=0;
+ end;
+ FEstado.X:=FEstado.X+FEstado.VX*ADt;FEstado.Y:=FEstado.Y+FEstado.VY*ADt;
+ FEstado.Motores:=Powered;FEstado.Empuxo:=Abs(Thrust);
+ if Powered then begin FEstado.Bateria:=Max(0,FEstado.Bateria-100*ADt*Max(0.2,Abs(Thrust))/Max(1,FParam.AutonomiaMin*60));
+  FEstado.TempoVooS:=FEstado.TempoVooS+ADt;end;
+ LocalParaGeo(FOrigem,FEstado.X,FEstado.Y,FEstado.Lat,FEstado.Lon);FEstado.DistPartida:=Hypot(FEstado.X,FEstado.Y);
+ FEstado.SinalPerdido:=not F.SinalInfinito and (F.PerdaSinal or ((FParam.AlcanceRadioM>0) and
+  (Hypot(FEstado.DistPartida,FEstado.Z)>FParam.AlcanceRadioM)));
+end;
+
 procedure TSimFisica.Passo(ADt: Double; const ACmd: TComandoVoo; const AFalhas: TFalhas);
 var
   RolAlvo, ArfAlvo, Psi, Vf, Vr, VxDes, VyDes, Dx, Dy, Dist, Vel: Double;
@@ -103,6 +173,8 @@ var
 begin
   if ADt <= 0 then
     Exit;
+  if (FParam.Classe='car') or (FParam.Classe='boat') or (FParam.Classe='submarine') or (FParam.Classe='airplane') then begin
+    PassoVeiculo(ADt,ACmd,AFalhas);Exit;end;
   Motores := ACmd.Motores and not FEstado.Caiu and (FEstado.Bateria > 0);
   Alfa := Min(1, ADt / FParam.ConstanteRespostaS);
   Psi := DegToRad(FEstado.Rumo);
@@ -244,8 +316,9 @@ begin
 
   LocalParaGeo(FOrigem, FEstado.X, FEstado.Y, FEstado.Lat, FEstado.Lon);
   FEstado.DistPartida := Hypot(FEstado.X, FEstado.Y);
-  FEstado.SinalPerdido := AFalhas.PerdaSinal or
-    ((FParam.AlcanceRadioM > 0) and (Hypot(FEstado.DistPartida, FEstado.Z) > FParam.AlcanceRadioM));
+  FEstado.SinalPerdido := not AFalhas.SinalInfinito and
+    (AFalhas.PerdaSinal or ((FParam.AlcanceRadioM > 0) and
+    (Hypot(FEstado.DistPartida, FEstado.Z) > FParam.AlcanceRadioM)));
 end;
 
 end.

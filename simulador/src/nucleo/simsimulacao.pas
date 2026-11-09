@@ -14,7 +14,7 @@ interface
 
 uses
   Classes, SysUtils, SyncObjs, Math, simtipos, simgeo, simfisica, simemulador,
-  simprotocolos, simmavlink;
+  simprotocolos, simmavlink,simvehicleprotocols;
 
 type
   TPontoRastro = record
@@ -57,7 +57,11 @@ type
     FRastro: array of TPontoRastro;
     FUltimoRastro: QWord;
     FUltimoComando: TComandoVoo;
+    FReinicioPendente:Boolean;
+    FQuedaDesde:QWord;
     procedure PassoFisica(ADt: Double);
+  protected
+    function CriaEmulador(const AParam:TParametrosModelo;const AOrigem:TPontoGeo):TEmulador;virtual;
   public
     constructor Create;
     destructor Destroy; override;
@@ -87,7 +91,8 @@ implementation
 
 function ClasseDoProtocolo(const AProtocolo: string): TClasseEmulador;
 begin
-  if SameText(AProtocolo, 'tello') then
+  if SameText(AProtocolo,'wifi8k') or SameText(AProtocolo,'rcserial') then Result:=TEmuladorVehicle
+  else if SameText(AProtocolo, 'tello') then
     Result := TEmuladorTello
   else if SameText(AProtocolo, 'ardrone') then
     Result := TEmuladorARDrone
@@ -159,6 +164,10 @@ begin
   inherited Destroy;
 end;
 
+function TSimulacao.CriaEmulador(const AParam:TParametrosModelo;const AOrigem:TPontoGeo):TEmulador;
+var C:TClasseEmulador;
+begin C:=ClasseDoProtocolo(AParam.Protocolo);Result:=C.Create(AParam,AOrigem,@LeEstado,@LeFalhas);end;
+
 function TSimulacao.Liga(const AParam: TParametrosModelo; const AOrigem: TPontoGeo;
   const AMav: TOpcoesMavlink; out AErro: string): Boolean;
 var
@@ -173,12 +182,13 @@ begin
     AErro := 'protocolo desconhecido: ' + AParam.Protocolo;
     Exit;
   end;
+  FPausado:=False; FReinicioPendente:=False; FQuedaDesde:=0;
   FParam := AParam;
   FOrigem := AOrigem;
   FFisica := TSimFisica.Create(AParam, AOrigem);
   FEstado := FFisica.Estado;
   SetLength(FRastro, 0);
-  FEmulador := Classe.Create(AParam, AOrigem, @LeEstado, @LeFalhas);
+  FEmulador := CriaEmulador(AParam,AOrigem);
   if FEmulador is TEmuladorMavlink then
     with TEmuladorMavlink(FEmulador) do
     begin
@@ -217,30 +227,11 @@ begin
 end;
 
 procedure TSimulacao.Reinicia;
-var
-  P: TParametrosModelo;
-  O: TPontoGeo;
-  M: TOpcoesMavlink;
-  Ligava: Boolean;
-  Erro: string;
-  Mav: TEmuladorMavlink;
 begin
-  // Recria tudo: física no ponto de partida e emulador zerado.
-  Ligava := Ligado;
-  P := FParam;
-  O := FOrigem;
-  M.IPCockpit := '';
-  M.PortaCockpit := 0;
-  M.PortaLocal := 0;
-  if FEmulador is TEmuladorMavlink then
-  begin
-    Mav := TEmuladorMavlink(FEmulador);
-    M.IPCockpit := Mav.IPCockpit;
-    M.PortaCockpit := Mav.PortaCockpit;
-    M.PortaLocal := Mav.PortaLocal;
-  end;
-  if Ligava then
-    Liga(P, O, M, Erro);
+  // Keep protocol sockets and TCP handshakes alive; reset on the physics thread.
+  FLock.Enter;
+  try FReinicioPendente:=Assigned(FFisica); FPausado:=False;
+  finally FLock.Leave; end;
 end;
 
 procedure TSimulacao.PassoFisica(ADt: Double);
@@ -249,15 +240,30 @@ var
   F: TFalhas;
   C: TComandoVoo;
   Agora: QWord;
+  Reiniciar,Recuperar:Boolean;
 begin
   FLock.Enter;
   try
-    if FPausado or not Assigned(FFisica) then
+    if (FPausado and not FReinicioPendente) or not Assigned(FFisica) then
       Exit;
-    E := FEstado;
-    F := FFalhas;
+    E := FEstado; F := FFalhas;
+    Reiniciar:=FReinicioPendente; FReinicioPendente:=False;
+    if E.Caiu then begin
+      if FQuedaDesde=0 then FQuedaDesde:=GetTickCount64;
+    end else FQuedaDesde:=0;
+    Recuperar:=E.Caiu and (GetTickCount64-FQuedaDesde>=1500);
   finally
     FLock.Leave;
+  end;
+  if Reiniciar or Recuperar then begin
+    if Assigned(FEmulador) then FEmulador.ReiniciaEstado;
+    FLock.Enter;
+    try
+      if Reiniciar then begin FFisica.Reinicia(FOrigem); SetLength(FRastro,0); end
+      else FFisica.RecuperaQueda;
+      FEstado:=FFisica.Estado; E:=FEstado; FQuedaDesde:=0;
+      FUltimoComando:=ComandoNeutro;
+    finally FLock.Leave; end;
   end;
   // Fora da trava da simulação (veja o comentário da unidade).
   if Assigned(FEmulador) then

@@ -414,11 +414,6 @@ object frmMain: TfrmMain
     Left = 720
     Top = 16
   end
-  object AcsMixer1: TAcsMixer
-    DevNum = 0
-    Left = 656
-    Top = 16
-  end
   object timerJoystick: TTimer
     Enabled = False
     Interval = 100
@@ -1001,25 +996,5 @@ object frmMain: TfrmMain
       Caption = 'Close'
       OnClick = MenuItem3Click
     end
-  end
-  object playsound1: Tplaysound
-    About.Description.Strings = (
-      'Plays WAVE sounds in Windows or Linux'
-    )
-    About.Title = 'About About About PlaySound'
-    About.Height = 400
-    About.Width = 400
-    About.Font.Color = clNavy
-    About.Font.Height = -13
-    About.BackGroundColor = clCream
-    About.Version = '0.0.7'
-    About.Authorname = 'Gordon Bamber'
-    About.Organisation = 'Public Domain'
-    About.AuthorEmail = 'minesadorada@charcodelvalle.com'
-    About.ComponentName = 'PlaySound'
-    About.LicenseType = abModifiedGPL
-    PlayCommand = 'sndPlaySound'
-    Left = 204
-    Top = 245
   end
 end

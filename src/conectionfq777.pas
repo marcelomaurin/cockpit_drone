@@ -69,7 +69,7 @@ type
 implementation
 
 uses
-  setmain;
+  setmain, main;
 
 const
   TAXA_ACELERADOR_TECLADO = 0.5; // fração do curso por segundo
@@ -190,13 +190,13 @@ begin
   try
     with FSetMain.FQ777 do
     begin
-      FFQ.Host := IP;
+      FFQ.Host := FSetMain.TargetHost(IP,'172.16.10.1');
       FFQ.TcpPort := PortaTCP;
       FFQ.UdpPort := PortaUDP;
-      FFQ.VideoEnabled := Video;
+      FFQ.VideoEnabled := Video and not FSetMain.SimulationMode;
       FFQ.DeadZone := EnsureRange(ZonaMorta, 0, 50) / 100;
       Decoder.RecordFileName := '';
-      if Video and GravarVideo then
+      if Video and GravarVideo and not FSetMain.SimulationMode then
       begin
         Pasta := ExtractFilePath(ParamStr(0)) + 'videos';
         ForceDirectories(Pasta);
@@ -204,7 +204,7 @@ begin
           'FQ777_' + FormatDateTime('yyyymmdd_hhnnss', Now) + '.h264';
       end;
 
-      if WifiAuto then
+      if WifiAuto and not FSetMain.SimulationMode then
       begin
         if not PreparaWifi then
           Exit;
@@ -212,12 +212,13 @@ begin
       else
         LogWifi('Conexão automática desligada (rede gerenciada pelo usuário).');
 
-      PreparaVideo(Video, FQ777_VIDEO_WIDTH, FQ777_VIDEO_HEIGHT, FFmpeg);
+      PreparaVideo(Video and not FSetMain.SimulationMode, FQ777_VIDEO_WIDTH, FQ777_VIDEO_HEIGHT, FFmpeg);
     end;
     FAceleradorTeclado := 0;
     FJoystickAnteriorConectado := False;
     FCorte := True; // começa bloqueado: só o REARMAR libera os motores
     FUltimoTick := GetTickCount64;
+    if FSetMain.SimulationMode then begin FFQ.TcpPort:=8888; FFQ.UdpPort:=8895; end;
     FFQ.ThrottleArmLock := True;
     FFQ.Connect;
     Result := FFQ.Active;
@@ -262,6 +263,17 @@ begin
     Log('Rearme negado: controle desconectado.');
     Exit;
   end;
+  S:=Default(TAIJoystickState);
+  if FSetMain.JoystickAtivo then
+  begin
+    if not frmMain.JoystickController.Available then
+    begin Log('Rearme negado: joystick indisponivel.'); Exit; end;
+    AceleradorJoy:=frmMain.Controler.Acelerador;
+    if (Abs(frmMain.Controler.Rolagem)>0.05) or
+       (Abs(frmMain.Controler.Arfagem)>0.05) or
+       (Abs(frmMain.Controler.Guinada)>0.05) or (frmMain.B4=255) then
+    begin Log('Rearme negado: centralize a direcao e solte o botao de corte.'); Exit; end;
+  end else begin
   S := Default(TAIJoystickState);
   if FJoystick.Poll then
     S := FJoystick.State;
@@ -289,6 +301,7 @@ begin
       Exit;
     end;
   end;
+  end;
   if (AceleradorJoy >= 0.05) or (FAceleradorTeclado > 0) or
      TeclaPressionada(VK_UP) or TeclaPressionada(VK_SPACE) or
      (S.Connected and S.Controls[ajB]) then
@@ -296,9 +309,9 @@ begin
     Log('Rearme negado: acelerador ou corte ativo.');
     Exit;
   end;
-  if MessageDlg('Rearmar FQ777',
+  if not FSetMain.SimulationMode and (MessageDlg('Rearmar FQ777',
     'Confirme somente em bancada sem hélices. Liberar comandos de motor?',
-    mtConfirmation, [mbYes, mbNo], 0) <> mrYes then Exit;
+    mtConfirmation, [mbYes, mbNo], 0) <> mrYes) then Exit;
   if not FFQ.ControlConnected then Exit;
   FCorte := False;
   Log('Rearme manual autorizado. Ainda não homologado para voo.');
@@ -328,6 +341,22 @@ begin
   Agora := GetTickCount64;
   Dt := Min(0.5, (Agora - FUltimoTick) / 1000);
   FUltimoTick := Agora;
+
+  if FSetMain.JoystickAtivo then
+  begin
+    Result:=inherited LeComando;
+    FEntrada:='Perfil de voo por marca/modelo';
+    if Assigned(frmMain.JoystickController) then
+    begin
+      if FJoystickAnteriorConectado and not frmMain.JoystickController.Available then
+      begin CorteMotores; Log('Joystick perdido: rearme manual necessario.'); end;
+      FJoystickAnteriorConectado:=frmMain.JoystickController.Available;
+    end;
+    if Result.Apertou[4] then CorteMotores;
+    if FCorte then begin Result.Acelerador:=0; Result.Rolagem:=0;
+      Result.Arfagem:=0; Result.Guinada:=0; end;
+    Exit;
+  end;
 
   S := Default(TAIJoystickState);
   if FJoystick.Poll then

@@ -84,6 +84,7 @@ type
     { Chamado pela linha da física. }
     function MontaComando(const AE: TEstadoVoo): TComandoVoo; virtual; abstract;
     { Texto das portas abertas, para o painel. }
+    procedure ReiniciaEstado; virtual;
     function Descricao: string; virtual; abstract;
     function ProximaMensagem(out ATexto: string): Boolean;
     function FaseTexto: string;
@@ -293,6 +294,14 @@ begin
   Result := GetTickCount64;
 end;
 
+procedure TEmulador.ReiniciaEstado;
+begin
+  FLock.Enter;
+  try FFase:=fvPousado;
+    Log('Equipamento simulado recuperado. Baixe a aceleracao e repita a decolagem/armamento.');
+  finally FLock.Leave; end;
+end;
+
 function TEmulador.FaseTexto: string;
 begin
   case FFase of
@@ -338,7 +347,7 @@ begin
   if AE.Caiu and (FFase <> fvCaido) then
   begin
     FFase := fvCaido;
-    Log('O equipamento CAIU (toque no chão acima de 2 m/s). Use "Reiniciar".');
+    Log('O equipamento CAIU (toque no chão acima de 2 m/s). A simulacao permite nova tentativa apos a recuperacao.');
   end;
   Result := True;
   case FFase of
@@ -421,7 +430,7 @@ begin
   while not Terminated do
   begin
     if Length(FCanais) > 1 then
-      Espera := 3
+      Espera := 0
     else
       Espera := 8;
     for I := 0 to High(FCanais) do
@@ -452,6 +461,7 @@ begin
     end;
     ProcessaFila(GetTickCount64);
     Periodico(GetTickCount64);
+    if Espera=0 then Sleep(2);
   end;
   Encerra;
   for I := 0 to High(FCanais) do

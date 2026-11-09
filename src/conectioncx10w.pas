@@ -62,21 +62,17 @@ var
 begin
   with FSetMain.CX10W do
   begin
-    if Simulado then
-      TargetHost := '127.0.0.1'
-    else if Trim(IP) <> '' then
-      TargetHost := Trim(IP)
-    else
-      TargetHost := '172.16.10.1';
+    TargetHost:=FSetMain.TargetHost(IP,'172.16.10.1');
     FCX.Host := TargetHost;
     if PortaTCP > 0 then
       FCX.TcpPort := PortaTCP;
     if PortaUDP > 0 then
       FCX.UdpPort := PortaUDP;
-    UsarVideo := Video and (not Simulado);
+    UsarVideo := Video and (not FSetMain.SimulationMode);
     FCX.VideoEnabled := UsarVideo;
     PreparaVideo(UsarVideo, FQ777_VIDEO_WIDTH, FQ777_VIDEO_HEIGHT, FFmpeg);
   end;
+  if FSetMain.SimulationMode then begin FCX.TcpPort:=8888; FCX.UdpPort:=8895; end;
   FCX.ThrottleArmLock := True;
   FCX.Connect;
   Result := FCX.Active;
@@ -106,14 +102,14 @@ procedure TfrmConectionCX10W.AtualizaPainel;
 begin
   if FCX.ControlConnected then
   begin
-    if FSetMain.CX10W.Simulado then
+    if FSetMain.SimulationMode then
       FLbControle.Caption := Format('Simulador conectado (127.0.0.1, %d pacotes)', [FCX.PacketsSent])
     else
       FLbControle.Caption := Format('conectado (%d pacotes)', [FCX.PacketsSent]);
   end
   else if FCX.Active then
   begin
-    if FSetMain.CX10W.Simulado then
+    if FSetMain.SimulationMode then
       FLbControle.Caption := 'conectando ao simulador local (127.0.0.1)...'
     else
       FLbControle.Caption := 'conectando...';

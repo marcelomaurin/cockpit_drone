@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ComCtrls, ExtCtrls, Arrow, AdvLed, Types, SdpoJoystick, funcs, SdpoSerial,
-  fpjson, jsonparser, IniFiles, cockpit_i18n, Grids, LCLType
+  fpjson, jsonparser, IniFiles, cockpit_i18n, Grids, LCLType, cockpit_joystick_config, wifi8k_panel,cockpit_rc_config,rc_wire_protocol,vehicle_rc_profile
   {$IFDEF MSWINDOWS}, Windows{$ENDIF};
 
 type
@@ -80,6 +80,15 @@ type
     procedure FormShow(Sender: TObject);
 
   private
+    FRCPanel:TRCConfigPanel;FRCTab:TTabSheet;
+    FWiFi8KPanel:TWiFi8KPanel;FWiFi8KTab:TTabSheet;
+    FJoyPanel: TFlightJoystickPanel;
+    FJoyTab: TTabSheet;
+    ckModoSimulador:TCheckBox;
+    procedure ModoSimuladorClick(Sender:TObject);
+    procedure RCCategoriaAlterada(Sender:TObject);
+    procedure CarregaPerfilJoystick;
+    procedure AplicaPerfilJoystick(Sender:TObject);
     procedure AtualizaLedsBotoes;
     procedure LimpaLeitura;
     function MainDisponivel: Boolean;
@@ -179,6 +188,7 @@ type
     lblTesteResultado: TLabel;
     edTesteTeclado: TEdit;
 
+    procedure AbreWiFi8K;
     procedure CriaAbaIdioma;
     procedure CriaAbaTeclado;
     procedure EdTesteTecladoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -201,7 +211,7 @@ uses
 
 function Tfrmconfig.MainDisponivel: Boolean;
 begin
-  Result := Assigned(frmMain) and Assigned(frmMain.SdpoJoystick1);
+  Result := Assigned(frmMain) and Assigned(frmMain.JoystickController);
 end;
 
 procedure Tfrmconfig.LimpaLeitura;
@@ -226,12 +236,12 @@ begin
     Exit;
   end;
 
-  if frmMain.SdpoJoystick1.Buttons[0].ToBoolean then advButton0.State := lsOn else advButton0.State := lsOff;
-  if frmMain.SdpoJoystick1.Buttons[1].ToBoolean then advButton1.State := lsOn else advButton1.State := lsOff;
-  if frmMain.SdpoJoystick1.Buttons[2].ToBoolean then advButton2.State := lsOn else advButton2.State := lsOff;
-  if frmMain.SdpoJoystick1.Buttons[3].ToBoolean then advButton3.State := lsOn else advButton3.State := lsOff;
-  if frmMain.SdpoJoystick1.Buttons[4].ToBoolean then advButton4.State := lsOn else advButton4.State := lsOff;
-  if frmMain.SdpoJoystick1.Buttons[5].ToBoolean then advButton5.State := lsOn else advButton5.State := lsOff;
+  if (frmMain.JoystickController.State.Buttons.B1 = 255) then advButton0.State := lsOn else advButton0.State := lsOff;
+  if (frmMain.JoystickController.State.Buttons.B2 = 255) then advButton1.State := lsOn else advButton1.State := lsOff;
+  if (frmMain.JoystickController.State.Buttons.B3 = 255) then advButton2.State := lsOn else advButton2.State := lsOff;
+  if (frmMain.JoystickController.State.Buttons.B4 = 255) then advButton3.State := lsOn else advButton3.State := lsOff;
+  if (frmMain.JoystickController.State.Buttons.B5 = 255) then advButton4.State := lsOn else advButton4.State := lsOff;
+  if (frmMain.JoystickController.State.Buttons.B6 = 255) then advButton5.State := lsOn else advButton5.State := lsOff;
 end;
 
 function Tfrmconfig.PortaSerialExiste(const APorta: string): Boolean;
@@ -331,8 +341,57 @@ begin
   end;
 end;
 
+procedure Tfrmconfig.ModoSimuladorClick(Sender:TObject);
+begin
+  if not Assigned(FSetMain) then Exit;
+  if ckModoSimulador.Checked=FSetMain.SimulationMode then Exit;
+  if Assigned(frmMain) and Assigned(frmMain.Controler) and frmMain.Controler.Ativo then
+  begin
+    if Assigned(FWiFi8KPanel) then FWiFi8KPanel.LoadSettings;
+  if Assigned(FRCPanel) then FRCPanel.LoadSettings;
+  ckModoSimulador.Checked:=FSetMain.SimulationMode;
+    ShowMessage('Desligue Start antes de trocar entre simulador e equipamento real.');
+    Exit;
+  end;
+  FSetMain.SimulationMode:=ckModoSimulador.Checked;
+  FSetMain.CX10W.Simulado:=FSetMain.SimulationMode;
+  if Assigned(ckCX10WSimulado) then ckCX10WSimulado.Checked:=FSetMain.SimulationMode;
+  FSetMain.SalvaContexto;
+end;
+
+procedure Tfrmconfig.CarregaPerfilJoystick;
+begin
+  if not Assigned(FJoyPanel) or not Assigned(FSetMain) then Exit;
+  FJoyPanel.LoadModel(GetModelConfigPath, cbMarca.Text, cbModelo.Text, TipoAtivo);
+  FSetMain.FlightJoystick:=FJoyPanel.Settings;
+end;
+
+procedure Tfrmconfig.AplicaPerfilJoystick(Sender:TObject);
+begin
+  if Assigned(frmMain) and Assigned(frmMain.Controler) and frmMain.Controler.Ativo then
+  begin
+    ShowMessage('Desligue Start antes de aplicar ou testar outro perfil.');
+    Exit;
+  end;
+  FJoyPanel.SaveProfile;
+  FSetMain.FlightJoystick:=FJoyPanel.Settings;
+  ckJoyActive.Checked:=True;
+  ckJoyActiveChange(nil);
+  ckTest.Checked:=True;
+  timerJoystick.Enabled:=True;
+end;
+
 procedure Tfrmconfig.FormCreate(Sender: TObject);
 begin
+  FJoyTab:=TTabSheet.Create(Self); FJoyTab.PageControl:=pcDrones;
+  FJoyTab.Caption:='Controle de voo';
+  FJoyPanel:=TFlightJoystickPanel.Create(Self); FJoyPanel.Parent:=FJoyTab;
+  FJoyPanel.Align:=alClient; FJoyPanel.ApplyButton.OnClick:=@AplicaPerfilJoystick;
+  cbDevice.Items.Clear;
+  cbDevice.Items.Add('Controle 1 (Xbox ou generico)');
+  cbDevice.Items.Add('Controle 2 (Xbox ou generico)');
+  cbDevice.Items.Add('Controle 3 (Xbox)'); cbDevice.Items.Add('Controle 4 (Xbox)');
+  cbDevice.ItemIndex:=0;
   TipoAtivo := 0;
   LimpaLeitura;
   CarregaPortasSeriais;
@@ -359,6 +418,9 @@ begin
   cbProtocol.Items.Add('FQ777-954 (Wi-Fi)');
   cbProtocol.Items.Add('Parrot AR.Drone 2.0');
   cbProtocol.Items.Add('Drone ESP32 (firmware Cockpit)');
+  cbProtocol.Items.Add('WIFI_8K (experimental: Wi-Fi)');
+  cbProtocol.Items.Add('MSP v1 (RC serial)');cbProtocol.Items.Add('MSP v2 (RC serial)');
+  cbProtocol.Items.Add('CRSF (RC serial)');cbProtocol.Items.Add('SBUS (RC serial)');cbProtocol.Items.Add('iBUS (RC serial)');
 
   if Assigned(FSetMain) then
   begin
@@ -400,6 +462,15 @@ begin
   lblModeloStatus.AutoSize := False;
   lblModeloStatus.WordWrap := True;
 
+  ckModoSimulador:=TCheckBox.Create(Self); ckModoSimulador.Parent:=tsEquipamento;
+  ckModoSimulador.Name:='ckModoSimulador';
+  ckModoSimulador.Caption:='Modo simulador (conexao local 127.0.0.1)';
+  ckModoSimulador.SetBounds(16,238,420,24);
+  if Assigned(FSetMain) then ckModoSimulador.Checked:=FSetMain.SimulationMode;
+  ckModoSimulador.OnClick:=@ModoSimuladorClick;
+  with TLabel.Create(Self) do begin Parent:=tsEquipamento; AutoSize:=False;
+    WordWrap:=True; SetBounds(16,267,420,36);
+    Caption:='Marque para simular o modelo escolhido. Desmarque para usar o equipamento real e os enderecos salvos.'; end;
   CarregaCatalogo;
   SelecionaModeloSalvo;
 
@@ -453,6 +524,10 @@ begin
   CriaAbaFQ777;
   CriaAbaARDrone;
   CriaAbaESP32Drone;
+  FWiFi8KTab:=TTabSheet.Create(Self);FWiFi8KTab.PageControl:=pcDrones;FWiFi8KTab.Caption:='WIFI_8K experimental';
+  FWiFi8KPanel:=TWiFi8KPanel.Create(Self);FWiFi8KPanel.Parent:=FWiFi8KTab;
+  FRCTab:=TTabSheet.Create(Self);FRCTab.PageControl:=pcDrones;FRCTab.Caption:='RC serial / veiculos';
+  FRCPanel:=TRCConfigPanel.Create(Self);FRCPanel.Name:='rcConfigPanel';FRCPanel.Parent:=FRCTab;FRCPanel.OnVehicleChanged:=@RCCategoriaAlterada;
   CriaAbaTeclado;
   CriaAbaIdioma;
   CarregaIdioma;
@@ -460,6 +535,7 @@ begin
   TabSheet1.Caption := 'Cheerson CX-10W';
   ckCX10WSimulado := CriaOpcao(TabSheet1, 8, 175, 'Simulado (conecta no simulador local 127.0.0.1)', 'ckCX10WSimulado');
   ckCX10WSimulado.OnClick := @CX10WSimuladoClick;
+  ckCX10WSimulado.Visible:=False;
 
   CarregarValoresTela;
 end;
@@ -898,7 +974,8 @@ function Tfrmconfig.GetModelConfigPath: string;
 var
   Dir: string;
 begin
-  Dir := IncludeTrailingPathDelimiter(GetAppConfigDir(False));
+  if Assigned(FSetMain) then Dir:=ExtractFilePath(FSetMain.GetConfigFileName)
+  else Dir := IncludeTrailingPathDelimiter(GetAppConfigDir(False));
   if not DirectoryExists(Dir) then
     ForceDirectories(Dir);
   Result := Dir + 'drone_model.ini';
@@ -919,6 +996,7 @@ begin
   begin
     O := FCatalogo.Objects[I];
     Idx := O.Get('cockpit_protocol_index', -1);
+    if (Idx>=8) and (Idx<=12) and (O.Get('vehicle_class','')<>VehicleKeys[FSetMain.RCSelected[TRCWireProtocol(Idx-8)]]) then Continue;
     if Idx = AProtoIdx then
     begin
       Marca := O.Get('brand', '');
@@ -961,13 +1039,17 @@ const
     '{"brand":"FQ777","model":"954","cockpit_protocol_index":4},' +
     '{"brand":"Maurinsoft","model":"Drone ESP32 (CDP)","cockpit_protocol_index":6},' +
     '{"brand":"Espressif","model":"ESP-Drone / OpenDrone","cockpit_protocol_index":3},' +
+    '{"brand":"Experimental","model":"WIFI_8K (identificacao pendente)","cockpit_protocol_index":7},' +
     '{"brand":"ArduPilot / PX4","model":"MAVLink Genérico","cockpit_protocol_index":1}' +
     ']}';
 var
   P, BaseDir, JsonTexto: string;
   J, Models: TJSONData;
-  I: Integer;
+  I, Proto, V, N: Integer;
   Marca: string;
+  Found: Boolean;
+  Entry: TJSONObject;
+  VehicleNames: array[0..5] of string = ('Drone','Helicoptero','Aviao','Carro','Barco','Submarino');
 begin
   FCatalogo := nil;
   BaseDir := ExtractFilePath(Application.ExeName);
@@ -1012,6 +1094,29 @@ begin
       J.Free;
     end;
 
+    // Supplement older user catalogs without replacing customized models.
+    if not Assigned(FCatalogo) then FCatalogo := TJSONArray.Create;
+    for Proto := 7 to 12 do
+      for V := 0 to 5 do
+      begin
+        if (Proto=7) and (V>0) then Continue;
+        Found := False;
+        for N := 0 to FCatalogo.Count-1 do
+          if (FCatalogo.Objects[N].Get('cockpit_protocol_index',-1)=Proto) and
+             ((Proto=7) or (FCatalogo.Objects[N].Get('vehicle_class','')=VehicleKeys[TVehicleClass(V)])) then
+            begin Found:=True;Break;end;
+        if Found then Continue;
+        Entry := TJSONObject.Create;
+        Entry.Add('cockpit_protocol_index',Proto);
+        if Proto=7 then begin
+          Entry.Add('brand','Experimental');Entry.Add('model','WIFI_8K (identificacao pendente)');
+        end else begin
+          Entry.Add('brand','RC generico');
+          Entry.Add('model',RCKeys[TRCWireProtocol(Proto-8)]+' / '+VehicleNames[V]);
+          Entry.Add('vehicle_class',VehicleKeys[TVehicleClass(V)]);
+        end;
+        FCatalogo.Add(Entry);
+      end;
     cbMarca.Items.Clear;
     if Assigned(FCatalogo) then
     begin
@@ -1050,7 +1155,7 @@ end;
 
 procedure Tfrmconfig.ModeloAlterado(Sender: TObject);
 var
-  I, Idx: Integer;
+  I, Idx,VIndex: Integer;
   O: TJSONObject;
   Ini: TIniFile;
   P: string;
@@ -1063,6 +1168,9 @@ begin
     if (O.Get('brand', '') <> cbMarca.Text) or
        (O.Get('model', '') <> cbModelo.Text) then Continue;
     Idx := O.Get('cockpit_protocol_index', -1);
+    if (Idx>=8) and (Idx<=12) and Assigned(FSetMain) then
+      for VIndex:=0 to 5 do if O.Get('vehicle_class','')=VehicleKeys[TVehicleClass(VIndex)] then
+        FSetMain.RCSelected[TRCWireProtocol(Idx-8)]:=TVehicleClass(VIndex);
     if (Idx < 0) or (Idx >= cbProtocol.Items.Count) then
     begin
       cbProtocol.ItemIndex := -1;
@@ -1088,6 +1196,7 @@ begin
       lblModeloStatus.Caption := 'Protocolo selecionado: ' + cbProtocol.Text +
         '. Verifique compatibilidade do equipamento antes de conectar.';
     end;
+    CarregaPerfilJoystick;
     P := GetModelConfigPath;
     Ini := TIniFile.Create(P);
     try
@@ -1100,6 +1209,13 @@ begin
   end;
 end;
 
+procedure Tfrmconfig.RCCategoriaAlterada(Sender:TObject);
+begin
+  if (TipoAtivo<8) or (TipoAtivo>12) then Exit;
+  SelecionaModeloPorProtocolo(TipoAtivo);
+  ModeloAlterado(nil);
+end;
+
 procedure Tfrmconfig.SelecionaModeloSalvo;
 var
   Ini: TIniFile;
@@ -1107,6 +1223,9 @@ var
 begin
   Marca := '';
   Modelo := '';
+  // The saved RC category is authoritative; an older MODEL entry must not reset it.
+  if Assigned(FSetMain) and (FSetMain.DroneProtocolo>=8) and (FSetMain.DroneProtocolo<=12) then begin
+    SelecionaModeloPorProtocolo(FSetMain.DroneProtocolo);ModeloAlterado(nil);Exit;end;
   if FileExists(GetModelConfigPath) then
   begin
     Ini := TIniFile.Create(GetModelConfigPath);
@@ -1159,8 +1278,10 @@ begin
     AtualizaAbasProtocolo;
     SalvarConfiguracoes;
   end;
-  if not FCarregandoModelo and Assigned(cbProtocol) then
+  if not FCarregandoModelo and Assigned(cbProtocol) then begin
     SelecionaModeloPorProtocolo(cbProtocol.ItemIndex);
+    if (cbProtocol.ItemIndex>=7) and (cbProtocol.ItemIndex<=12) then ModeloAlterado(nil);
+  end;
 end;
 
 procedure Tfrmconfig.Label4Click(Sender: TObject);
@@ -1181,15 +1302,13 @@ begin
     Exit;
 
   try
-    frmMain.SdpoJoystick1.Active := False;
-
-    if cbDevice.ItemIndex = 0 then
-      frmMain.SdpoJoystick1.DeviceWin := dwJoystickID1
-    else
-      frmMain.SdpoJoystick1.DeviceWin := dwJoystickID2;
-
-    if ckJoyActive.Checked then
-      frmMain.SdpoJoystick1.Active := True;
+    if frmMain.Controler.Ativo then Exit;
+    CarregaPerfilJoystick;
+    frmMain.JoystickController.Settings:=FSetMain.FlightJoystick;
+    if not frmMain.JoystickController.ConfigureDevice(cbDevice.ItemIndex) then
+      raise Exception.Create('Dispositivo de joystick invalido');
+    if ckJoyActive.Checked and not frmMain.JoystickController.Activate then
+      raise Exception.Create('Joystick indisponivel');
 
   except
     on E: Exception do
@@ -1240,16 +1359,25 @@ begin
     Exit;
   end;
 
-  if not frmMain.SdpoJoystick1.Active then
+  if not frmMain.JoystickController.Active then
   begin
     LimpaLeitura;
     Exit;
   end;
 
   try
-    X := MAPA(0, 65535, 0, 255, frmMain.SdpoJoystick1.Axis[0].ToDouble);
-    Y := MAPA(0, 65535, 0, 255, frmMain.SdpoJoystick1.Axis[1].ToDouble);
-    Z := MAPA(0, 65535, 0, 255, frmMain.SdpoJoystick1.Axis[2].ToDouble);
+    if not frmMain.JoystickController.UpdateState then
+    begin
+      LimpaLeitura;
+      FJoyPanel.ShowReadings(127,127,0,0,False);
+      Exit;
+    end;
+    FJoyPanel.ShowReadings(frmMain.JoystickController.State.X,
+      frmMain.JoystickController.State.Y,frmMain.JoystickController.State.Z,
+      frmMain.JoystickController.State.Yaw,True);
+    X := frmMain.JoystickController.State.X;
+    Y := frmMain.JoystickController.State.Y;
+    Z := frmMain.JoystickController.State.Z;
 
     lbX.Caption := IntToStr(X);
     lbY.Caption := IntToStr(Y);
@@ -1264,6 +1392,7 @@ end;
 
 procedure Tfrmconfig.FormShow(Sender: TObject);
 begin
+  CarregaPerfilJoystick;
   CarregarValoresTela;
   AplicarIdioma(Self);
 end;
@@ -1316,12 +1445,20 @@ end;
 
 procedure Tfrmconfig.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
+  timerJoystick.Enabled:=False;
+  ckTest.Checked:=False;
   SalvarConfiguracoes;
   CloseAction := caHide;
 end;
 
+procedure Tfrmconfig.AbreWiFi8K;
+begin Show;pcDrones.ActivePage:=FWiFi8KTab;end;
+
 procedure Tfrmconfig.AtualizaAbasProtocolo;
 begin
+  if Assigned(FRCTab) then begin FRCTab.TabVisible:=(TipoAtivo>=8) and (TipoAtivo<=12);
+    if FRCTab.TabVisible then FRCPanel.SelectProtocol(TRCWireProtocol(TipoAtivo-8));end;
+  if Assigned(FWiFi8KTab) then FWiFi8KTab.TabVisible:=(TipoAtivo=7);
   if Assigned(TabSheet1) then
     TabSheet1.TabVisible := (TipoAtivo = 0);
   if Assigned(tsMavlink) then
@@ -1347,6 +1484,7 @@ begin
   if not Assigned(FSetMain) then
     Exit;
 
+  ckModoSimulador.Checked:=FSetMain.SimulationMode;
   ckJoyActive.Checked := FSetMain.JoystickAtivo;
   cbDevice.ItemIndex := FSetMain.JoystickDeviceIndex;
 
@@ -1361,6 +1499,7 @@ begin
   end;
   if (cbMarca.ItemIndex < 0) or (cbModelo.ItemIndex < 0) then
     SelecionaModeloSalvo;
+  CarregaPerfilJoystick;
 
   // Aba do Cheerson CX-10W: seção própria [CX10W].
   if Assigned(ckCX10WSimulado) then
@@ -1440,6 +1579,11 @@ begin
   if not Assigned(FSetMain) then
     Exit;
 
+  CarregaPerfilJoystick;
+  FJoyPanel.SaveProfile;
+  FSetMain.FlightJoystick:=FJoyPanel.Settings;
+  FSetMain.SimulationMode:=ckModoSimulador.Checked;
+  FSetMain.CX10W.Simulado:=FSetMain.SimulationMode;
   FSetMain.JoystickAtivo := ckJoyActive.Checked;
   FSetMain.JoystickDeviceIndex := cbDevice.ItemIndex;
 
@@ -1453,9 +1597,7 @@ begin
         // Cheerson CX-10W: não altera a seção [DRONE] dos outros protocolos.
         if Assigned(ckCX10WSimulado) then
           FSetMain.CX10W.Simulado := ckCX10WSimulado.Checked;
-        if FSetMain.CX10W.Simulado and ((Trim(edIP.Text) = '') or (Trim(edIP.Text) = '172.16.10.1')) then
-          FSetMain.CX10W.IP := '127.0.0.1'
-        else if Trim(edIP.Text) <> '' then
+        if Trim(edIP.Text) <> '' then
           FSetMain.CX10W.IP := Trim(edIP.Text);
         if TryStrToInt(Trim(edTCPPORT.Text), Val) and (Val > 0) then
           FSetMain.CX10W.PortaTCP := Val;
@@ -1537,6 +1679,8 @@ begin
         end;
   end;
 
+  if Assigned(FWiFi8KPanel) then FWiFi8KPanel.SaveSettings;
+  if Assigned(FRCPanel) then FRCPanel.SaveSettings;
   FSetMain.DroneProtocolo := TipoAtivo;
   FSetMain.SalvaContexto;
 end;

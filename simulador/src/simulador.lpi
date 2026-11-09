@@ -19,8 +19,11 @@
     </General>
     <VersionInfo>
       <UseVersionInfo Value="True"/>
-      <MajorVersionNr Value="1"/>
-      <StringTable FileDescription="Simulador Cockpit Drone" ProductName="Cockpit Drone" CompanyName="MaurinSoft"/>
+      <MajorVersionNr Value="0"/>
+      <MinorVersionNr Value="46"/>
+      <RevisionNr Value="0"/>
+      <BuildNr Value="0"/>
+      <StringTable ProductName="Cockpit Drone" ProductVersion="0.46.0.0" FileVersion="0.46.0.0"/>
     </VersionInfo>
     <BuildModes>
       <Item Name="Default" Default="True"/>
@@ -102,7 +105,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="nucleo;protocolos;mapa;mundo;visao;forms"/>
+      <OtherUnitFiles Value="..\..\src\compat;..\..\src;nucleo;protocolos;mapa;mundo;visao;forms"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>

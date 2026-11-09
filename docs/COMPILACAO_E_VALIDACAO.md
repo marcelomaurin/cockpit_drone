@@ -1,6 +1,10 @@
+> **Atualização 0.46 (08/11/2026):** dois aplicativos x64 reconstruídos e regressões de joystick, protocolos, configuração, física e câmera aprovadas; oito suítes Pascal locais e66 testes Python (um opcional ignorado). Consulte [protocolos e limites](PROTOCOLOS_0.46.md), [comandos](CONTROLES_0.46.md) e [dependências](DEPENDENCIAS_0.46.md). O histórico abaixo documenta etapas anteriores.
+
+> **Atualização 0.45 (08/11/2026):** aplicativos x64 e instalador completo gerados; 65 testes Python aprovados, seis suítes Pascal existentes e novas regressões de joystick/Cheerson e configuração aprovadas. Consulte [comandos](CONTROLES_0.45.md) e [dependências e limites da validação](DEPENDENCIAS_0.45.md). O registro histórico abaixo corresponde à etapa anterior.
+
 # Compilação e validação do Cockpit Drone
 
-**Estado:** procedimento de reprodução documentado; compilação de produção **ainda não comprovada**.
+**Estado:** compilação local Windows x86_64 e testes automatizados comprovados em 2026-11-06. Produção, Linux, interface visual e ArduPilot SITL ainda pendentes. Evidências e limites: [validação local](VALIDACAO_LOCAL_2026-11-06.md).
 
 ## 1. Pré-requisitos
 
@@ -10,7 +14,7 @@
 - Dependências nativas de vídeo/FFmpeg conforme o sistema e a configuração do FQ777.
 - Para simulação MAVLink: ArduPilot SITL em ambiente separado.
 
-Não há versões de toolchain e pacotes homologadas nesta etapa. Fixar versões e hashes depois da primeira compilação bem-sucedida.
+Ambiente local verificado: Lazarus 4.6, FPC 3.2.2, Python 3.13.7 e pymavlink 2.4.50. Consulte o relatório de validação para pacote de mapa, hashes, logs e limites dessa comprovação.
 
 ## 2. Verificações estáticas
 
@@ -34,14 +38,14 @@ O workflow `.github/workflows/project-contracts.yml` executa esse comando em CI.
 
 | Verificação | Estado |
 |---|---|
-| Contratos Python publicados | Implementado; execução verde não confirmada |
+| Contratos e integração Python | 39 testes locais aprovados, sem skips |
 | FPC/Lazarus Linux | Pendente |
-| FPC/Lazarus Windows | Pendente |
-| Bibliotecas AI Suite e FFmpeg | Inventário pendente |
+| FPC/Lazarus Windows | Aplicativo x86_64 e 5 pacotes AI Suite compilados; 6 suítes Pascal aprovadas |
+| Bibliotecas AI Suite e FFmpeg | 5 pacotes AI Suite compilados; FFmpeg não validado |
 | Joystick físico e falhas | Pendente |
 | FQ777 sem hélices | Pendente |
-| ArduPilot SITL | Pendente |
-| Releases/instaladores | Pendente |
+| ArduPilot SITL | Pendente; loopback UDP MAVLink/Python/Pascal aprovado |
+| Releases/instaladores | A cargo de outra sessão por instrução do usuário |
 
 Registrar em cada ensaio: data, commit, sistema operacional, versão de FPC/Lazarus, pacotes, comando executado, resultado, log e responsável.
 
@@ -54,4 +58,11 @@ Não conectar hélices, motores ou propulsores para verificar joystick e comando
 - Identificar todas as units e pacotes efetivamente usados pelo projeto.
 - Configurar CI de compilação com versões e dependências verificadas.
 - Revisar `TAIDroneFQ777` e a lógica de desconexão/corte no módulo `src/conectionfq777.pas`.
-- Adicionar testes de unidade executáveis para calibração e neutralização dos eixos.
+- Testes de limites e neutralidade já aprovados em `tests/test_input_mapping.pas`; calibração física ainda pendente.
+
+## 7. Regressão local
+
+`tools/test_local.ps1` executa as seis suítes Pascal e a descoberta Python. Com `-MavlinkIntegration`, exige `pymavlink` e testa tráfego UDP real, incluindo a ponte Pascal. `COCKPIT_PYTHON` escolhe o Python do monitor na aplicação. Logs e resultados remotos do novo workflow ainda não foram verificados.
+
+
+A versão0.46 também inclui `tools/test_simulator.ps1` e `tools/test_protocols.ps1` para os cenários de mapa/câmera real, recuperação, sinal, codecs, configuração RC, vídeo HTTP e ligação cockpit-simulador. Use os mesmos parâmetros Lazarus/compilador das regressões de joystick.
