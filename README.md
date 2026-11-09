@@ -24,8 +24,15 @@ Aplicação completa desenvolvida em Object Pascal (Lazarus / Free Pascal) para 
 
 ## Manuais e documentação ilustrada
 
-- **[Manual ilustrado de treinamento para profissionais do SUS — versão 0.46](docs/GUIA_SUS_0.46.md)** — objetivos, primeiro voo simulado, controles Xbox 360, protocolos, mundo compartilhado e **três imagens reais exportadas do simulador**.
+- **[Manual ilustrado de treinamento para profissionais do SUS — versão 0.46](docs/GUIA_SUS_0.46.md)** — objetivos, primeiro voo simulado, controles Xbox 360, protocolos, mundo compartilhado e **capturas reais do Cockpit e do Simulador**.
+- **[Guia ilustrado das telas — versão 0.46](docs/TELAS_0.46.md)** — 17 capturas reais do Cockpit e do Simulador: janela principal, todas as abas de configuração, rota de voo e as vistas do simulador.
 - [Guia de pilotagem e joystick](docs/CONTROLES_0.46.md) · [Protocolos e limitações](docs/PROTOCOLOS_0.46.md) · [Simulador e cenário urbano](simulador/docs/SIMULADOR_0.46.md) · [Dependências de instalação](docs/DEPENDENCIAS_0.46.md).
+
+<p align="center">
+  <img src="docs/img/cockpit-principal.png" alt="Janela principal do Cockpit Drone 0.46" width="49%">
+  <img src="docs/img/simulador-mapa.png" alt="Simulador Cockpit Drone 0.46 com mapa OpenStreetMap" width="49%">
+</p>
+<p align="center"><em>Cockpit (à esquerda) e Simulador (à direita) da versão 0.46 — capturas de tela reais dos executáveis do repositório.</em></p>
 
 ---
 

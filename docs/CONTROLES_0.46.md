@@ -8,6 +8,10 @@
 4. No teste, confira os quatro comandos. Feche a configuração, baixe o manche esquerdo até o fim e ligue Start. Aguarde a conexão e mantenha a aceleração baixa brevemente para liberar a trava.
 5. Suba o manche esquerdo gradualmente acima do centro. O Cheerson deve decolar no simulador. Para descer, reduza gradualmente a aceleração; ao tocar o chão, leve-a ao mínimo. Desligue Start para terminar a conexão.
 
+![Configuração com Modo simulador marcado](img/config-modo-simulador.png)
+
+*Passo 2 — Configuração → Tipo de equipamento com Modo simulador marcado (captura real da 0.46). A troca só é aceita com Start desligado.*
+
 ## Xbox 360 — perfil Modo 2
 
 | Comando | Controle |
@@ -36,6 +40,10 @@ O Xbox tem molas: ao soltar o manche esquerdo ele volta ao centro. Um radiocontr
 O catálogo não transforma modelos sem adaptador em equipamentos suportados. O padrão foi aproximado pelos controles Modo 2 e pelas funções efetivamente existentes nas dependências; não é uma homologação de cada controle original ou de voo físico.
 
 ## Personalizar e testar
+
+![Aba Controle de voo](img/config-controle-voo.png)
+
+*Aba Controle de voo (captura real da 0.46): perfil dos manches, eixos, inversão, acelerador no gatilho e zona morta. Outras abas estão no [guia ilustrado das telas](TELAS_0.46.md).*
 
 Escolha a marca/modelo antes de ajustar. Em **Controle de voo**, selecione **Personalizado** para escolher os quatro eixos, inverter sentidos, configurar a zona morta e os botões. A configuração é salva por marca/modelo em drone_model.ini, na pasta de configurações do usuário. Ao trocar de modelo, seus ajustes ficam separados.
 

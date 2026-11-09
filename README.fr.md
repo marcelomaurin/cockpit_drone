@@ -6,6 +6,12 @@ Application complète développée en Object Pascal (Lazarus / Free Pascal) pour
 
 ---
 
+<p align="center">
+  <img src="docs/img/cockpit-principal.png" alt="Fenêtre principale du Cockpit Drone 0.46" width="49%">
+  <img src="docs/img/simulador-mapa.png" alt="Simulateur Cockpit Drone 0.46 avec OpenStreetMap" width="49%">
+</p>
+<p align="center"><em>Cockpit (à gauche) et Simulateur (à droite), version 0.46 — captures d'écran réelles des exécutables du dépôt.</em> · <a href="docs/TELAS_0.46.md">Guide illustré des écrans, en portugais</a></p>
+
 ## Sommaire
 
 1. [Vue d'ensemble](#vue-densemble)

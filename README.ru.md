@@ -6,6 +6,12 @@
 
 ---
 
+<p align="center">
+  <img src="docs/img/cockpit-principal.png" alt="Главное окно Cockpit Drone 0.46" width="49%">
+  <img src="docs/img/simulador-mapa.png" alt="Симулятор Cockpit Drone 0.46 с OpenStreetMap" width="49%">
+</p>
+<p align="center"><em>Кокпит (слева) и симулятор (справа), версия 0.46 — реальные снимки экрана программ из этого репозитория.</em> · <a href="docs/TELAS_0.46.md">Иллюстрированное руководство по экранам, на португальском</a></p>
+
 ## Содержание
 
 1. [Обзор проекта](#обзор-проекта)

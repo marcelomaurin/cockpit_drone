@@ -1,5 +1,9 @@
 # Simulador 0.46 — treinamento e cenário urbano
 
+![Simulador 0.46 com mapa OpenStreetMap](../../docs/img/simulador-mapa.png)
+
+*Simulador 0.46 na vista Mapa de cima, no ponto padrão, com 172 construções (captura de tela real). Outras vistas no [guia ilustrado das telas](../../docs/TELAS_0.46.md).*
+
 ## Sinal infinito
 
 No simulador, abra **Simulação** e marque **Sinal infinito (treinamento)**. A opção funciona com todos os 14 modelos, em qualquer distância e altura, e pode ser alterada durante o voo. A escolha é salva imediatamente em `simulador.ini`, seção `[treinamento]`, chave `sinal_infinito`.
@@ -29,7 +33,7 @@ No cockpit, marque **Configuração → Tipo de equipamento → Modo simulador**
 
 A imagem para o cockpit é independente da vista escolhida no simulador: mudar para terceira pessoa ou mapa não transforma a câmera do cockpit em outro ângulo. O cockpit consulta esse quadro somente quando Modo simulador está selecionado.
 
-As imagens camera-low.png e camera-high.png foram exportadas pelo próprio caminho de câmera usado no cockpit, com cenário sintético de teste. Demonstram construções nos terrenos, ruas e calçadas livres; não retratam uma cidade real. A captura interativa da janela inteira do cockpit não foi feita nesta atualização. O novo arquivo camera-mapa-real.png foi exportado por GeraQuadroCamera com blocos OSM reais do local padrão: 172 construções, das quais 152 geradas nos terrenos. Essa saída também foi carregada pelo caminho de bitmap da câmera do cockpit.
+As imagens camera-low.png e camera-high.png foram exportadas pelo próprio caminho de câmera usado no cockpit, com cenário sintético de teste. Demonstram construções nos terrenos, ruas e calçadas livres; não retratam uma cidade real. As janelas inteiras do cockpit e do simulador foram capturadas depois, em 09/11/2026, e estão no [guia ilustrado das telas](../../docs/TELAS_0.46.md). O novo arquivo camera-mapa-real.png foi exportado por GeraQuadroCamera com blocos OSM reais do local padrão: 172 construções, das quais 152 geradas nos terrenos. Essa saída também foi carregada pelo caminho de bitmap da câmera do cockpit.
 
 ## Internet, cache e exemplo local
 

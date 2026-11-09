@@ -6,6 +6,12 @@
 
 ---
 
+<p align="center">
+  <img src="docs/img/cockpit-principal.png" alt="Cockpit Drone 0.46 की मुख्य विंडो" width="49%">
+  <img src="docs/img/simulador-mapa.png" alt="OpenStreetMap के साथ Cockpit Drone 0.46 सिम्युलेटर" width="49%">
+</p>
+<p align="center"><em>कॉकपिट (बाएँ) और सिम्युलेटर (दाएँ), संस्करण 0.46 — इस रिपॉज़िटरी के प्रोग्रामों के वास्तविक स्क्रीनशॉट।</em> · <a href="docs/TELAS_0.46.md">स्क्रीन का सचित्र मार्गदर्शक, पुर्तगाली में</a></p>
+
 ## विषय सूची
 
 1. [परियोजना अवलोकन](#परियोजना-अवलोकन)

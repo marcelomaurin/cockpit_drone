@@ -19,19 +19,35 @@ O Cockpit Drone permite **treinar pilotagem no simulador 3D** e utilizar um cock
 
 As imagens abaixo são **capturas existentes no próprio repositório**, geradas pelo simulador; não são fotografias de drones reais nem capturas inventadas.
 
+![Simulador com mapa OpenStreetMap](img/simulador-mapa.png)
+
+*Figura 1 — Janela do simulador 0.46 com o mapa OpenStreetMap do ponto padrão e 172 construções. Captura de tela real.*
+
 ![Câmera sintética do simulador, exemplo de cena](../simulador/docs/camera-low.png)
 
-*Figura 1 — Exemplo de câmera sintética exportada pelo simulador.*
+*Figura 2 — Exemplo de câmera sintética exportada pelo simulador.*
 
 ![Câmera sintética do simulador, segundo exemplo](../simulador/docs/camera-high.png)
 
-*Figura 2 — Segundo exemplo de câmera sintética para treinamento.*
+*Figura 3 — Segundo exemplo de câmera sintética para treinamento.*
 
 ![Câmera do simulador com mapa OSM em cache](../simulador/docs/camera-mapa-real.png)
 
-*Figura 3 — Saída da câmera gerada a partir de blocos OSM reais em cache, com construções fictícias adicionadas pelo simulador. Não representa uma inspeção aérea real.*
+*Figura 4 — Saída da câmera gerada a partir de blocos OSM reais em cache, com construções fictícias adicionadas pelo simulador. Não representa uma inspeção aérea real.*
 
 O simulador usa OpenStreetMap e pode combinar edifícios cadastrados com **casas e prédios fictícios**. A câmera compartilhada com o Cockpit é de **640 × 360 pixels, até 10 quadros por segundo**. A versão 0.46 **não possui colisão física com os prédios**. Veja [documentação do simulador](../simulador/docs/SIMULADOR_0.46.md).
+
+## Conheça as telas do Cockpit
+
+![Janela principal do Cockpit Drone 0.46](img/cockpit-principal.png)
+
+*Figura 5 — Janela principal do Cockpit: indicadores de câmera, mapa e GPS, botão Start, mostradores dos motores, bateria, painel de teste dos comandos e acessos à Configuração e à Rota de voo. Captura real da versão 0.46.*
+
+![Configuração com Modo simulador marcado](img/config-modo-simulador.png)
+
+*Figura 6 — Configuração → Tipo de equipamento com **Modo simulador** marcado. Usada no passo 2 do exercício abaixo.*
+
+O [guia ilustrado das telas](TELAS_0.46.md) mostra todas as abas de configuração, o planejador de rota e as vistas do simulador.
 
 ## Primeiro exercício: Cheerson CX-10W com controle Xbox 360
 

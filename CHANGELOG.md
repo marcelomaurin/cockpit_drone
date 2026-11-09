@@ -6,6 +6,7 @@
 - MSPv1/MSPv2, CRSF, SBUS e iBUS: saída serial e simulação dos mesmos quadros;30 perfis por protocolo/categoria e física de solo, superfície, submerso e asa fixa.
 - Xbox 360 por XInput, Modo 2/RT e personalização por modelo; modo simulador separado da conexão real.
 - Instalador Windows x64 com FFmpeg, OpenSSL3 e Python/pymavlink privados. Novos protocolos reais permanecem experimentais, sem validação física deste drone ou receptores seriais.
+- Documentação (09/11/2026): [guia ilustrado das telas](docs/TELAS_0.46.md) com 17 capturas reais do `drone.exe` e do `simulador.exe` 0.46 (hashes conferidos com o manifesto), e imagens nos README, no manual SUS, nos controles e no guia do simulador.
 
 ## 0.45 — 2026-11-08
 

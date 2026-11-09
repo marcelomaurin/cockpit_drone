@@ -6,6 +6,12 @@
 
 ---
 
+<p align="center">
+  <img src="docs/img/cockpit-principal.png" alt="Cockpit Drone 0.46 主窗口" width="49%">
+  <img src="docs/img/simulador-mapa.png" alt="Cockpit Drone 0.46 模拟器与 OpenStreetMap 地图" width="49%">
+</p>
+<p align="center"><em>驾驶舱（左）与模拟器（右），0.46 版 — 本仓库可执行文件的真实屏幕截图。</em> · <a href="docs/TELAS_0.46.md">界面图解指南（葡萄牙语）</a></p>
+
 ## 目录
 
 1. [项目概述](#项目概述)

@@ -6,6 +6,12 @@
 
 ---
 
+<p align="center">
+  <img src="docs/img/cockpit-principal.png" alt="النافذة الرئيسية لـ Cockpit Drone 0.46" width="49%">
+  <img src="docs/img/simulador-mapa.png" alt="محاكي Cockpit Drone 0.46 مع خريطة OpenStreetMap" width="49%">
+</p>
+<p align="center"><em>قمرة القيادة (يسارًا) والمحاكي (يمينًا)، الإصدار 0.46 — لقطات شاشة حقيقية للبرامج الموجودة في هذا المستودع.</em> · <a href="docs/TELAS_0.46.md">دليل الشاشات المصوّر، بالبرتغالية</a></p>
+
 ## الفهرس
 
 1. [نظرة عامة](#نظرة-عامة)
