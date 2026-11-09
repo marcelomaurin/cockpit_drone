@@ -22,6 +22,63 @@ Aplicação completa desenvolvida em Object Pascal (Lazarus / Free Pascal) para 
 
 ---
 
+## Finalidade: capacitação e apoio à vigilância em saúde no SUS
+
+O **Cockpit Drone** é um projeto de código aberto para **treinamento de pilotagem no simulador** e **operação/monitoramento de drones compatíveis por notebook**. Uma aplicação proposta é apoiar equipes municipais do **Sistema Único de Saúde (SUS)**, especialmente a **Vigilância Ambiental em Saúde** e os profissionais envolvidos na prevenção e controle das arboviroses transmitidas pelo *Aedes aegypti*.
+
+O fluxo pretendido é **aprender no ambiente virtual antes de utilizar o equipamento físico**: familiarizar-se com os comandos, praticar decolagem, deslocamento, aproximação, observação e retorno, e depois conectar um drone compatível para inspeções em campo. Isso reduz a exposição de equipamentos a erros de iniciantes, mas **o simulador não substitui treinamento prático supervisionado, avaliação operacional ou as regras aplicáveis ao voo**.
+
+### O que o monitoramento pode e não pode demonstrar
+
+Imagens aéreas podem ajudar a **localizar situações suspeitas de acúmulo de água**, por exemplo em caixas-d'água destampadas, calhas, lajes e recipientes visíveis. **Uma imagem não comprova a presença de ovos, larvas ou mosquitos**. A identificação e o encaminhamento de possíveis criadouros dependem dos procedimentos e da avaliação da equipe de vigilância. O uso do drone não substitui visita, inspeção ou intervenção quando necessárias.
+
+As operações reais devem observar as exigências brasileiras aplicáveis (ANAC, DECEA e ANATEL, conforme o caso), planejamento de risco, privacidade e proteção de dados. **Não se deve sobrevoar ou filmar residências e pessoas sem a base legal e as autorizações pertinentes**. A adequação ao serviço público de saúde depende de avaliação institucional; o projeto não representa uma solução oficialmente homologada ou adotada pelo SUS.
+
+### Dois ambientes complementares
+
+1. **Simulador 3D:** treinamento sem risco de danificar uma aeronave real, com perfis de veículos, vento, bateria, GPS, falhas simuladas, recuperação após queda, cenário urbano e câmera sintética. A documentação da versão 0.46 informa que **as construções ainda não têm colisão física**, portanto o treinamento não reproduz integralmente acidentes com obstáculos.
+2. **Cockpit de operação:** interface para configurar protocolos disponíveis, joystick/teclado, telemetria, vídeo e mapas, conectando equipamentos compatíveis conforme suas capacidades efetivas. A existência de um adaptador de protocolo **não garante compatibilidade com todos os drones da marca nem validação em voo físico**.
+
+### Protocolos disponibilizados — não confundir com homologação
+
+A tabela abaixo descreve **adaptadores de comunicação presentes no projeto**, e não uma lista de drones homologados, certificados ou ensaiados individualmente.
+
+| Equipamento ou família | Interface/protocolo disponibilizado | Observações |
+| --- | --- | --- |
+| Cheerson CX-10W | Wi-Fi; adaptador CX-10W | Controle de aceleração direta; não possui decolagem/pouso automáticos por A/B no perfil documentado. |
+| DJI/Ryze Tello | SDK Tello por Wi-Fi | Comandos de decolagem/pouso e velocidade vertical conforme adaptador. |
+| MAVLink (ArduPilot/PX4) | MAVLink | Recursos variam conforme firmware, configuração e modo de voo. |
+| Parrot AR.Drone 2.0 | Comandos AT/telemetria/vídeo | Adaptador específico do modelo. |
+| FQ777-954 | Wi-Fi; adaptador FQ777 | Controle proporcional; exige verificação no equipamento real. |
+| ESP-Drone / OpenDrone | CRTP | Depende do firmware/interface compatível. |
+| Drone ESP32 (CDP) | Protocolo CDP | Requer firmware correspondente. |
+| WIFI_8K | Legacy9 e E58_8 | **Experimental:** candidatos de protocolo, sem compatibilidade física confirmada para cada drone. |
+| RC genérico | MSPv1, MSPv2, CRSF, SBUS e iBUS | Saídas de canais e perfis configuráveis; exigem interface elétrica, receptor/controladora e firmware adequados. Não equivalem a um rádio transmissor completo. |
+
+Há perfis RC para **drone, helicóptero, avião, carro, barco e submarino**. A documentação distingue o que foi validado em software do que **não foi ensaiado com hardware real**. Consulte [protocolos e limitações](docs/PROTOCOLOS_0.46.md), [comandos de pilotagem](docs/CONTROLES_0.46.md) e [WIFI_8K experimental](docs/WIFI_8K_EXPERIMENTAL.md).
+
+### Simulador, câmera e cenário
+
+O simulador independente pode ser utilizado com o Cockpit em **Modo simulador**, sem conectar um drone físico. A versão 0.46 documenta cenários a partir de **OpenStreetMap**, edificações registradas no mapa e **casas/prédios fictícios** gerados em áreas residenciais. Esses elementos **não representam necessariamente a geometria ou as condições reais de um imóvel**. A câmera sintética compartilhada com o cockpit é documentada em **640 × 360 pixels, até 10 quadros por segundo**. Há opção de **sinal infinito para treinamento**; desligá-la permite praticar os limites de alcance simulados dos modelos.
+
+Para começar: abra o simulador, escolha o modelo, inicie a simulação e, no Cockpit, selecione o **mesmo equipamento** com **Modo simulador** ativado. Configure e teste os eixos do controle **antes de iniciar**. Os procedimentos variam por modelo; siga o [guia do simulador](simulador/docs/SIMULADOR_0.46.md) e o [guia de controles](docs/CONTROLES_0.46.md). **Os comandos de um modelo não devem ser ensinados como se fossem universais**.
+
+### Site e interação entre participantes
+
+O repositório inclui um componente de servidor **PHP/WebSocket** para **mundo compartilhado/multiplayer**. No simulador, a opção **Mundo compartilhado** permite informar o endereço do servidor e um apelido; a documentação descreve visualização de outras aeronaves em um raio de até **2 km**. Isso pode apoiar atividades coletivas e demonstrações, sujeito à disponibilidade e à configuração do servidor.
+
+- **Endereço indicado no projeto para mundo compartilhado:** https://maurinsoft.com.br/cockpit/ — endereço documentado, **sem garantia de disponibilidade em tempo real**.
+- **Página do projeto:** https://maurinsoft.com.br/wp/projetos-open-source/projeto-cockpit-drone/
+- **Código-fonte e documentação:** https://github.com/marcelomaurin/cockpit_drone
+
+**Importante:** o multiplayer descrito é um recurso de **simulação compartilhada**; não deve ser interpretado como autorização para controle remoto de aeronaves reais por terceiros.
+
+### Proposta de uso em capacitações
+
+Uma sequência didática possível para equipes de vigilância é: **(1)** reconhecer comandos e limitações do modelo; **(2)** treinar no simulador, incluindo falhas e procedimentos de segurança; **(3)** praticar observação de situações suspeitas em cenários fictícios; **(4)** avaliar o desempenho do aluno; **(5)** realizar treinamento supervisionado com equipamento real, quando autorizado; **(6)** registrar e encaminhar observações pelos fluxos institucionais. **Esta sequência é uma proposta pedagógica, não uma funcionalidade integralmente automatizada nem um protocolo oficial do SUS.**
+
+---
+
 ## Visão Geral
 
 O **Cockpit Drone** foi projetado com arquitetura de thread dedicada desacoplada da interface do usuário (UI), garantindo que os laços críticos de envio de comandos de voo (50 ms) e recepção de telemetria nunca sejam interrompidos por travamentos ou caixas de diálogo na interface.
